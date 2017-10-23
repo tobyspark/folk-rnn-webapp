@@ -1,0 +1,1 @@
+POLL_SECS = 2 # The minimum polling frequency to check for new jobs.
