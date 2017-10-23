@@ -69,5 +69,7 @@ Vagrant.configure("2") do |config|
     pip install --upgrade pip
     cd /vagrant_frnn
     pip install -e .
+    sudo mkdir /var/opt/folk_rnn_task
+    sudo chown ubuntu:ubuntu /var/opt/folk_rnn_task
   SHELL
 end
