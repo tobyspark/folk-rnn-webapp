@@ -72,6 +72,7 @@ Vagrant.configure("2") do |config|
     pip install -e .
     sudo mkdir /var/opt/folk_rnn_task
     sudo chown ubuntu:ubuntu /var/opt/folk_rnn_task
+    su ubuntu -c /vagrant/tools/create_model_from_config_meta.py
     # folk_rnn_webapp
     apt-get install --yes python3-pip
     pip3 install --upgrade pip
