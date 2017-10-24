@@ -1,0 +1,12 @@
+#!/bin/bash
+
+echo * FOLK_RNN
+echo *
+echo * About to launch web app
+echo * Browse to 127:0:0:1:8000 on the host machine
+echo * 
+
+cd /vagrant/folk_rnn_site/
+
+# Note 0.0.0.0 is necessary for access from outside the VM
+python3 manage.py runserver 0.0.0.0:8000
