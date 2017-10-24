@@ -78,7 +78,7 @@ Vagrant.configure("2") do |config|
     pip3 install "django<1.12"
     # browser testing, as documentation (this is a server environment here...)
     pip3 install "selenium<4"
-    wget https://github.com/mozilla/geckodriver/releases/download/v0.19.0/geckodriver-v0.19.0-linux64.tar.gz
+    wget --no-verbose https://github.com/mozilla/geckodriver/releases/download/v0.19.0/geckodriver-v0.19.0-linux64.tar.gz
     tar -xvzf geckodriver*
     chmod +x geckodriver
     mv geckodriver /usr/local/bin/geckodriver
