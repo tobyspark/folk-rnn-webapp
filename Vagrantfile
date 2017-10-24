@@ -65,11 +65,23 @@ Vagrant.configure("2") do |config|
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
+    # folk_rnn_task
     apt-get install --yes python-pip
     pip install --upgrade pip
     cd /vagrant_frnn
     pip install -e .
     sudo mkdir /var/opt/folk_rnn_task
     sudo chown ubuntu:ubuntu /var/opt/folk_rnn_task
+    # folk_rnn_webapp
+    apt-get install --yes python3-pip
+    pip3 install --upgrade pip
+    pip3 install "django<1.12"
+    # browser testing, as documentation (this is a server environment here...)
+    pip3 install "selenium<4"
+    wget https://github.com/mozilla/geckodriver/releases/download/v0.19.0/geckodriver-v0.19.0-linux64.tar.gz
+    tar -xvzf geckodriver*
+    chmod +x geckodriver
+    mv geckodriver /usr/local/bin/geckodriver
+    rm geckodriver*
   SHELL
 end
