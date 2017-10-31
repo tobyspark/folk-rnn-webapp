@@ -15,5 +15,5 @@ class HomePageTest(TestCase):
         response = composer_page(request)
         html = response.content.decode('utf8')
         self.assertTrue(html.startswith('<html>'))
-        self.assertIn('<title>Folk_RNN Composer</title>', html)
+        self.assertIn('<title>Folk RNN Composer</title>', html)
         self.assertTrue(html.endswith('</html>'))
