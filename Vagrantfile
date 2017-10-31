@@ -77,12 +77,15 @@ Vagrant.configure("2") do |config|
     apt-get install --yes python3-pip
     pip3 install --upgrade pip
     pip3 install "django<1.12"
-    # browser testing, as documentation (this is a server environment here...)
+    # browser testing
     pip3 install "selenium<4"
-    wget --no-verbose https://github.com/mozilla/geckodriver/releases/download/v0.19.0/geckodriver-v0.19.0-linux64.tar.gz
-    tar -xvzf geckodriver*
-    chmod +x geckodriver
-    mv geckodriver /usr/local/bin/geckodriver
-    rm geckodriver*
+    apt-get install --yes chromium-browser
+    apt-get install --yes unzip
+    apt-get install --yes libgconf-2-4
+    wget --no-verbose https://chromedriver.storage.googleapis.com/2.33/chromedriver_linux64.zip
+    unzip chromedriver*
+    chmod +x chromedriver
+    mv chromedriver /usr/local/bin/chromedriver
+    rm chromedriver*
   SHELL
 end
