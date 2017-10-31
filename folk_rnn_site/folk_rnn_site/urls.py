@@ -17,5 +17,5 @@ from django.conf.urls import url
 from composer import views
 
 urlpatterns = [
-    url(r'^$', views.composer_page, name='folk_rnn composer'),
+    url(r'^$', views.composer_page, name='composer'),
 ]
