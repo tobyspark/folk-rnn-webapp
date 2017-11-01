@@ -38,6 +38,14 @@ class HomePageTest(TestCase):
         self.post_tune()
         response = self.client.get('/candidate-tune/1')
         self.assertTemplateUsed(response, 'candidate-tune.html')
+        
+    def test_candidate_tune_page_shows_composing_message(self):
+        self.post_tune()
+        response = self.client.get('/candidate-tune/1')
+        self.assertIn(
+            b'Composition with seed "some ABC notation" in process...', 
+            response.content
+            )
 
 class TuneModelTest(TestCase):
     

@@ -45,10 +45,10 @@ class NewVisitorTest(unittest.TestCase):
         compose_button.click()
         
         # Compose section changes to "composition in process"
-        composing_div = self.browser.find_element_by_id('compose_ui')
         time.sleep(1)
+        composing_div = self.browser.find_element_by_id('compose_ui')
         self.assertIn(
-            'Composing... this may take a while',
+            'in process...',
             composing_div.text
             )
                 
