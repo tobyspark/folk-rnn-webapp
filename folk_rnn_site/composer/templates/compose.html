@@ -6,8 +6,11 @@
         <h1>Compose</h1>
         <div id="compose_ui">
             Compose a folk music tune using a recurrent neural network.
-            <input name="seed_text" id="id_seed_text" placeholder="Enter start of tune in ABC notation">
-            <input id="compose_button" type="submit" value="Compose...">
+            <form method="POST">
+                {% csrf_token %}
+                <input name="seed_text" id="id_seed_text" placeholder="Enter start of tune in ABC notation">
+                <input id="compose_button" type="submit" value="Compose...">
+            </form>
         </div>
     </body>
 </html>
