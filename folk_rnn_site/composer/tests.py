@@ -11,10 +11,17 @@ class HomePageTest(TestCase):
         response = self.client.get('/')  
         self.assertTemplateUsed(response, 'compose.html')
     
-    def test_compose_page_saves_seed_on_POST(self):
+    def test_compose_page_can_save_a_POST_request(self):
+        self.client.post('/', data={'seed_text': 'some ABC notation'})
+        
+        self.assertEqual(Tune.objects.count(), 1)
+        new_tune = Tune.objects.first()
+        self.assertEqual(new_tune.seed, 'some ABC notation')
+    
+    def test_compose_page_redirects_after_POST(self):
         response = self.client.post('/', data={'seed_text': 'some ABC notation'})
-        self.assertTemplateUsed(response, 'compose.html')
-        self.assertIn('some ABC notation', response.content.decode())
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], '/')
 
 class TuneModelTest(TestCase):
     

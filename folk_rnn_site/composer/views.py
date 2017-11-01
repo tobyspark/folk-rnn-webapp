@@ -1,8 +1,11 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+
+from composer.models import Tune
 
 def composer_page(request):
     if request.method == 'POST':
-        return render(request, 'compose.html', {
-            'seed_text': request.POST['seed_text'],
-        })
+        Tune.objects.create(seed=request.POST['seed_text'])
+        return redirect('/')
+        
     return render(request, 'compose.html')
+
