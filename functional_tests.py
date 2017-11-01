@@ -22,12 +22,21 @@ class NewVisitorTest(unittest.TestCase):
         header_text = self.browser.find_element_by_tag_name('h1').text  
         self.assertIn('Compose', header_text)
         
-        # Sees a compose tune section at the top of the page, hits "compose"
+        # Sees a compose tune section at the top of the page...
         composing_div = self.browser.find_element_by_id('compose_ui')
         self.assertIn(
             'Compose a folk music tune using a recurrent neural network',
             composing_div.text
             )
+            
+        # ...enters seed text...
+        seed_field = self.browser.find_element_by_id('id_seed_text')
+        self.assertEqual(
+            seed_field.get_attribute('placeholder'),
+            'Enter start of tune in ABC notation'
+        )
+        
+        # ...and hits "compose" 
         compose_button = self.browser.find_element_by_id('compose_button')
         self.assertEqual(
             'Compose...',
