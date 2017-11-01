@@ -7,19 +7,22 @@ from composer.models import Tune
 
 class HomePageTest(TestCase):
     
+    def post_tune(self):
+        return self.client.post('/', data={'seed_text': 'some ABC notation'})
+    
     def test_compose_page_uses_compose_template(self):
         response = self.client.get('/')  
         self.assertTemplateUsed(response, 'compose.html')
     
     def test_compose_page_can_save_a_POST_request(self):
-        self.client.post('/', data={'seed_text': 'some ABC notation'})
+        self.post_tune()
         
         self.assertEqual(Tune.objects.count(), 1)
         new_tune = Tune.objects.first()
         self.assertEqual(new_tune.seed, 'some ABC notation')
     
     def test_compose_page_redirects_after_POST(self):
-        response = self.client.post('/', data={'seed_text': 'some ABC notation'})
+        response = self.post_tune()
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['location'], '/candidate-tune/1')
     
@@ -32,7 +35,7 @@ class HomePageTest(TestCase):
         self.assertEqual(response['location'], '/')
     
     def test_candidate_tune_page_uses_candidate_tune_template(self):
-        self.client.post('/', data={'seed_text': 'some ABC notation'})
+        self.post_tune()
         response = self.client.get('/candidate-tune/1')
         self.assertTemplateUsed(response, 'candidate-tune.html')
 
