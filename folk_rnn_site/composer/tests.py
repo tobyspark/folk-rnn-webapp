@@ -21,7 +21,20 @@ class HomePageTest(TestCase):
     def test_compose_page_redirects_after_POST(self):
         response = self.client.post('/', data={'seed_text': 'some ABC notation'})
         self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], '/candidate-tune/1')
+    
+    def test_candidate_tune_path_with_no_id_fails_gracefully(self):
+        response = self.client.get('/candidate-tune/')
         self.assertEqual(response['location'], '/')
+    
+    def test_candidate_tune_path_with_invalid_id_fails_gracefully(self):
+        response = self.client.get('/candidate-tune/1')
+        self.assertEqual(response['location'], '/')
+    
+    def test_candidate_tune_page_uses_candidate_tune_template(self):
+        self.client.post('/', data={'seed_text': 'some ABC notation'})
+        response = self.client.get('/candidate-tune/1')
+        self.assertTemplateUsed(response, 'candidate-tune.html')
 
 class TuneModelTest(TestCase):
     
