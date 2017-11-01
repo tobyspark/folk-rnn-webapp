@@ -6,14 +6,6 @@ from composer.views import composer_page
 
 class HomePageTest(TestCase):
     
-    def test_root_url_resolves_to_composer_page_view(self):
-        found = resolve('/')
-        self.assertEqual(found.func, composer_page)
-    
-    def test_home_page_returns_correct_html(self):
-        request = HttpRequest()
-        response = composer_page(request)
-        html = response.content.decode('utf8')
-        self.assertTrue(html.startswith('<html>'))
-        self.assertIn('<title>Folk RNN Composer</title>', html)
-        self.assertTrue(html.endswith('</html>'))
+    def test_compose_page_uses_compose_template(self):
+        response = self.client.get('/')  
+        self.assertTemplateUsed(response, 'compose.html')
