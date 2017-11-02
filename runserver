@@ -1,10 +1,16 @@
 #!/bin/bash
 
-echo * FOLK_RNN
-echo *
-echo * About to launch web app
-echo * Browse to 127:0:0:1:8000 on the host machine
-echo * 
+echo "******************************************************"
+echo "*                                                    *"
+echo "* FOLK_RNN                                           *"
+echo "*                                                    *"
+echo "* About to launch web app                            *"
+echo "* Browse to 127:0:0:1:8000 on the host machine       *"
+echo "*                                                    *"
+echo "* To quit the folk_rnn_task loop:                    *"
+echo "* killall /usr/bin/python                            *"
+echo "*                                                    *"
+echo "******************************************************"
 
 /vagrant/folk_rnn_task/folk_rnn_task.py &
 

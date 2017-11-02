@@ -67,8 +67,9 @@ try:
     os.makedirs(TUNE_PATH)
 except:
     pass
+print('folk_rnn_task started')
 while True:
-    print('Loop start at {}'.format(time.ctime()))
+    print('folk_rnn_task loop start at {}'.format(time.ctime()))
     loop_start_time = time.time()
     
     new_job = get_new_job()
