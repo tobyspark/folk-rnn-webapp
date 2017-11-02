@@ -42,10 +42,7 @@ class HomePageTest(TestCase):
     def test_candidate_tune_page_shows_composing_message(self):
         self.post_tune()
         response = self.client.get('/candidate-tune/1')
-        self.assertIn(
-            b'Composition with seed "some ABC notation" in process...', 
-            response.content
-            )
+        self.assertContains(response, 'Composition with seed "some ABC notation" in process...')
 
 class TuneModelTest(TestCase):
     
