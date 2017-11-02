@@ -1,8 +1,8 @@
+from django.test import LiveServerTestCase
 from selenium import webdriver
-import unittest
 import time
 
-class NewVisitorTest(unittest.TestCase):
+class NewVisitorTest(LiveServerTestCase):
     
     def setUp(self):
         options = webdriver.ChromeOptions();
@@ -15,7 +15,7 @@ class NewVisitorTest(unittest.TestCase):
         
     def test_can_compose_tune_display_it_and_reset(self):
         # Ada navigates to the folk_rnn web app
-        self.browser.get('http://localhost:8000')
+        self.browser.get(self.live_server_url)
         
         # Sees that it is indeed about the folk-rnn folk music style modelling project
         self.assertIn('Folk RNN',self.browser.title)
@@ -72,5 +72,3 @@ class NewVisitorTest(unittest.TestCase):
             composing_div.text
             )
 
-if __name__ == '__main__':
-    unittest.main()
