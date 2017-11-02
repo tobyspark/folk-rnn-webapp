@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 from __future__ import print_function
-from constants import TUNE_PATH, MODEL_PATH, POLL_SECS
+from constants import TUNE_PATH, MODEL_PATH, DB_PATH, POLL_SECS
 from folk_rnn import Folk_RNN
 import random
 import time
@@ -60,7 +60,7 @@ def process_job(job_spec):
         f.write(tune)
     return True
 
-db = sqlite3.connect('../folk_rnn_site/db.sqlite3')
+db = sqlite3.connect(DB_PATH)
 dbc = db.cursor()
 
 try:
