@@ -7,25 +7,35 @@ import random
 import time
 import os
 import cPickle as pickle
+import sqlite3
+from datetime import datetime
+
 
 def get_new_job():
-    if random.choice([False, False, False, False, True]):
-        return new_jobber.next()
+    # Retrieve the oldest, uncomposed tune from the site's db
+    # Going by row order rather than requested datetime
+    tune_select = dbc.execute('SELECT id, seed FROM composer_tune WHERE rnn_finished IS NULL LIMIT 1').fetchone()
 
-def new_job_generator():
-    id_counter = 0
-    model_path = os.path.join(MODEL_PATH, 'test_model.pickle_2')
-    with open(model_path, "r") as f:
-        model = pickle.load(f)
-    while True:
+    if tune_select is not None:
+        tune_id = tune_select[0]
+        tune_seed = tune_select[1]
+
+        model_path = os.path.join(MODEL_PATH, 'test_model.pickle_2')
+        with open(model_path, "r") as f:
+            model = pickle.load(f)
         job_spec = dict(model)
-        job_spec['id'] = id_counter
+        job_spec['id'] = tune_id
         job_spec['temperature'] = None
-        job_spec['seed'] = None
-        id_counter += 1
-        yield job_spec
+        job_spec['seed'] = tune_seed if len(tune_seed) > 0 else None
+
+        return job_spec
 
 def process_job(job_spec):
+    dbc.execute('UPDATE composer_tune SET rnn_started=? WHERE id=?', 
+        (datetime.now(), job_spec['id'])
+        )
+    db.commit()
+    
     folk_rnn = Folk_RNN(
         job_spec['token2idx'],
         job_spec['param_values'], 
@@ -39,23 +49,31 @@ def process_job(job_spec):
         )
     folk_rnn.seed_tune(job_spec['seed'])
     tune = folk_rnn.compose_tune()
+    
+    dbc.execute('UPDATE composer_tune SET rnn_finished=?, rnn_tune=? WHERE id=?', 
+        (datetime.now(), tune, job_spec['id'])
+        )
+    db.commit()
+    
     tune_path = os.path.join(TUNE_PATH, 'test_tune_{}'.format(job_spec['id']))
     with open(tune_path, 'w') as f:
         f.write(tune)
     return True
 
+db = sqlite3.connect('../folk_rnn_site/db.sqlite3')
+dbc = db.cursor()
+
 try:
     os.makedirs(TUNE_PATH)
 except:
     pass
-new_jobber = new_job_generator()
 while True:
     print('Loop start at {}'.format(time.ctime()))
     loop_start_time = time.time()
     
     new_job = get_new_job()
     if new_job:
-        print('Processing...')
+        print('Processing tune id:{}'.format(new_job['id']))
         process_job(new_job)
     
     elapsed_secs = time.time() - loop_start_time
