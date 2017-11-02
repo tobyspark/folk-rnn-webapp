@@ -48,7 +48,7 @@ class NewVisitorTest(LiveServerTestCase):
         time.sleep(1)
         composing_div = self.browser.find_element_by_id('compose_ui')
         self.assertIn(
-            'in process...',
+            'Composition with seed',
             composing_div.text
             )
                 

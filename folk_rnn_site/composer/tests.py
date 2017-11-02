@@ -4,6 +4,7 @@ from django.http import HttpRequest
 from django.utils.timezone import now
 from datetime import timedelta
 from time import sleep
+from email.utils import format_datetime # RFC 2822 for parity with django template date filter
 
 from composer.views import composer_page
 from composer.models import Tune
@@ -40,12 +41,36 @@ class HomePageTest(TestCase):
     def test_candidate_tune_page_uses_candidate_tune_template(self):
         self.post_tune()
         response = self.client.get('/candidate-tune/1')
-        self.assertTemplateUsed(response, 'candidate-tune.html')
+        self.assertTemplateUsed(response, 'candidate-tune-in-process.html')
         
-    def test_candidate_tune_page_shows_composing_message(self):
+    def test_candidate_tune_page_shows_composing_messages(self):
         self.post_tune()
         response = self.client.get('/candidate-tune/1')
+        self.assertContains(response, 'Composition with seed "some ABC notation" is waiting for folk_rnn task')
+        
+        tune = Tune.objects.first()
+        tune.rnn_started = now()
+        tune.save()
+        
+        response = self.client.get('/candidate-tune/1')
         self.assertContains(response, 'Composition with seed "some ABC notation" in process...')
+
+    def test_candidate_tune_page_shows_results(self):
+        self.post_tune()
+        
+        tune = Tune.objects.first()
+        tune.seed = "seed ABC"
+        tune.rnn_started = now()
+        tune.rnn_finished = now() + timedelta(seconds=1)
+        tune.rnn_tune = 'RNN ABC'
+        tune.save()
+        
+        response = self.client.get('/candidate-tune/1')
+        print(response.content)
+        self.assertContains(response,'<p>The composition –<br>RNN ABC</p>', html=True) # 'html' needed to handle linebreak formatting
+        self.assertContains(response,'<li>Seed: seed ABC</li>')
+        self.assertContains(response,'<li>Requested at: {}</li>'.format(format_datetime(tune.requested)), msg_prefix='FIXME: This will falsely fail for single digit day of the month due to Django template / Python RFC formatting mis-match.') # FIXME
+        self.assertContains(response,'<li>Composition took: 1s</li>')
 
 class TuneModelTest(TestCase):
     
@@ -90,4 +115,4 @@ class TuneModelTest(TestCase):
         self.assertTrue(tune.rnn_started < tune.rnn_finished)
         self.assertAlmostEqual(tune.rnn_started, tune.rnn_finished, timedelta(seconds=0.1))
         self.assertEqual(tune.rnn_tune, 'RNN ABC')
-        
+    

@@ -5,7 +5,15 @@
     <body>
         <h1>Compose</h1>
         <div id="compose_ui">
-            Composition with seed "{{ seed }}" in process...
+            <p>The composition –<br>
+                {{ tune }}</p>
+            <p>This was made with –<br>
+                <ul>
+                    <li>Seed: {{ seed }}</li>
+                    <li>Requested at: {{ requested|date:"r" }}</li>
+                    <li>Composition took: {{ rnn_duration|floatformat:"0" }}s</li>
+                </ul>
+            </p>
         </div>
     </body>
 </html>
