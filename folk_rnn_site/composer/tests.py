@@ -1,6 +1,9 @@
 from django.test import TestCase
 from django.urls import resolve
 from django.http import HttpRequest
+from django.utils.timezone import now
+from datetime import timedelta
+from time import sleep
 
 from composer.views import composer_page
 from composer.models import Tune
@@ -46,7 +49,11 @@ class HomePageTest(TestCase):
 
 class TuneModelTest(TestCase):
     
-    def test_saving_and_retrieving_items(self):
+    def assertAlmostEqual(self, a, b, max_delta=0.1):
+        delta = abs(a - b)
+        self.assertTrue(delta < max_delta)
+    
+    def test_saving_and_retrieving_tunes(self):
         first_tune = Tune()
         first_tune.seed = 'ABC'
         first_tune.save()
@@ -62,4 +69,25 @@ class TuneModelTest(TestCase):
         second_saved_tune = saved_tunes[1]
         self.assertEqual(first_saved_tune.seed, 'ABC')
         self.assertEqual(second_saved_tune.seed, 'DEF')
+    
+    def test_tune_lifecycle(self):
+        tune = Tune.objects.create()
+        self.assertAlmostEqual(tune.requested, now(), timedelta(seconds=0.1))
+        self.assertEqual(tune.rnn_tune, '')
+        
+        tune = Tune.objects.first()
+        tune.rnn_started = now()
+        tune.save()
+        
+        sleep(0.001)
+        
+        tune = Tune.objects.first()
+        tune.rnn_finished = now()
+        tune.rnn_tune = 'RNN ABC'
+        tune.save()
+        
+        tune = Tune.objects.first()
+        self.assertTrue(tune.rnn_started < tune.rnn_finished)
+        self.assertAlmostEqual(tune.rnn_started, tune.rnn_finished, timedelta(seconds=0.1))
+        self.assertEqual(tune.rnn_tune, 'RNN ABC')
         
