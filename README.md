@@ -4,24 +4,26 @@
 
 - Managed via [vagrant](http://vagrantup.com)
 - OS: Ubuntu 16.04 LTS
-	- This ships with Python 3.5, i.e. before pip is bundled with python.
+	- This ships with Python 3.5
+- To run on your e.g. laptop you need to install
+	- vagrant
+	- virtualbox
+	- ...and nothing else, it's all contained and automatically set up within the VM.
 
-First run –
+### Server
+From the repo root directory, do the following in a shell
 
 ```
 vagrant up
 vagrant ssh
+/vagrant/runserver
+```
+and navigate to http://127.0.0.1:8000 in your browser
 
-# install pip
-sudo apt update
-sudo apt install python-pip
-
-# Oh no! folk-rnn is python 2 only, and doing any python 3 can screw up the dependencies installation.
-#sudo apt install python3-pip
-#sudo pip3 install --upgrade pip
-
-# install folk-rnn
-cd /vagrant_frnn
-sudo pip install -e .
-#no! sudo pip3 install -e .
+### Tests
+```
+vagrant up
+vagrant ssh
+python3 /vagrant/folk_rnn_site/manage.py test composer
+python3 /vagrant/folk_rnn_site/manage.py test functional_tests
 ```
