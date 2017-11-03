@@ -11,14 +11,33 @@
 	- ...and nothing else, it's all contained and automatically set up within the VM.
 
 ### Server
-From the repo root directory, do the following in a shell
+Create a directory on your host machine. Clone into that the following two repositories
+
+- this _folk-rnn-webapp_, ie. `git clone https://github.com/tobyspark/folk-rnn-webapp.git`
+- the _folk-rnn_ library, ie. `git clone https://github.com/tobyspark/folk-rnn.git`
+
+You should have two folders like so
+```
+some_directory
+|- folk_rnn
+|- folk_rnn_webapp
+```
+
+In a shell, navigate to the `folk_rnn_webapp` directory, and issue the following commands
 
 ```
 vagrant up
 vagrant ssh
 /vagrant/runserver
 ```
-and navigate to http://127.0.0.1:8000 in your browser
+
+On first run, `vagrant up` will download Ubuntu 16.04, create a VM and install the OS, and then run the configuration tasks, all as prescribed by the [Vagrantfile](https://github.com/tobyspark/folk-rnn-webapp/blob/master/Vagrantfile).
+
+Thereafter, `vagrant up` will boot the machine, and `vagrant halt` will shut it down.
+
+To get in, `vagrant ssh` and you should see your shell prompt change to `ubuntu@ubuntu`. Type `logout` or `<ctrl-d>` to close the ssh connection.
+
+Once you have issued the runserver command,  navigate to http://127.0.0.1:8000 in your browser as it tells you.
 
 ### Tests
 ```
