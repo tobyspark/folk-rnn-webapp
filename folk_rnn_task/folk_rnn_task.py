@@ -22,8 +22,7 @@ def get_new_job():
 
         model_path = os.path.join(MODEL_PATH, 'test_model.pickle_2')
         with open(model_path, "r") as f:
-            model = pickle.load(f)
-        job_spec = dict(model)
+            job_spec = pickle.load(f)
         job_spec['id'] = tune_id
         job_spec['temperature'] = None
         job_spec['seed'] = tune_seed if len(tune_seed) > 0 else None
