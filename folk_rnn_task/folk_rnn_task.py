@@ -14,13 +14,14 @@ from datetime import datetime
 def get_new_job():
     # Retrieve the oldest, uncomposed tune from the site's db
     # Going by row order rather than requested datetime
-    tune_select = dbc.execute('SELECT id, seed FROM composer_tune WHERE rnn_finished IS NULL LIMIT 1').fetchone()
+    tune_select = dbc.execute('SELECT id, seed, rnn_model_name FROM composer_tune WHERE rnn_finished IS NULL LIMIT 1').fetchone()
 
     if tune_select is not None:
         tune_id = tune_select[0]
         tune_seed = tune_select[1]
+        model_name = tune_select[2]
 
-        model_path = os.path.join(MODEL_PATH, 'test_model.pickle_2')
+        model_path = os.path.join(MODEL_PATH, model_name)
         with open(model_path, "r") as f:
             job_spec = pickle.load(f)
         job_spec['id'] = tune_id
