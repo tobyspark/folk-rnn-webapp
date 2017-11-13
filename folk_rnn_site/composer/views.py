@@ -1,15 +1,19 @@
 from django.shortcuts import redirect, render
 
 from composer.models import Tune
+from composer.forms import ComposeForm
 
 def composer_page(request):
     if request.method == 'POST':
-        tune = Tune()
-        tune.seed = request.POST['seed_text']
-        tune.save()
-        return redirect('/candidate-tune/{}'.format(tune.id))
-        
-    return render(request, 'compose.html')
+        form = ComposeForm(request.POST)
+        if form.is_valid():
+            tune = Tune()
+            tune.seed = form.cleaned_data['seed']
+            tune.save()
+            return redirect('/candidate-tune/{}'.format(tune.id))
+    
+    form = ComposeForm()    
+    return render(request, 'compose.html', {'form': form})
 
 def candidate_tune_page(request, tune_id=None):
     try:
