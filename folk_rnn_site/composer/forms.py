@@ -1,6 +1,11 @@
 from django import forms
 
 class ComposeForm(forms.Form):
+    model = forms.ChoiceField(label='RNN Model:', 
+                              choices=(
+                                    ('test_model.pickle_2', 'default'),
+                                    ),
+                              )
     meter = forms.ChoiceField(label='Meter:', choices=(
                                                     ('M:4/4', '4/4'), 
                                                     ('M:6/8', '6/8'), 

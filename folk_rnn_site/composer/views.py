@@ -12,6 +12,7 @@ def composer_page(request):
         form = ComposeForm(request.POST)
         if form.is_valid():
             tune = Tune()
+            tune.rnn_model_name = form.cleaned_data['model']
             tune.seed = '{} {}'.format(
                                 form.cleaned_data['meter'],
                                 form.cleaned_data['key'], 
