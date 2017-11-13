@@ -12,7 +12,7 @@ from composer.models import Tune
 class HomePageTest(TestCase):
     
     def post_tune(self):
-        return self.client.post('/', data={'seed_text': 'some ABC notation'})
+        return self.client.post('/', data={'meter':'M:4/4', 'key': 'K:Cmaj', 'seed': 'some ABC notation'})
     
     def test_compose_page_uses_compose_template(self):
         response = self.client.get('/')  
@@ -23,7 +23,7 @@ class HomePageTest(TestCase):
         
         self.assertEqual(Tune.objects.count(), 1)
         new_tune = Tune.objects.first()
-        self.assertEqual(new_tune.seed, 'some ABC notation')
+        self.assertEqual(new_tune.seed, 'M:4/4 K:Cmaj some ABC notation')
     
     def test_compose_page_redirects_after_POST(self):
         response = self.post_tune()
@@ -46,14 +46,14 @@ class HomePageTest(TestCase):
     def test_candidate_tune_page_shows_composing_messages(self):
         self.post_tune()
         response = self.client.get('/candidate-tune/1')
-        self.assertContains(response, 'Composition with seed "some ABC notation" is waiting for folk_rnn task')
+        self.assertContains(response, 'Composition with seed "M:4/4 K:Cmaj some ABC notation" is waiting for folk_rnn task')
         
         tune = Tune.objects.first()
         tune.rnn_started = now()
         tune.save()
         
         response = self.client.get('/candidate-tune/1')
-        self.assertContains(response, 'Composition with seed "some ABC notation" in process...')
+        self.assertContains(response, 'Composition with seed "M:4/4 K:Cmaj some ABC notation" in process...')
 
     def test_candidate_tune_page_shows_results(self):
         self.post_tune()

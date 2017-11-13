@@ -3,12 +3,21 @@ from django.shortcuts import redirect, render
 from composer.models import Tune
 from composer.forms import ComposeForm
 
+# FIXME: Write a ABC validator per model used, ie. all(x in token2idx[y])
+def validate_seed(seed):
+    return len(seed) > 0
+
 def composer_page(request):
     if request.method == 'POST':
         form = ComposeForm(request.POST)
         if form.is_valid():
             tune = Tune()
-            tune.seed = form.cleaned_data['seed']
+            tune.seed = '{} {}'.format(
+                                form.cleaned_data['meter'],
+                                form.cleaned_data['key'], 
+                                )
+            if validate_seed(form.cleaned_data['seed']):
+                tune.seed += ' {}'.format(form.cleaned_data['seed'])
             tune.save()
             return redirect('/candidate-tune/{}'.format(tune.id))
     
