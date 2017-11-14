@@ -9,7 +9,7 @@ import os
 import cPickle as pickle
 import sqlite3
 from datetime import datetime
-
+import subprocess
 
 def get_new_job():
     # Retrieve the oldest, uncomposed tune from the site's db
@@ -48,16 +48,26 @@ def process_job(job_spec):
         # job_spec['temperature'],
         )
     folk_rnn.seed_tune(job_spec['seed'])
-    tune = folk_rnn.compose_tune()
+    tune_tokens = folk_rnn.compose_tune()
     
+    tune_path_raw = os.path.join(TUNE_PATH, 'test_tune_{}_raw'.format(job_spec['id']))
+    with open(tune_path_raw, 'w') as f:
+        f.write(' '.join(tune_tokens))
+    
+    tune_path = os.path.join(TUNE_PATH, 'test_tune_{}'.format(job_spec['id']))
+    tune = 'X:0\n{}\n{}\n{}\n'.format(tune_tokens[0], tune_tokens[1], ''.join(tune_tokens[2:]))
+    with open(tune_path, 'w') as f:
+        f.write(tune)
+    conform_abc_command = ['/usr/bin/abc2abc', tune_path]
+    tune = subprocess.check_output(conform_abc_command)
+    with open(tune_path, 'w') as f:
+        f.write(tune)
+
     dbc.execute('UPDATE composer_tune SET rnn_finished=?, rnn_tune=? WHERE id=?', 
         (datetime.now(), tune, job_spec['id'])
         )
     db.commit()
     
-    tune_path = os.path.join(TUNE_PATH, 'test_tune_{}'.format(job_spec['id']))
-    with open(tune_path, 'w') as f:
-        f.write(tune)
     return True
 
 db = sqlite3.connect(DB_PATH)
