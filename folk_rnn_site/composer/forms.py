@@ -1,11 +1,11 @@
 from django import forms
+from django.core.exceptions import ValidationError
+
+from composer.rnn_models import choices as rnn_choices
+from composer.rnn_models import validate_tokens
 
 class ComposeForm(forms.Form):
-    model = forms.ChoiceField(label='RNN Model:', 
-                              choices=(
-                                    ('test_model.pickle_2', 'default'),
-                                    ),
-                              )
+    model = forms.ChoiceField(label='RNN Model:', choices=rnn_choices())
     meter = forms.ChoiceField(label='Meter:', choices=(
                                                     ('M:4/4', '4/4'), 
                                                     ('M:6/8', '6/8'), 
@@ -22,6 +22,14 @@ class ComposeForm(forms.Form):
                                                 ))
     seed = forms.CharField(label='Seed:', 
                            widget=forms.TextInput(attrs={'placeholder':'Enter start of tune in ABC notation'}),
+                           error_messages={'invalid': 'Invalid ABC notation as per the RNN model'},
                            required=False)
 
-    
+    # Validate whole form as seed validation (might) depend on particular model
+    def clean(self):
+        super(ComposeForm, self).clean()
+        if self.cleaned_data['seed']:
+            tokens = self.cleaned_data['seed'].split(' ')
+            if not validate_tokens(tokens, model_file_name=self.cleaned_data['model']):
+                self.add_error('seed', ValidationError('Invalid ABC as per RNN model', code='invalid'))
+            

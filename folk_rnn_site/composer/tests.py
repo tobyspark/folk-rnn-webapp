@@ -12,7 +12,7 @@ from composer.models import Tune
 class HomePageTest(TestCase):
     
     def post_tune(self):
-        return self.client.post('/', data={'model':'test_model.pickle_2', 'meter':'M:4/4', 'key': 'K:Cmaj', 'seed': 'some ABC notation'})
+        return self.client.post('/', data={'model':'test_model.pickle_2', 'meter':'M:4/4', 'key': 'K:Cmaj', 'seed': 'a b c'})
     
     def test_compose_page_uses_compose_template(self):
         response = self.client.get('/')  
@@ -23,7 +23,7 @@ class HomePageTest(TestCase):
         
         self.assertEqual(Tune.objects.count(), 1)
         new_tune = Tune.objects.first()
-        self.assertEqual(new_tune.seed, 'M:4/4 K:Cmaj some ABC notation')
+        self.assertEqual(new_tune.seed, 'M:4/4 K:Cmaj a b c')
     
     def test_compose_page_redirects_after_POST(self):
         response = self.post_tune()
@@ -46,29 +46,27 @@ class HomePageTest(TestCase):
     def test_candidate_tune_page_shows_composing_messages(self):
         self.post_tune()
         response = self.client.get('/candidate-tune/1')
-        self.assertContains(response, 'Composition with seed "M:4/4 K:Cmaj some ABC notation" is waiting for folk_rnn task')
+        self.assertContains(response, 'Composition with seed "M:4/4 K:Cmaj a b c" is waiting for folk_rnn task')
         
         tune = Tune.objects.first()
         tune.rnn_started = now()
         tune.save()
         
         response = self.client.get('/candidate-tune/1')
-        self.assertContains(response, 'Composition with seed "M:4/4 K:Cmaj some ABC notation" in process...')
+        self.assertContains(response, 'Composition with seed "M:4/4 K:Cmaj a b c" in process...')
 
     def test_candidate_tune_page_shows_results(self):
         self.post_tune()
         
         tune = Tune.objects.first()
-        tune.seed = "seed ABC"
         tune.rnn_started = now()
         tune.rnn_finished = now() + timedelta(seconds=1)
         tune.rnn_tune = 'RNN ABC'
         tune.save()
         
         response = self.client.get('/candidate-tune/1')
-        print(response.content)
         self.assertContains(response,'<p>The composition –<br>RNN ABC</p>', html=True) # 'html' needed to handle linebreak formatting
-        self.assertContains(response,'<li>Seed: seed ABC</li>')
+        self.assertContains(response,'<li>Seed: M:4/4 K:Cmaj a b c</li>')
         self.assertContains(response,'<li>Requested at: {}</li>'.format(format_datetime(tune.requested)), msg_prefix='FIXME: This will falsely fail for single digit day of the month due to Django template / Python RFC formatting mis-match.') # FIXME
         self.assertContains(response,'<li>Composition took: 1s</li>')
 
