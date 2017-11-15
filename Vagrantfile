@@ -70,8 +70,8 @@ Vagrant.configure("2") do |config|
     pip2 install --upgrade pip
     cd /vagrant_frnn
     pip2 --no-cache-dir install -e .
-    sudo mkdir /var/opt/folk_rnn_task
-    sudo chown ubuntu:ubuntu /var/opt/folk_rnn_task
+    mkdir /var/opt/folk_rnn_task
+    chown ubuntu:ubuntu /var/opt/folk_rnn_task
     su ubuntu -c /vagrant/tools/create_model_from_config_meta.py
     apt-get install --yes abcmidi
     # folk_rnn_webapp
