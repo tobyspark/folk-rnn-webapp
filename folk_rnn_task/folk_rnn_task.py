@@ -14,19 +14,18 @@ import subprocess
 def get_new_job():
     # Retrieve the oldest, uncomposed tune from the site's db
     # Going by row order rather than requested datetime
-    tune_select = dbc.execute('SELECT id, prime_tokens, rnn_model_name FROM composer_tune WHERE rnn_finished IS NULL LIMIT 1').fetchone()
+    tune_select = dbc.execute('SELECT id, seed, temp, prime_tokens, rnn_model_name FROM composer_tune WHERE rnn_finished IS NULL LIMIT 1').fetchone()
 
     if tune_select is not None:
-        tune_id = tune_select[0]
-        tune_seed = tune_select[1]
-        model_name = tune_select[2]
+        tune_id, tune_seed, tune_temp, tune_prime_tokens, model_name = tune_select
 
         model_path = os.path.join(MODEL_PATH, model_name)
         with open(model_path, "r") as f:
             job_spec = pickle.load(f)
         job_spec['id'] = tune_id
-        job_spec['temperature'] = None
-        job_spec['seed'] = tune_seed if len(tune_seed) > 0 else None
+        job_spec['temperature'] = tune_temp
+        job_spec['rng_seed'] = tune_seed
+        job_spec['seed'] = tune_prime_tokens if len(tune_prime_tokens) > 0 else None
 
         return job_spec
 
@@ -44,8 +43,8 @@ def process_job(job_spec):
         job_spec['grad_clipping'],
         job_spec['dropout'], 
         job_spec['embedding_size'], 
-        # job_spec['rng_seed'], 
-        # job_spec['temperature'],
+        job_spec['rng_seed'], 
+        job_spec['temperature'],
         )
     folk_rnn.seed_tune(job_spec['seed'])
     tune_tokens = folk_rnn.compose_tune()
