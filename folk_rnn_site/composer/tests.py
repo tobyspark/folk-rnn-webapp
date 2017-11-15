@@ -74,10 +74,6 @@ class HomePageTest(TestCase):
 
 class TuneModelTest(TestCase):
     
-    def assertAlmostEqual(self, a, b, max_delta=0.1):
-        delta = abs(a - b)
-        self.assertTrue(delta < max_delta)
-    
     def test_saving_and_retrieving_tunes(self):
         first_tune = Tune()
         first_tune.prime_tokens = 'ABC'
@@ -97,7 +93,7 @@ class TuneModelTest(TestCase):
     
     def test_tune_lifecycle(self):
         tune = Tune.objects.create()
-        self.assertAlmostEqual(tune.requested, now(), timedelta(seconds=0.1))
+        self.assertAlmostEqual(tune.requested, now(), delta=timedelta(seconds=0.1))
         self.assertEqual(tune.rnn_tune, '')
         
         tune = Tune.objects.first()
@@ -113,6 +109,6 @@ class TuneModelTest(TestCase):
         
         tune = Tune.objects.first()
         self.assertTrue(tune.rnn_started < tune.rnn_finished)
-        self.assertAlmostEqual(tune.rnn_started, tune.rnn_finished, timedelta(seconds=0.1))
+        self.assertAlmostEqual(tune.rnn_started, tune.rnn_finished, delta=timedelta(seconds=0.1))
         self.assertEqual(tune.rnn_tune, 'RNN ABC')
     
