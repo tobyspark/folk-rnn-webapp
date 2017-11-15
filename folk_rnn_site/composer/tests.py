@@ -1,12 +1,9 @@
 from django.test import TestCase
-from django.urls import resolve
-from django.http import HttpRequest
 from django.utils.timezone import now
 from datetime import timedelta
 from time import sleep
 from email.utils import format_datetime # RFC 2822 for parity with django template date filter
 
-from composer.views import composer_page
 from composer.models import Tune
 
 class HomePageTest(TestCase):
