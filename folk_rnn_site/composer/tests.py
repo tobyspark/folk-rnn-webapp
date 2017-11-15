@@ -12,7 +12,7 @@ from composer.models import Tune
 class HomePageTest(TestCase):
     
     def post_tune(self):
-        return self.client.post('/', data={'model':'test_model.pickle_2', 'meter':'M:4/4', 'key': 'K:Cmaj', 'seed': 'a b c'})
+        return self.client.post('/', data={'model':'test_model.pickle_2', 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': 'a b c'})
     
     def test_compose_page_uses_compose_template(self):
         response = self.client.get('/')  
@@ -23,7 +23,7 @@ class HomePageTest(TestCase):
         
         self.assertEqual(Tune.objects.count(), 1)
         new_tune = Tune.objects.first()
-        self.assertEqual(new_tune.seed, 'M:4/4 K:Cmaj a b c')
+        self.assertEqual(new_tune.prime_tokens, 'M:4/4 K:Cmaj a b c')
     
     def test_compose_page_redirects_after_POST(self):
         response = self.post_tune()
@@ -46,14 +46,14 @@ class HomePageTest(TestCase):
     def test_candidate_tune_page_shows_composing_messages(self):
         self.post_tune()
         response = self.client.get('/candidate-tune/1')
-        self.assertContains(response, 'Composition with seed "M:4/4 K:Cmaj a b c" is waiting for folk_rnn task')
+        self.assertContains(response, 'Composition with prime tokens "M:4/4 K:Cmaj a b c" is waiting for folk_rnn task')
         
         tune = Tune.objects.first()
         tune.rnn_started = now()
         tune.save()
         
         response = self.client.get('/candidate-tune/1')
-        self.assertContains(response, 'Composition with seed "M:4/4 K:Cmaj a b c" in process...')
+        self.assertContains(response, 'Composition with prime tokens "M:4/4 K:Cmaj a b c" in process...')
 
     def test_candidate_tune_page_shows_results(self):
         self.post_tune()
@@ -67,7 +67,7 @@ class HomePageTest(TestCase):
         response = self.client.get('/candidate-tune/1')
         #print(response.content)
         self.assertContains(response,'>RNN ABC</textarea>')
-        self.assertContains(response,'<li>Seed: M:4/4 K:Cmaj a b c</li>')
+        self.assertContains(response,'<li>Prime tokens: M:4/4 K:Cmaj a b c</li>')
         self.assertContains(response,'<li>Requested at: {}</li>'.format(format_datetime(tune.requested)), msg_prefix='FIXME: This will falsely fail for single digit day of the month due to Django template / Python RFC formatting mis-match.') # FIXME
         self.assertContains(response,'<li>Composition took: 1s</li>')
 
@@ -79,11 +79,11 @@ class TuneModelTest(TestCase):
     
     def test_saving_and_retrieving_tunes(self):
         first_tune = Tune()
-        first_tune.seed = 'ABC'
+        first_tune.prime_tokens = 'ABC'
         first_tune.save()
         
         second_tune = Tune()
-        second_tune.seed = 'DEF'
+        second_tune.prime_tokens = 'DEF'
         second_tune.save()
         
         saved_tunes = Tune.objects.all()
@@ -91,8 +91,8 @@ class TuneModelTest(TestCase):
         
         first_saved_tune = saved_tunes[0]
         second_saved_tune = saved_tunes[1]
-        self.assertEqual(first_saved_tune.seed, 'ABC')
-        self.assertEqual(second_saved_tune.seed, 'DEF')
+        self.assertEqual(first_saved_tune.prime_tokens, 'ABC')
+        self.assertEqual(second_saved_tune.prime_tokens, 'DEF')
     
     def test_tune_lifecycle(self):
         tune = Tune.objects.create()

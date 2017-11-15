@@ -14,7 +14,7 @@ import subprocess
 def get_new_job():
     # Retrieve the oldest, uncomposed tune from the site's db
     # Going by row order rather than requested datetime
-    tune_select = dbc.execute('SELECT id, seed, rnn_model_name FROM composer_tune WHERE rnn_finished IS NULL LIMIT 1').fetchone()
+    tune_select = dbc.execute('SELECT id, prime_tokens, rnn_model_name FROM composer_tune WHERE rnn_finished IS NULL LIMIT 1').fetchone()
 
     if tune_select is not None:
         tune_id = tune_select[0]

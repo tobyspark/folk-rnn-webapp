@@ -29,10 +29,10 @@ class NewVisitorTest(LiveServerTestCase):
             composing_div.text
             )
             
-        # ...enters seed text...
-        seed_field = self.browser.find_element_by_id('id_seed_text')
+        # ...enters prime_tokens text...
+        prime_tokens_field = self.browser.find_element_by_id('id_prime_tokens_text')
         self.assertEqual(
-            seed_field.get_attribute('placeholder'),
+            prime_tokens_field.get_attribute('placeholder'),
             'Enter start of tune in ABC notation'
         )
         
@@ -48,7 +48,7 @@ class NewVisitorTest(LiveServerTestCase):
         time.sleep(1)
         composing_div = self.browser.find_element_by_id('compose_ui')
         self.assertIn(
-            'Composition with seed',
+            'Composition with prime tokens',
             composing_div.text
             )
                 

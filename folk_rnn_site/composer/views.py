@@ -9,12 +9,12 @@ def composer_page(request):
         if form.is_valid():
             tune = Tune()
             tune.rnn_model_name = form.cleaned_data['model']
-            tune.seed = '{} {}'.format(
+            tune.prime_tokens = '{} {}'.format(
                                 form.cleaned_data['meter'],
                                 form.cleaned_data['key'], 
                                 )
-            if form.cleaned_data['seed']:
-                tune.seed += ' {}'.format(form.cleaned_data['seed'])
+            if form.cleaned_data['prime_tokens']:
+                tune.prime_tokens += ' {}'.format(form.cleaned_data['prime_tokens'])
             tune.save()
             return redirect('/candidate-tune/{}'.format(tune.id))
     else:
@@ -31,18 +31,18 @@ def candidate_tune_page(request, tune_id=None):
     
     if not tune.rnn_started:
         return render(request, 'candidate-tune-in-process.html', {
-            'seed': tune.seed,
+            'prime_tokens': tune.prime_tokens,
             'rnn_has_started': False,
             })
     
     if not tune.rnn_finished:
         return render(request, 'candidate-tune-in-process.html', {
-            'seed': tune.seed,
+            'prime_tokens': tune.prime_tokens,
             'rnn_has_started': True,
             })
     
     return render(request, 'candidate-tune.html', {
-        'seed': tune.seed,
+        'prime_tokens': tune.prime_tokens,
         'tune': tune.rnn_tune,
         'requested': tune.requested,
         'rnn_duration': (tune.rnn_finished - tune.rnn_started).total_seconds(),

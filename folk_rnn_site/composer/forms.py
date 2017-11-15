@@ -20,16 +20,16 @@ class ComposeForm(forms.Form):
                                                 ('K:Cdor', 'C Dorian'),
                                                 ('K:Cmix', 'C Mixolydian'),
                                                 ))
-    seed = forms.CharField(label='Seed:', 
+    prime_tokens = forms.CharField(label='Prime tokens:', 
                            widget=forms.TextInput(attrs={'placeholder':'Enter start of tune in ABC notation'}),
                            error_messages={'invalid': 'Invalid ABC notation as per the RNN model'},
                            required=False)
 
-    # Validate whole form as seed validation (might) depend on particular model
+    # Validate whole form as prime_tokens validation (might) depend on particular model
     def clean(self):
         super(ComposeForm, self).clean()
-        if self.cleaned_data['seed']:
-            tokens = self.cleaned_data['seed'].split(' ')
+        if self.cleaned_data['prime_tokens']:
+            tokens = self.cleaned_data['prime_tokens'].split(' ')
             if not validate_tokens(tokens, model_file_name=self.cleaned_data['model']):
-                self.add_error('seed', ValidationError('Invalid ABC as per RNN model', code='invalid'))
+                self.add_error('prime_tokens', ValidationError('Invalid ABC as per RNN model', code='invalid'))
             
