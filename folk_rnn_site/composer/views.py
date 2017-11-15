@@ -3,9 +3,6 @@ from django.shortcuts import redirect, render
 from composer.models import Tune
 from composer.forms import ComposeForm
 
-def normalise_temp(x):
-    return float(x / 10)
-
 def composer_page(request):
     if request.method == 'POST':
         form = ComposeForm(request.POST)
@@ -13,7 +10,7 @@ def composer_page(request):
             tune = Tune()
             tune.rnn_model_name = form.cleaned_data['model']
             tune.seed = form.cleaned_data['seed']
-            tune.temp = normalise_temp(form.cleaned_data['temp'])
+            tune.temp = form.cleaned_data['temp']
             tune.prime_tokens = '{} {}'.format(
                                 form.cleaned_data['meter'],
                                 form.cleaned_data['key'], 

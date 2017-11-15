@@ -20,7 +20,7 @@ class HomePageTest(TestCase):
         
         self.assertEqual(Tune.objects.count(), 1)
         new_tune = Tune.objects.first()
-        self.assertEqual(new_tune.temp, 0.01) # Note value is normalised, check not e.g. integer division
+        self.assertEqual(new_tune.temp, 0.1)
         self.assertEqual(new_tune.prime_tokens, 'M:4/4 K:Cmaj a b c')
     
     def test_compose_page_redirects_after_POST(self):
@@ -67,7 +67,7 @@ class HomePageTest(TestCase):
         self.assertContains(response,'>RNN ABC</textarea>')
         self.assertContains(response,'<li>RNN model: test_model.pickle_2')
         self.assertContains(response,'<li>RNN seed: 123')
-        self.assertContains(response,'<li>RNN temperature: 0.01/1')
+        self.assertContains(response,'<li>RNN temperature: 0.1')
         self.assertContains(response,'<li>Prime tokens: M:4/4 K:Cmaj a b c</li>')
         self.assertContains(response,'<li>Requested at: {}</li>'.format(format_datetime(tune.requested)), msg_prefix='FIXME: This will falsely fail for single digit day of the month due to Django template / Python RFC formatting mis-match.') # FIXME
         self.assertContains(response,'<li>Composition took: 1s</li>')

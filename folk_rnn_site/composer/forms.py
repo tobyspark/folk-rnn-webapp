@@ -7,7 +7,7 @@ from composer.rnn_models import validate_tokens
 
 class ComposeForm(forms.Form):
     model = forms.ChoiceField(label='RNN Model:', choices=rnn_choices())
-    temp = forms.DecimalField(label='RNN Temperature:', min_value=0.01, max_value=10, decimal_places=2, initial=5)
+    temp = forms.DecimalField(label='RNN Temperature:', min_value=0.01, max_value=10, decimal_places=2, initial=1)
     seed = forms.IntegerField(label='RNN Seed:', min_value=0, max_value=2**15, initial=lambda : randint(0, 2**15))
     meter = forms.ChoiceField(label='Meter:', choices=(
                                                     ('M:4/4', '4/4'), 
