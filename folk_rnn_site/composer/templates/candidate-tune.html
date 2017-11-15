@@ -16,9 +16,16 @@
         <div id="compose_ui">
             <p>The composition –</p>
             <textarea name="abc" id="abc" cols="80" rows="15">{{ tune }}</textarea>
-            <p>This was made with –<br>
+            <p>Was made with –<br>
                 <ul>
+                    <li>RNN model: {{ model }}</li>
+                    <li>RNN seed: {{ seed }}</li>
+                    <li>RNN temperature: {{ temp }}/1</li>
                     <li>Prime tokens: {{ prime_tokens }}</li>
+                </ul>
+            </p>
+            <p>The task was –<br>
+                <ul>
                     <li>Requested at: {{ requested|date:"r" }}</li>
                     <li>Composition took: {{ rnn_duration|floatformat:"0" }}s</li>
                 </ul>

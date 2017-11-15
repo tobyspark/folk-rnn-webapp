@@ -9,7 +9,7 @@ from composer.models import Tune
 class HomePageTest(TestCase):
     
     def post_tune(self):
-        return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': 42, 'temp': 0.1, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': 'a b c'})
+        return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': 123, 'temp': 0.1, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': 'a b c'})
     
     def test_compose_page_uses_compose_template(self):
         response = self.client.get('/')  
@@ -65,6 +65,9 @@ class HomePageTest(TestCase):
         response = self.client.get('/candidate-tune/1')
         #print(response.content)
         self.assertContains(response,'>RNN ABC</textarea>')
+        self.assertContains(response,'<li>RNN model: test_model.pickle_2')
+        self.assertContains(response,'<li>RNN seed: 123')
+        self.assertContains(response,'<li>RNN temperature: 0.01/1')
         self.assertContains(response,'<li>Prime tokens: M:4/4 K:Cmaj a b c</li>')
         self.assertContains(response,'<li>Requested at: {}</li>'.format(format_datetime(tune.requested)), msg_prefix='FIXME: This will falsely fail for single digit day of the month due to Django template / Python RFC formatting mis-match.') # FIXME
         self.assertContains(response,'<li>Composition took: 1s</li>')

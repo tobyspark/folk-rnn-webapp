@@ -47,6 +47,9 @@ def candidate_tune_page(request, tune_id=None):
             })
     
     return render(request, 'candidate-tune.html', {
+        'model': tune.rnn_model_name,
+        'seed': tune.seed,
+        'temp': tune.temp,
         'prime_tokens': tune.prime_tokens,
         'tune': tune.rnn_tune,
         'requested': tune.requested,
