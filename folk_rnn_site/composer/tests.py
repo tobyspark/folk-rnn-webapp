@@ -23,6 +23,7 @@ class HomePageTest(TestCase):
         
         self.assertEqual(Tune.objects.count(), 1)
         new_tune = Tune.objects.first()
+        self.assertEqual(new_tune.temp, 0.5) # Note value is normalised
         self.assertEqual(new_tune.prime_tokens, 'M:4/4 K:Cmaj a b c')
     
     def test_compose_page_redirects_after_POST(self):
