@@ -9,6 +9,8 @@ def composer_page(request):
         if form.is_valid():
             tune = Tune()
             tune.rnn_model_name = form.cleaned_data['model']
+            tune.seed = form.cleaned_data['seed']
+            tune.temp = form.cleaned_data['temp']
             tune.prime_tokens = '{} {}'.format(
                                 form.cleaned_data['meter'],
                                 form.cleaned_data['key'], 

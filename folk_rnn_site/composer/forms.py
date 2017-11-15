@@ -1,11 +1,14 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from random import randint
 
 from composer.rnn_models import choices as rnn_choices
 from composer.rnn_models import validate_tokens
 
 class ComposeForm(forms.Form):
     model = forms.ChoiceField(label='RNN Model:', choices=rnn_choices())
+    temp = forms.DecimalField(label='RNN Temperature:', min_value=0.01, max_value=10, decimal_places=2, initial=5)
+    seed = forms.IntegerField(label='RNN Seed:', min_value=0, max_value=2**15, initial=lambda : randint(0, 2**15))
     meter = forms.ChoiceField(label='Meter:', choices=(
                                                     ('M:4/4', '4/4'), 
                                                     ('M:6/8', '6/8'), 

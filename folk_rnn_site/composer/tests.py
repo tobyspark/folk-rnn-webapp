@@ -12,7 +12,7 @@ from composer.models import Tune
 class HomePageTest(TestCase):
     
     def post_tune(self):
-        return self.client.post('/', data={'model':'test_model.pickle_2', 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': 'a b c'})
+        return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': 42, 'temp': 5.0, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': 'a b c'})
     
     def test_compose_page_uses_compose_template(self):
         response = self.client.get('/')  
