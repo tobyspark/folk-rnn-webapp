@@ -9,7 +9,7 @@ from composer.models import Tune
 class HomePageTest(TestCase):
     
     def post_tune(self):
-        return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': 42, 'temp': 5.0, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': 'a b c'})
+        return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': 42, 'temp': 0.1, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': 'a b c'})
     
     def test_compose_page_uses_compose_template(self):
         response = self.client.get('/')  
@@ -20,7 +20,7 @@ class HomePageTest(TestCase):
         
         self.assertEqual(Tune.objects.count(), 1)
         new_tune = Tune.objects.first()
-        self.assertEqual(new_tune.temp, 0.5) # Note value is normalised
+        self.assertEqual(new_tune.temp, 0.01) # Note value is normalised, check not e.g. integer division
         self.assertEqual(new_tune.prime_tokens, 'M:4/4 K:Cmaj a b c')
     
     def test_compose_page_redirects_after_POST(self):
