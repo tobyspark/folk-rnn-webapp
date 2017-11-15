@@ -25,7 +25,7 @@ some-directory
 └── midi-js-soundfonts
 ```
 
-In a shell, navigate to the `folk_rnn_webapp` directory, and issue the following commands
+In a shell, navigate to the `folk-rnn-webapp` directory, and issue the following commands
 
 ```
 vagrant up
@@ -40,6 +40,8 @@ Thereafter, `vagrant up` will boot the machine, and `vagrant halt` will shut it 
 To get in, `vagrant ssh` and you should see your shell prompt change to `ubuntu@ubuntu`. Type `logout` or `<ctrl-d>` to close the ssh connection.
 
 Once you have issued the runserver command,  navigate to http://127.0.0.1:8000 in your browser as it tells you.
+
+Note: if the specification for the VM changes, e.g. what's in the `Vagrantfile`, those changes will need to be retrospectively applied to any existing machines. Either `vagrant reload --provision` the existing machine, or `vagrant destroy; vagrant up` to create a fresh machine to this spec.
 
 ### Tests
 ```
