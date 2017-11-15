@@ -11,16 +11,18 @@
 	- ...and nothing else, it's all contained and automatically set up within the VM.
 
 ### Server
-Create a directory on your host machine. Clone into that the following two repositories
+Create a directory on your host machine. Clone into that the following three repositories. Note the soundfont repository is optional, MIDI functionality will simply be hobbled without it.
 
 - this _folk-rnn-webapp_, ie. `git clone https://github.com/tobyspark/folk-rnn-webapp.git`
 - the _folk-rnn_ library, ie. `git clone https://github.com/tobyspark/folk-rnn.git`
+- the _midi-js-soundfonts_ resources, ie. `git clone https://github.com/gleitz/midi-js-soundfonts.git`
 
-You should have two folders like so
+You should have three folders like so
 ```
-some_directory
-|- folk_rnn
-|- folk_rnn_webapp
+some-directory
+├── folk-rnn
+├── folk-rnn-webapp
+└── midi-js-soundfonts
 ```
 
 In a shell, navigate to the `folk_rnn_webapp` directory, and issue the following commands
