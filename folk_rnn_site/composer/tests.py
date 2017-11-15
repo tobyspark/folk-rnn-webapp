@@ -65,7 +65,8 @@ class HomePageTest(TestCase):
         tune.save()
         
         response = self.client.get('/candidate-tune/1')
-        self.assertContains(response,'<p>The composition –<br>RNN ABC</p>', html=True) # 'html' needed to handle linebreak formatting
+        #print(response.content)
+        self.assertContains(response,'>RNN ABC</textarea>')
         self.assertContains(response,'<li>Seed: M:4/4 K:Cmaj a b c</li>')
         self.assertContains(response,'<li>Requested at: {}</li>'.format(format_datetime(tune.requested)), msg_prefix='FIXME: This will falsely fail for single digit day of the month due to Django template / Python RFC formatting mis-match.') # FIXME
         self.assertContains(response,'<li>Composition took: 1s</li>')
