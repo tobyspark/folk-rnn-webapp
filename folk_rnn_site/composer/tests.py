@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.contrib.staticfiles import finders
 from django.utils.timezone import now
 from datetime import timedelta
 from time import sleep
@@ -120,4 +121,9 @@ class TuneModelTest(TestCase):
         self.assertTrue(tune.rnn_started < tune.rnn_finished)
         self.assertAlmostEqual(tune.rnn_started, tune.rnn_finished, delta=timedelta(seconds=0.1))
         self.assertEqual(tune.rnn_tune, 'RNN ABC')
+        
+
+class ABCJSTest(TestCase):
     
+    def test_soundfonts_available(self):
+        self.assertIsNotNone(finders.find('soundfont/accordion-mp3.js'))
