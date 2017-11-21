@@ -29,7 +29,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
         options.add_argument("headless");
         options.add_argument('window-size=1024x768')
         self.browser = webdriver.Chrome(chrome_options=options)
-        self.browser_wait = webdriver.support.wait.WebDriverWait(self.browser, 15)
+        self.browser_wait = webdriver.support.wait.WebDriverWait(self.browser, 5)
         
     def tearDown(self):
         self.browser.quit()
