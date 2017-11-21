@@ -2,7 +2,6 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.utils.timezone import now
 from datetime import timedelta
 from selenium import webdriver
-import time
 
 from composer.models import Tune
 
