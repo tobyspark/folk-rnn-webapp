@@ -8,8 +8,8 @@ from composer.models import Tune
 
 class HomePageTest(TestCase):
     
-    def post_tune(self):
-        return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': 123, 'temp': 0.1, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': 'a b c'})
+    def post_tune(self, seed=123, temp=0.1, prime_tokens='a b c'):
+        return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': seed, 'temp': temp, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': prime_tokens})
     
     def test_compose_page_uses_compose_template(self):
         response = self.client.get('/')  
@@ -17,11 +17,20 @@ class HomePageTest(TestCase):
     
     def test_compose_page_can_save_a_POST_request(self):
         self.post_tune()
-        
         self.assertEqual(Tune.objects.count(), 1)
         new_tune = Tune.objects.first()
         self.assertEqual(new_tune.temp, 0.1)
         self.assertEqual(new_tune.prime_tokens, 'M:4/4 K:Cmaj a b c')
+  
+    def test_compose_page_does_not_save_an_invalid_POST_request(self):
+        self.post_tune(prime_tokens='slarty bartfast')
+        self.assertEqual(Tune.objects.count(), 0)
+        
+        self.post_tune(seed=-1)
+        self.assertEqual(Tune.objects.count(), 0)
+        
+        self.post_tune(temp=11)
+        self.assertEqual(Tune.objects.count(), 0)          
     
     def test_compose_page_redirects_after_POST(self):
         response = self.post_tune()
