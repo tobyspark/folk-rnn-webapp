@@ -1,14 +1,36 @@
-from django.test import LiveServerTestCase
+from django.contrib.staticfiles.testing import StaticLiveServerTestCase
+from django.utils.timezone import now
+from datetime import timedelta
 from selenium import webdriver
 import time
 
-class NewVisitorTest(LiveServerTestCase):
+from composer.models import Tune
+
+RNN_TUNE_TEXT = '''X:16
+T:FolkRNN Candidate Tune No16
+M:4/4
+K:Cmaj
+abcceggc|defgdefd|bgfgecce|defga2g2|affgcegc|defgagfd|efece2c2|dcBcdBGz:|egg2egg2|gcegf2c2|Bgg2fBB2|dBd2dff2|egg2cggc|ac'c'2agfa|gcc2e2cd|BGABc2c2
+%Warning : No repeat expected, found :|
+:|'''
+
+def folk_rnn_task_mock_run():
+    tune = Tune.objects.first()
+    tune.seed = 42
+    tune.prime_tokens = 'M:4/4 K:Cmaj a b c'
+    tune.rnn_started = now()
+    tune.rnn_finished = now() + timedelta(seconds=24)
+    tune.rnn_tune = RNN_TUNE_TEXT
+    tune.save() 
+
+class NewVisitorTest(StaticLiveServerTestCase):
     
     def setUp(self):
         options = webdriver.ChromeOptions();
         options.add_argument("headless");
         options.add_argument('window-size=1024x768')
         self.browser = webdriver.Chrome(chrome_options=options)
+        self.browser_wait = webdriver.support.wait.WebDriverWait(self.browser, 15)
         
     def tearDown(self):
         self.browser.quit()
@@ -30,11 +52,12 @@ class NewVisitorTest(LiveServerTestCase):
             )
             
         # ...enters prime_tokens text...
-        prime_tokens_field = self.browser.find_element_by_id('id_prime_tokens_text')
+        prime_tokens_field = self.browser.find_element_by_id('id_prime_tokens')
         self.assertEqual(
             prime_tokens_field.get_attribute('placeholder'),
             'Enter start of tune in ABC notation'
         )
+        prime_tokens_field.send_keys('a b c')
         
         # ...and hits "compose" 
         compose_button = self.browser.find_element_by_id('compose_button')
@@ -44,29 +67,41 @@ class NewVisitorTest(LiveServerTestCase):
             )
         compose_button.click()
         
-        # Compose section changes to "composition in process"
-        time.sleep(1)
+        # Compose section changes to "composition in process"...
+        self.browser_wait.until(lambda x: x.current_url.endswith('/candidate-tune/1'))
         composing_div = self.browser.find_element_by_id('compose_ui')
         self.assertIn(
-            'Composition with prime tokens',
+            'Composition with prime tokens "M:4/4 K:Cmaj a b c" is waiting for folk_rnn task',
             composing_div.text
             )
-                
-        # Eventually, the compose section changes again, displaying the tune in ABC notation.
-        # There is also a button to reset and compose again. Which she presses, and the 
-        # compose section is as it was on first load.
-        time.sleep(60)
-        composing_div = self.browser.find_element_by_id('compose_ui')
+        
+        # ...while the folk_rnn_task running elsewhere picks the task from the database, runs, and writes the composition back.        
+        folk_rnn_task_mock_run()
+        
+        # Once the task has finished, the compose section changes again, displaying the tune in ABC notation...
+        composition_div = self.browser_wait.until(lambda x: x.find_element_by_id('composition'))
         self.assertIn(
-            'The composition:',
-            composing_div.text
+            RNN_TUNE_TEXT,
+            composition_div.text
             )
+            
+        # ...with midi and score being generated and displayed in browser.
+        for div_id in ['midi', 'midi-download', 'paper0']: # abcjs placeholder divs
+            div = self.browser.find_element_by_id(div_id)
+            injected_elements = div.find_elements_by_xpath('*')
+            self.assertGreater(len(injected_elements), 0)
+        
+        # Satisfied that this works, she starts again, to explore algorithmic composition some more
+        compose_button = self.browser.find_element_by_id('compose_button')
         self.assertEqual(
-            'Reset...',
-            compose_button.text
+            'Start again...',
+            compose_button.get_attribute('value')
             )
+        
         compose_button.click()
-        time.sleep(1)
+        self.browser_wait.until(lambda x: x.current_url == self.live_server_url + '/?') # FIXME: shouldn't really have the GET ? in the URL
+        composing_div = self.browser.find_element_by_id('compose_ui')
+        
         self.assertIn(
             'Compose a folk music tune using a recurrent neural network',
             composing_div.text
