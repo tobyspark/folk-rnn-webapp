@@ -33,8 +33,8 @@ class NewVisitorTest(StaticLiveServerTestCase):
         
     def tearDown(self):
         self.browser.quit()
-        
-    def test_can_compose_tune_display_it_and_reset(self):
+   
+    def test_can_compose_tune_and_display_it(self):
         # Ada navigates to the folk_rnn web app
         self.browser.get(self.live_server_url)
         
@@ -67,7 +67,8 @@ class NewVisitorTest(StaticLiveServerTestCase):
         compose_button.click()
         
         # Compose section changes to "composition in process"...
-        self.browser_wait.until(lambda x: x.current_url.endswith('/candidate-tune/1'))
+        candidate_tune_url = self.live_server_url + '/candidate-tune/{}'.format(Tune.objects.first().id)
+        self.browser_wait.until(lambda x: x.current_url == candidate_tune_url)
         composing_div = self.browser.find_element_by_id('compose_ui')
         self.assertIn(
             'Composition with prime tokens "M:4/4 K:Cmaj a b c" is waiting for folk_rnn task',
@@ -89,7 +90,11 @@ class NewVisitorTest(StaticLiveServerTestCase):
             div = self.browser.find_element_by_id(div_id)
             injected_elements = div.find_elements_by_xpath('*')
             self.assertGreater(len(injected_elements), 0)
-        
+    
+    def test_can_start_again_after_composing(self):
+        # Ada composes and gets to candidate tune page
+        self.test_can_compose_tune_and_display_it()
+    
         # Satisfied that this works, she starts again, to explore algorithmic composition some more
         compose_button = self.browser.find_element_by_id('compose_button')
         self.assertEqual(
