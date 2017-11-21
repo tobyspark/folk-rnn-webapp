@@ -2,6 +2,7 @@ from django.contrib.staticfiles.testing import StaticLiveServerTestCase
 from django.utils.timezone import now
 from datetime import timedelta
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 
 from composer.models import Tune
 
@@ -33,6 +34,9 @@ class NewVisitorTest(StaticLiveServerTestCase):
         
     def tearDown(self):
         self.browser.quit()
+    
+    def candidate_tune_url(self):
+        return self.live_server_url + '/candidate-tune/{}'.format(Tune.objects.first().id)
    
     def test_can_compose_tune_and_display_it(self):
         # Ada navigates to the folk_rnn web app
@@ -67,8 +71,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
         compose_button.click()
         
         # Compose section changes to "composition in process"...
-        candidate_tune_url = self.live_server_url + '/candidate-tune/{}'.format(Tune.objects.first().id)
-        self.browser_wait.until(lambda x: x.current_url == candidate_tune_url)
+        self.browser_wait.until(lambda x: x.current_url == self.candidate_tune_url())
         composing_div = self.browser.find_element_by_id('compose_ui')
         self.assertIn(
             'Composition with prime tokens "M:4/4 K:Cmaj a b c" is waiting for folk_rnn task',
@@ -110,4 +113,51 @@ class NewVisitorTest(StaticLiveServerTestCase):
             'Compose a folk music tune using a recurrent neural network',
             composing_div.text
             )
-
+            
+    def test_can_edit_composition(self):
+        # Ada composes and gets to candidate tune page
+        self.test_can_compose_tune_and_display_it()
+        
+        # Ada wants to edit the composition, so she tweaks the ABC
+        ada_text = 'ada woz ere'
+        abc_textarea = self.browser.find_element_by_id('abc')
+        abc_textarea.send_keys([Keys.END, ada_text])
+        self.assertIn(
+            RNN_TUNE_TEXT + ada_text,
+            abc_textarea.get_attribute('value')
+            )
+        
+        # Ada goes back to the original to compare...
+        edit_radio_original = self.browser.find_element_by_id('edit_radio_original')
+        edit_radio_original.click()
+        
+        # ...and sees the original. It's the original, so she can't edit it
+        abc_textarea.send_keys([Keys.END, ada_text]) # will raise error?
+        self.assertIn(
+            RNN_TUNE_TEXT,
+            abc_textarea.get_attribute('value')
+            )
+        
+        # Ada switches back to her edit...
+        edit_radio_edit = self.browser.find_element_by_id('edit_radio_original')
+        edit_radio_edit.click()
+        self.assertIn(
+            RNN_TUNE_TEXT + ada_text,
+            abc_textarea.get_attribute('value')
+            )
+            
+        # ...and edits it some more
+        abc_textarea.send_keys([Keys.END, ada_text])
+        self.assertIn(
+            RNN_TUNE_TEXT + ada_text + ada_text,
+            abc_textarea.get_attribute('value')
+            )
+            
+        # Finally, she checks the edit is still there if she navigates back to the page
+        self.browser.get(self.live_server_url)
+        self.browser.get(self.candidate_tune_url())
+        abc_textarea = self.browser.find_element_by_id('abc')
+        self.assertIn(
+            RNN_TUNE_TEXT + ada_text + ada_text,
+            abc_textarea.get_attribute('value')
+            )
