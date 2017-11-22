@@ -7,10 +7,12 @@ from email.utils import format_datetime # RFC 2822 for parity with django templa
 
 from composer.models import Tune
 
-class HomePageTest(TestCase):
+class FolkRNNTestCase(TestCase):
     
     def post_tune(self, seed=123, temp=0.1, prime_tokens='a b c'):
         return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': seed, 'temp': temp, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': prime_tokens})
+
+class ComposePageTest(FolkRNNTestCase):
     
     def test_compose_page_uses_compose_template(self):
         response = self.client.get('/')  
@@ -37,6 +39,8 @@ class HomePageTest(TestCase):
         response = self.post_tune()
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['location'], '/candidate-tune/1')
+        
+class CandidatePageTest(FolkRNNTestCase):
     
     def test_candidate_tune_path_with_no_id_fails_gracefully(self):
         response = self.client.get('/candidate-tune/')
