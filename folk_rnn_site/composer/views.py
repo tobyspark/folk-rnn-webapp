@@ -42,28 +42,28 @@ def candidate_tune_page(request, tune_id=None):
             'prime_tokens': tune.prime_tokens,
             'rnn_has_started': True,
             })
-
+    
+    show_rnn = False
     if request.method == 'POST':
         form = CandidateForm(request.POST)
         if form.is_valid():
-            if form.cleaned_data['edit'] == 'user': # i.e. change from rnn
-                form = CandidateForm({
-                            'tune': tune.user_tune if tune.user_tune else tune.rnn_tune,
-                            'edit': 'user',
-                            })
-            else: # i.e. change from user
+            if form.cleaned_data['edit_state'] == 'user':
                 tune.user_tune = form.cleaned_data['tune']
                 tune.save()
-                form = CandidateForm({
-                            'tune': tune.rnn_tune,
-                            'edit': 'rnn',
-                            })
-                form.fields['tune'].widget.attrs['readonly'] = True
-                    
+            if form.cleaned_data['edit'] == 'rnn':
+                show_rnn = True
+    if show_rnn:
+        form = CandidateForm({
+                    'tune': tune.rnn_tune,
+                    'edit': 'rnn',
+                    'edit_state': 'rnn',
+                    })
+        form.fields['tune'].widget.attrs['readonly'] = True
     else:
         form = CandidateForm({
                     'tune': tune.user_tune if tune.user_tune else tune.rnn_tune,
                     'edit': 'user',
+                    'edit_state': 'user',
                     })
 
     return render(request, 'candidate-tune.html', {

@@ -26,7 +26,7 @@ class FolkRNNTestCase(TestCase):
         return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': seed, 'temp': temp, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': prime_tokens})
     
     def post_edit(self):
-        return self.client.post('/candidate-tune/1', data={'tune': 'M:4/4 K:Cmaj a b c d e f', 'edit': 'rnn'}) # rnn not user as this is called when ui changes from user to rnn (FIXME: this needs to be modelled better)
+        return self.client.post('/candidate-tune/1', data={'tune': 'M:4/4 K:Cmaj a b c d e f', 'edit': 'user', 'edit_state': 'user'}) 
 
 class ComposePageTest(FolkRNNTestCase):
     

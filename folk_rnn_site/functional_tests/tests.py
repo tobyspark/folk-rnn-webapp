@@ -156,6 +156,8 @@ class NewVisitorTest(StaticLiveServerTestCase):
             )
             
         # Finally, she checks the edit is still there if she navigates back to the page
+        save_button = self.browser.find_element_by_id('save_button')
+        save_button.click()
         self.browser.get(self.live_server_url)
         self.browser.get(self.candidate_tune_url())
         abc_textarea = self.browser.find_element_by_id('abc')

@@ -20,6 +20,7 @@
                 <form method="POST">
                     {% csrf_token %}
                     {{ form }}
+                    <input id="save_button" type="submit" value="Save">
                 </form>
             </div>
             <div id="composition_metadata">

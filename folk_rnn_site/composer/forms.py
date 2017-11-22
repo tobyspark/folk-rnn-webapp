@@ -44,3 +44,9 @@ class CandidateForm(forms.Form):
                                 ('rnn', 'RNN original'),
                                 ('user', 'Your development'),
                                 ))
+    edit_state = forms.ChoiceField(widget=forms.HiddenInput,
+                            choices=(
+                                ('rnn', ''),
+                                ('user', ''),
+                                ))
+    
