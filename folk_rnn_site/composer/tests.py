@@ -11,12 +11,14 @@ def folk_rnn_task_start_mock():
     tune = Tune.objects.first()
     tune.rnn_started = now()
     tune.save()
+    return tune
 
 def folk_rnn_task_end_mock():
     tune = Tune.objects.first()
     tune.rnn_finished = now()
     tune.rnn_tune = 'RNN ABC'
     tune.save()
+    return tune
 
 class FolkRNNTestCase(TestCase):
     
@@ -24,7 +26,7 @@ class FolkRNNTestCase(TestCase):
         return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': seed, 'temp': temp, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': prime_tokens})
     
     def post_edit(self):
-        return self.client.post('/candidate-tune/1', data={'tune': 'M:4/4 K:Cmaj a b c d e f'})
+        return self.client.post('/candidate-tune/1', data={'tune': 'M:4/4 K:Cmaj a b c d e f', 'edit': 'rnn'}) # rnn not user as this is called when ui changes from user to rnn (FIXME: this needs to be modelled better)
 
 class ComposePageTest(FolkRNNTestCase):
     
@@ -79,12 +81,12 @@ class CandidatePageTest(FolkRNNTestCase):
     def test_candidate_tune_page_shows_results(self):
         self.post_tune()
         folk_rnn_task_start_mock()
-        folk_rnn_task_end_mock()
+        tune = folk_rnn_task_end_mock()
         
         response = self.client.get('/candidate-tune/1')
         self.assertTemplateUsed(response, 'candidate-tune.html')
         #print(response.content)
-        self.assertContains(response,'>RNN ABC</textarea>')
+        self.assertContains(response,'>\nRNN ABC</textarea>') # django widget inserts a newline; a django workaround to an html workaround beyond the scope of this project
         self.assertContains(response,'<li>RNN model: test_model.pickle_2')
         self.assertContains(response,'<li>RNN seed: 123')
         self.assertContains(response,'<li>RNN temperature: 0.1')

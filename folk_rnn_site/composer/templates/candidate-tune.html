@@ -17,7 +17,10 @@
         <div id="compose_ui">
             <div id="composition">
                 <p>The composition –</p>
-                <textarea name="abc" id="abc" cols="80" rows="15">{{ tune }}</textarea>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form }}
+                </form>
             </div>
             <div id="composition_metadata">
                 <p>Was made with –<br>

@@ -128,27 +128,29 @@ class NewVisitorTest(StaticLiveServerTestCase):
             )
         
         # Ada goes back to the original to compare...
-        edit_radio_original = self.browser.find_element_by_id('edit_radio_original')
+        edit_radio_original = self.browser.find_element_by_id('id_edit_0') # auto-generated id by django form. not worth the effort trying to identify more semantically, e.g. by name then value.
         edit_radio_original.click()
         
         # ...and sees the original. It's the original, so she can't edit it
+        abc_textarea = self.browser.find_element_by_id('abc')
         abc_textarea.send_keys([Keys.END, ada_text]) # will raise error?
-        self.assertIn(
+        self.assertEqual(
             RNN_TUNE_TEXT,
             abc_textarea.get_attribute('value')
             )
         
         # Ada switches back to her edit...
-        edit_radio_edit = self.browser.find_element_by_id('edit_radio_original')
+        edit_radio_edit = self.browser.find_element_by_id('id_edit_1')
         edit_radio_edit.click()
-        self.assertIn(
+        abc_textarea = self.browser.find_element_by_id('abc')
+        self.assertEqual(
             RNN_TUNE_TEXT + ada_text,
             abc_textarea.get_attribute('value')
             )
             
         # ...and edits it some more
         abc_textarea.send_keys([Keys.END, ada_text])
-        self.assertIn(
+        self.assertEqual(
             RNN_TUNE_TEXT + ada_text + ada_text,
             abc_textarea.get_attribute('value')
             )
@@ -157,7 +159,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
         self.browser.get(self.live_server_url)
         self.browser.get(self.candidate_tune_url())
         abc_textarea = self.browser.find_element_by_id('abc')
-        self.assertIn(
+        self.assertEqual(
             RNN_TUNE_TEXT + ada_text + ada_text,
             abc_textarea.get_attribute('value')
             )

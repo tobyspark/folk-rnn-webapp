@@ -35,4 +35,12 @@ class ComposeForm(forms.Form):
             tokens = self.cleaned_data['prime_tokens'].split(' ')
             if not validate_tokens(tokens, model_file_name=self.cleaned_data['model']):
                 self.add_error('prime_tokens', ValidationError('Invalid ABC as per RNN model', code='invalid'))
-            
+
+class CandidateForm(forms.Form):
+    tune = forms.CharField(label='', widget=forms.Textarea(attrs={'id': 'abc'}))
+    edit = forms.ChoiceField(label='', 
+                            widget=forms.RadioSelect(attrs={'onchange': 'this.form.submit();'}), 
+                            choices=(
+                                ('rnn', 'RNN original'),
+                                ('user', 'Your development'),
+                                ))
