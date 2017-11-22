@@ -20,7 +20,7 @@
                 <form method="POST">
                     {% csrf_token %}
                     {{ form }}
-                    <input id="save_button" type="submit" value="Save">
+                    {% if show_user %}<input id="save_button" type="submit" value="Save">{% endif %}
                 </form>
             </div>
             <div id="composition_metadata">
