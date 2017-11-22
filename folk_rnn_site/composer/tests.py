@@ -49,15 +49,11 @@ class CandidatePageTest(FolkRNNTestCase):
     def test_candidate_tune_path_with_invalid_id_fails_gracefully(self):
         response = self.client.get('/candidate-tune/1')
         self.assertEqual(response['location'], '/')
-    
-    def test_candidate_tune_page_uses_candidate_tune_template(self):
-        self.post_tune()
-        response = self.client.get('/candidate-tune/1')
-        self.assertTemplateUsed(response, 'candidate-tune-in-process.html')
         
     def test_candidate_tune_page_shows_composing_messages(self):
         self.post_tune()
         response = self.client.get('/candidate-tune/1')
+        self.assertTemplateUsed(response, 'candidate-tune-in-process.html')
         self.assertContains(response, 'Composition with prime tokens "M:4/4 K:Cmaj a b c" is waiting for folk_rnn task')
         
         tune = Tune.objects.first()
@@ -65,6 +61,7 @@ class CandidatePageTest(FolkRNNTestCase):
         tune.save()
         
         response = self.client.get('/candidate-tune/1')
+        self.assertTemplateUsed(response, 'candidate-tune-in-process.html')
         self.assertContains(response, 'Composition with prime tokens "M:4/4 K:Cmaj a b c" in process...')
 
     def test_candidate_tune_page_shows_results(self):
@@ -77,6 +74,7 @@ class CandidatePageTest(FolkRNNTestCase):
         tune.save()
         
         response = self.client.get('/candidate-tune/1')
+        self.assertTemplateUsed(response, 'candidate-tune.html')
         #print(response.content)
         self.assertContains(response,'>RNN ABC</textarea>')
         self.assertContains(response,'<li>RNN model: test_model.pickle_2')
