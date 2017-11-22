@@ -22,6 +22,9 @@ class FolkRNNTestCase(TestCase):
     
     def post_tune(self, seed=123, temp=0.1, prime_tokens='a b c'):
         return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': seed, 'temp': temp, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': prime_tokens})
+    
+    def post_edit(self):
+        return self.client.post('/candidate-tune/1', data={'tune': 'M:4/4 K:Cmaj a b c d e f'})
 
 class ComposePageTest(FolkRNNTestCase):
     
@@ -88,6 +91,16 @@ class CandidatePageTest(FolkRNNTestCase):
         self.assertContains(response,'<li>Prime tokens: M:4/4 K:Cmaj a b c</li>')
         self.assertContains(response,'<li>Requested at: {}</li>'.format(format_datetime(tune.requested)), msg_prefix='FIXME: This will falsely fail for single digit day of the month due to Django template / Python RFC formatting mis-match.') # FIXME
         self.assertContains(response,'<li>Composition took: 0s</li>')
+        
+    def test_candidate_tune_page_can_save_a_POST_request(self):
+        self.post_tune()
+        folk_rnn_task_start_mock()
+        folk_rnn_task_end_mock()
+        
+        self.post_edit()
+        tune = Tune.objects.first()
+        self.assertEqual(tune.user_tune, 'M:4/4 K:Cmaj a b c d e f')
+
 
 class TuneModelTest(TestCase):
     
