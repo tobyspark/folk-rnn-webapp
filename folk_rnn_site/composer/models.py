@@ -9,3 +9,4 @@ class Tune(models.Model):
     rnn_started = models.DateTimeField(null=True)
     rnn_finished = models.DateTimeField(null=True)
     rnn_tune = models.TextField(default='')
+    user_tune = models.TextField(default='')
