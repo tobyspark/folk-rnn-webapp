@@ -58,6 +58,7 @@ def candidate_tune_page(request, tune_id=None):
                             'tune': tune.rnn_tune,
                             'edit': 'rnn',
                             })
+                form.fields['tune'].widget.attrs['readonly'] = True
                     
     else:
         form = CandidateForm({
