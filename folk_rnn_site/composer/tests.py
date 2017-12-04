@@ -128,12 +128,17 @@ class ArchivePageTest(FolkRNNTestCase):
     def test_archive_tune_page_shows_tune(self):
         response = self.client.get('/tune/1')
         self.assertContains(response, 'M:4/4 K:Cmaj a b c d e f')
-    
-    def test_archive_tune_page_does_not_show_no_comments(self):
-        assert False
-   
+       
     def test_archive_tune_page_shows_comments(self):
-        assert False
+        response = self.client.get('/tune/1')
+        self.assertNotContains(response, 'My first comment.')
+        self.assertNotContains(response, 'A. Person')
+        
+        self.post_archive_comment()
+        
+        response = self.client.get('/tune/1')
+        self.assertContains(response, 'My first comment.')
+        self.assertContains(response, 'A. Person')
     
     def test_archive_tune_page_can_save_a_POST_request(self):
         self.post_archive_comment()

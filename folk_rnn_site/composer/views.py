@@ -103,4 +103,5 @@ def archive_tune_page(request, tune_id=None):
     
     return render(request, 'archive-tune.html', {
         'tune': tune.candidate.user_tune,
+        'comments': Comment.objects.filter(tune=tune),
         })
