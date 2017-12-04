@@ -49,8 +49,7 @@ class CandidateForm(forms.Form):
                                 ('rnn', ''),
                                 ('user', ''),
                                 ))
-    archive = forms.BooleanField(label='Send to archive:', required=False)
     
 class CommentForm(forms.Form):
     text = forms.CharField(label='Comment:', widget=forms.Textarea(attrs={'id': 'new_comment'}))
-    author = forms.CharField(label='Author:')
+    author = forms.CharField(label='Author:', widget=forms.TextInput(attrs={'id': 'new_comment_author'}))

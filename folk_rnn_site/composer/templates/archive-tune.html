@@ -29,8 +29,13 @@
         <div id="selection"></div>
         
         <div id="comments">
+            <form method="POST">
+                {% csrf_token %}
+                {{ form }}
+                <input id="new_comment_submit" type="submit" value="Submit">
+            </form>
             {% if comments %}
-            <ul>
+            <ul id="comment_list">
                 {% for comment in comments %}
                 <li>{{ comment.text }}<br>— {{ comment.author }}</li>
                 {% endfor %}
