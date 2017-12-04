@@ -32,7 +32,7 @@ class FolkRNNTestCase(TestCase):
         self.post_candidate_tune()
         folk_rnn_task_start_mock()
         folk_rnn_task_end_mock()
-        return self.client.post('/candidate-tune/1/archive')
+        return self.client.post('/candidate-tune/1', data={'tune': 'M:4/4 K:Cmaj a b c d e f', 'edit': 'user', 'edit_state': 'user', 'archive': True})
 
 class ComposePageTest(FolkRNNTestCase):
     
@@ -109,18 +109,22 @@ class CandidatePageTest(FolkRNNTestCase):
         tune = CandidateTune.objects.first()
         self.assertEqual(tune.user_tune, 'M:4/4 K:Cmaj a b c d e f')
 
-class ArchivePageTest(TestCase):
+class ArchivePageTest(FolkRNNTestCase):
+    
+    def setUp(self):
+        self.post_candidate_tune_to_archive()
     
     def test_archive_tune_path_with_no_id_fails_gracefully(self):
         response = self.client.get('/tune/')
         self.assertEqual(response['location'], '/')
     
     def test_archive_tune_path_with_invalid_id_fails_gracefully(self):
-        response = self.client.get('/tune/1')
+        response = self.client.get('/tune/2')
         self.assertEqual(response['location'], '/')
     
     def test_archive_tune_page_shows_tune(self):
-        assert False
+        response = self.client.get('/tune/1')
+        self.assertContains(response, 'M:4/4 K:Cmaj a b c d e f')
     
     def test_archive_tune_page_does_not_show_no_comments(self):
         assert False

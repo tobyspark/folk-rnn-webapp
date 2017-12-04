@@ -52,6 +52,13 @@ def candidate_tune_page(request, tune_id=None):
                 tune.save()
             if form.cleaned_data['edit'] == 'rnn':
                 show_user = False
+            if form.cleaned_data['archive']:
+                tune_abc = tune.user_tune if tune.user_tune else tune.rnn_tune
+                # TODO: Check there isn't already an archived tune with this abc from this candidate
+                archive_tune = ArchiveTune(candidate=tune, tune=tune_abc)
+                archive_tune.save()
+                return redirect('/tune/{}'.format(archive_tune.id))
+                
     if show_user:
         form = CandidateForm({
                     'tune': tune.user_tune if tune.user_tune else tune.rnn_tune,
@@ -83,3 +90,7 @@ def archive_tune_page(request, tune_id=None):
         tune = ArchiveTune.objects.get(id=tune_id_int)
     except (TypeError, ArchiveTune.DoesNotExist):
         return redirect('/')
+
+    return render(request, 'archive-tune.html', {
+        'tune': tune.candidate.user_tune,
+        })

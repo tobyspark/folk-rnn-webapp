@@ -14,7 +14,8 @@ class CandidateTune(models.Model):
     user_tune = models.TextField(default='')
 
 class ArchiveTune(models.Model):
-    candidate = models.OneToOneField(CandidateTune)
+    candidate = models.ForeignKey(CandidateTune)
+    tune = models.TextField(default='')
     
 class Comments(models.Model):
     tune = models.ForeignKey(ArchiveTune)
