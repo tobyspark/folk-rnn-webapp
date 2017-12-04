@@ -13,10 +13,10 @@
         </style>
     </head>
     <body>
-        <h1>Compose</h1>
+        <h1>Tune Archive</h1>
         <div id="composition">
             <p>The composition –</p>
-            <textarea id='abc'>{{ tune }}</textarea>
+            <textarea id='abc' readonly="readonly" cols={{ tune_cols }} rows={{ tune_rows }}>{{ tune }}</textarea>
         </div>    
         <div id="midi"></div>
         <div id="midi-download"></div>
