@@ -5,7 +5,7 @@ from datetime import timedelta
 from time import sleep
 from email.utils import format_datetime # RFC 2822 for parity with django template date filter
 
-from composer.models import CandidateTune
+from composer.models import CandidateTune, Comment
 
 def folk_rnn_task_start_mock():
     tune = CandidateTune.objects.first()
@@ -33,6 +33,9 @@ class FolkRNNTestCase(TestCase):
         folk_rnn_task_start_mock()
         folk_rnn_task_end_mock()
         return self.client.post('/candidate-tune/1', data={'tune': 'M:4/4 K:Cmaj a b c d e f', 'edit': 'user', 'edit_state': 'user', 'archive': True})
+    
+    def post_archive_comment(self):
+        return self.client.post('/tune/1', data={'text': 'My first comment.', 'author': 'A. Person'})
 
 class ComposePageTest(FolkRNNTestCase):
     
@@ -133,7 +136,9 @@ class ArchivePageTest(FolkRNNTestCase):
         assert False
     
     def test_archive_tune_page_can_save_a_POST_request(self):
-        assert False
+        self.post_archive_comment()
+        comment = Comment.objects.first()
+        self.assertEqual(comment.text, 'My first comment.')
 
 class CandidateTuneModelTest(TestCase):
     

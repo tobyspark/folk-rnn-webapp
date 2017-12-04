@@ -52,4 +52,5 @@ class CandidateForm(forms.Form):
     archive = forms.BooleanField(label='Send to archive:', required=False)
     
 class CommentForm(forms.Form):
-    tune = forms.CharField(label='', widget=forms.Textarea(attrs={'id': 'new_comment'}))
+    text = forms.CharField(label='Comment:', widget=forms.Textarea(attrs={'id': 'new_comment'}))
+    author = forms.CharField(label='Author:')

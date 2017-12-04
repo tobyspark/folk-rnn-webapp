@@ -17,7 +17,7 @@ class ArchiveTune(models.Model):
     candidate = models.ForeignKey(CandidateTune)
     tune = models.TextField(default='')
     
-class Comments(models.Model):
+class Comment(models.Model):
     tune = models.ForeignKey(ArchiveTune)
     text = models.TextField(default='')
     author = models.CharField(max_length=USERNAME_MAX_LENGTH, default='')

@@ -1,7 +1,7 @@
 from django.shortcuts import redirect, render
 
-from composer.models import CandidateTune, ArchiveTune
-from composer.forms import ComposeForm, CandidateForm
+from composer.models import CandidateTune, ArchiveTune, Comment
+from composer.forms import ComposeForm, CandidateForm, CommentForm
 
 def composer_page(request):
     if request.method == 'POST':
@@ -90,7 +90,17 @@ def archive_tune_page(request, tune_id=None):
         tune = ArchiveTune.objects.get(id=tune_id_int)
     except (TypeError, ArchiveTune.DoesNotExist):
         return redirect('/')
-
+    
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            comment = Comment(
+                        tune=tune, 
+                        text=form.cleaned_data['text'], 
+                        author=form.cleaned_data['author'],
+                        )
+            comment.save()
+    
     return render(request, 'archive-tune.html', {
         'tune': tune.candidate.user_tune,
         })
