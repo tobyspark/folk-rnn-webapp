@@ -4,7 +4,7 @@ from datetime import timedelta
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
-from composer.models import Tune
+from composer.models import CandidateTune
 
 RNN_TUNE_TEXT = '''X:16
 T:FolkRNN Candidate Tune No16
@@ -15,7 +15,7 @@ abcceggc|defgdefd|bgfgecce|defga2g2|affgcegc|defgagfd|efece2c2|dcBcdBGz:|egg2egg
 :|'''
 
 def folk_rnn_task_mock_run():
-    tune = Tune.objects.first()
+    tune = CandidateTune.objects.first()
     tune.seed = 42
     tune.prime_tokens = 'M:4/4 K:Cmaj a b c'
     tune.rnn_started = now()
@@ -36,10 +36,10 @@ class NewVisitorTest(StaticLiveServerTestCase):
         self.browser.quit()
     
     def candidate_tune_url(self):
-        return self.live_server_url + '/candidate-tune/{}'.format(Tune.objects.first().id)
+        return self.live_server_url + '/candidate-tune/{}'.format(CandidateTune.objects.first().id)
 
     def archive_tune_url(self):
-        return self.live_server_url + '/tune/{}'.format(Tune.objects.first().id)
+        return self.live_server_url + '/tune/{}'.format(CandidateTune.objects.first().id)
    
     def test_can_compose_tune_and_display_it(self):
         # Ada navigates to the folk_rnn web app

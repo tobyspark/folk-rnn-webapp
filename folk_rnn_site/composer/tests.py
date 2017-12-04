@@ -8,13 +8,13 @@ from email.utils import format_datetime # RFC 2822 for parity with django templa
 from composer.models import Tune
 
 def folk_rnn_task_start_mock():
-    tune = Tune.objects.first()
+    tune = CandidateTune.objects.first()
     tune.rnn_started = now()
     tune.save()
     return tune
 
 def folk_rnn_task_end_mock():
-    tune = Tune.objects.first()
+    tune = CandidateTune.objects.first()
     tune.rnn_finished = now()
     tune.rnn_tune = 'RNN ABC'
     tune.save()
@@ -36,20 +36,20 @@ class ComposePageTest(FolkRNNTestCase):
     
     def test_compose_page_can_save_a_POST_request(self):
         self.post_tune()
-        self.assertEqual(Tune.objects.count(), 1)
-        new_tune = Tune.objects.first()
+        self.assertEqual(CandidateTune.objects.count(), 1)
+        new_tune = CandidateTune.objects.first()
         self.assertEqual(new_tune.temp, 0.1)
         self.assertEqual(new_tune.prime_tokens, 'M:4/4 K:Cmaj a b c')
   
     def test_compose_page_does_not_save_an_invalid_POST_request(self):
         self.post_tune(prime_tokens='slarty bartfast')
-        self.assertEqual(Tune.objects.count(), 0)
+        self.assertEqual(CandidateTune.objects.count(), 0)
         
         self.post_tune(seed=-1)
-        self.assertEqual(Tune.objects.count(), 0)
+        self.assertEqual(CandidateTune.objects.count(), 0)
         
         self.post_tune(temp=11)
-        self.assertEqual(Tune.objects.count(), 0)          
+        self.assertEqual(CandidateTune.objects.count(), 0)          
     
     def test_compose_page_redirects_after_POST(self):
         response = self.post_tune()
@@ -100,7 +100,7 @@ class CandidatePageTest(FolkRNNTestCase):
         folk_rnn_task_end_mock()
         
         self.post_edit()
-        tune = Tune.objects.first()
+        tune = CandidateTune.objects.first()
         self.assertEqual(tune.user_tune, 'M:4/4 K:Cmaj a b c d e f')
 
 class ArchivePageTest(TestCase):
@@ -125,18 +125,18 @@ class ArchivePageTest(TestCase):
     def test_archive_tune_page_can_save_a_POST_request(self):
         assert False
 
-class TuneModelTest(TestCase):
+class CandidateTuneModelTest(TestCase):
     
     def test_saving_and_retrieving_tunes(self):
-        first_tune = Tune()
+        first_tune = CandidateTune()
         first_tune.prime_tokens = 'ABC'
         first_tune.save()
         
-        second_tune = Tune()
+        second_tune = CandidateTune()
         second_tune.prime_tokens = 'DEF'
         second_tune.save()
         
-        saved_tunes = Tune.objects.all()
+        saved_tunes = CandidateTune.objects.all()
         self.assertEqual(saved_tunes.count(), 2)
         
         first_saved_tune = saved_tunes[0]
@@ -145,7 +145,7 @@ class TuneModelTest(TestCase):
         self.assertEqual(second_saved_tune.prime_tokens, 'DEF')
     
     def test_tune_lifecycle(self):
-        tune = Tune.objects.create()
+        tune = CandidateTune.objects.create()
         self.assertAlmostEqual(tune.requested, now(), delta=timedelta(seconds=0.1))
         self.assertEqual(tune.rnn_tune, '')
         
@@ -155,7 +155,7 @@ class TuneModelTest(TestCase):
         
         folk_rnn_task_end_mock()
         
-        tune = Tune.objects.first()
+        tune = CandidateTune.objects.first()
         self.assertTrue(tune.rnn_started < tune.rnn_finished)
         self.assertAlmostEqual(tune.rnn_started, tune.rnn_finished, delta=timedelta(seconds=0.1))
         self.assertEqual(tune.rnn_tune, 'RNN ABC')
