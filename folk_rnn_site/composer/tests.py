@@ -5,7 +5,7 @@ from datetime import timedelta
 from time import sleep
 from email.utils import format_datetime # RFC 2822 for parity with django template date filter
 
-from composer.models import Tune
+from composer.models import CandidateTune
 
 def folk_rnn_task_start_mock():
     tune = CandidateTune.objects.first()
