@@ -1,6 +1,6 @@
 from django.db import models
 
-class Tune(models.Model):
+class CandidateTune(models.Model):
     rnn_model_name = models.CharField(max_length=64, default='')
     seed = models.IntegerField(default=42)
     temp = models.FloatField(default=1.0)

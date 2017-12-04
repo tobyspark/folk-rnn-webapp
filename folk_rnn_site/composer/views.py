@@ -1,13 +1,13 @@
 from django.shortcuts import redirect, render
 
-from composer.models import Tune
+from composer.models import CandidateTune
 from composer.forms import ComposeForm, CandidateForm
 
 def composer_page(request):
     if request.method == 'POST':
         form = ComposeForm(request.POST)
         if form.is_valid():
-            tune = Tune()
+            tune = CandidateTune()
             tune.rnn_model_name = form.cleaned_data['model']
             tune.seed = form.cleaned_data['seed']
             tune.temp = form.cleaned_data['temp']
@@ -27,8 +27,8 @@ def composer_page(request):
 def candidate_tune_page(request, tune_id=None):
     try:
         tune_id_int = int(tune_id)
-        tune = Tune.objects.get(id=tune_id_int)
-    except (TypeError, Tune.DoesNotExist):
+        tune = CandidateTune.objects.get(id=tune_id_int)
+    except (TypeError, CandidateTune.DoesNotExist):
         return redirect('/')
     
     if not tune.rnn_started:
