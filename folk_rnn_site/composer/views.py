@@ -1,6 +1,6 @@
 from django.shortcuts import redirect, render
 
-from composer.models import CandidateTune
+from composer.models import CandidateTune, ArchiveTune
 from composer.forms import ComposeForm, CandidateForm
 
 def composer_page(request):
@@ -76,3 +76,10 @@ def candidate_tune_page(request, tune_id=None):
         'form': form,
         'show_user': show_user,
         })
+
+def archive_tune_page(request, tune_id=None):
+    try:
+        tune_id_int = int(tune_id)
+        tune = ArchiveTune.objects.get(id=tune_id_int)
+    except (TypeError, ArchiveTune.DoesNotExist):
+        return redirect('/')

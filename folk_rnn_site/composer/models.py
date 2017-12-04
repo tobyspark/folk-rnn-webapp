@@ -1,5 +1,7 @@
 from django.db import models
 
+USERNAME_MAX_LENGTH = 128
+
 class CandidateTune(models.Model):
     rnn_model_name = models.CharField(max_length=64, default='')
     seed = models.IntegerField(default=42)
@@ -10,3 +12,12 @@ class CandidateTune(models.Model):
     rnn_finished = models.DateTimeField(null=True)
     rnn_tune = models.TextField(default='')
     user_tune = models.TextField(default='')
+
+class ArchiveTune(models.Model):
+    candidate = models.OneToOneField(CandidateTune)
+    
+class Comments(models.Model):
+    tune = models.ForeignKey(ArchiveTune)
+    text = models.TextField(default='')
+    author = models.CharField(max_length=USERNAME_MAX_LENGTH, default='')
+
