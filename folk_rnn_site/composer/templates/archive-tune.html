@@ -27,6 +27,16 @@
         <div id="paper2"></div>
         <div id="paper3"></div>
         <div id="selection"></div>
+        
+        <div id="comments">
+            {% if comments %}
+            <ul>
+                {% for comment in comments %}
+                <li>{{ comment.text }}<br>— {{ comment.author }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </div>
 
         <script type="text/javascript">
             function selectionCallback(abcelem) {
