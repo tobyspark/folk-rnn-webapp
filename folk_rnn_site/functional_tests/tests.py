@@ -184,18 +184,25 @@ class NewVisitorTest(StaticLiveServerTestCase):
             RNN_TUNE_TEXT,
             abc_textarea.get_attribute('value')
             )
-        comment_textarea = self.browser.find_element_by_id('new_comment')
-        comment_submit_button = self.browswer.find_element_by_id('new_comment_submit')
-        self.assertIsNotNone(comment_textarea)
+        comment_text_field = self.browser.find_element_by_id('new_comment')
+        comment_author_field = self.browser.find_element_by_id('new_comment_author')
+        comment_submit_button = self.browser.find_element_by_id('new_comment_submit')
+        self.assertIsNotNone(comment_text_field)
+        self.assertIsNotNone(comment_author_field)
         self.assertIsNotNone(comment_submit_button)
         
         # Ada comments, and sees her comment displayed
-        comment_textarea.send_keys('My first tune.')
+        comment_text_field.send_keys('My first tune.')
+        comment_author_field.send_keys('Ada')
         comment_submit_button.click()
         comment_list = self.browser_wait.until(lambda x: x.find_element_by_id('comment_list'))
-        self.assertContains(
+        self.assertIn(
             'My first tune.',
-            comment_list.contents
+            comment_list.text
+            )
+        self.assertIn(
+            'Ada',
+            comment_list.text
             )
         
         
