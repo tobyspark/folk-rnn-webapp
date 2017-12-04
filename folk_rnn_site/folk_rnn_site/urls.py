@@ -18,6 +18,8 @@ from composer import views
 
 urlpatterns = [
     url(r'^$', views.composer_page, name='composer'),
+    url(r'^tune/$', views.archive_tune_page, name='archive-tune'),
+    url(r'^tune/(?P<tune_id>[0-9]+)$', views.archive_tune_page, name='archive-tune'),
     url(r'^candidate-tune/$', views.candidate_tune_page, name='candidate-tune'),
     url(r'^candidate-tune/(?P<tune_id>[0-9]+)$', views.candidate_tune_page, name='candidate-tune'),
 ]
