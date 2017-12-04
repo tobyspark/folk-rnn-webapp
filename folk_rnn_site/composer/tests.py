@@ -22,11 +22,17 @@ def folk_rnn_task_end_mock():
 
 class FolkRNNTestCase(TestCase):
     
-    def post_tune(self, seed=123, temp=0.1, prime_tokens='a b c'):
+    def post_candidate_tune(self, seed=123, temp=0.1, prime_tokens='a b c'):
         return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': seed, 'temp': temp, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': prime_tokens})
     
-    def post_edit(self):
+    def post_candidate_edit(self):
         return self.client.post('/candidate-tune/1', data={'tune': 'M:4/4 K:Cmaj a b c d e f', 'edit': 'user', 'edit_state': 'user'}) 
+        
+    def post_candidate_tune_to_archive(self):
+        self.post_candidate_tune()
+        folk_rnn_task_start_mock()
+        folk_rnn_task_end_mock()
+        return self.client.post('/candidate-tune/1/archive')
 
 class ComposePageTest(FolkRNNTestCase):
     
@@ -35,24 +41,24 @@ class ComposePageTest(FolkRNNTestCase):
         self.assertTemplateUsed(response, 'compose.html')
     
     def test_compose_page_can_save_a_POST_request(self):
-        self.post_tune()
+        self.post_candidate_tune()
         self.assertEqual(CandidateTune.objects.count(), 1)
         new_tune = CandidateTune.objects.first()
         self.assertEqual(new_tune.temp, 0.1)
         self.assertEqual(new_tune.prime_tokens, 'M:4/4 K:Cmaj a b c')
   
     def test_compose_page_does_not_save_an_invalid_POST_request(self):
-        self.post_tune(prime_tokens='slarty bartfast')
+        self.post_candidate_tune(prime_tokens='slarty bartfast')
         self.assertEqual(CandidateTune.objects.count(), 0)
         
-        self.post_tune(seed=-1)
+        self.post_candidate_tune(seed=-1)
         self.assertEqual(CandidateTune.objects.count(), 0)
         
-        self.post_tune(temp=11)
+        self.post_candidate_tune(temp=11)
         self.assertEqual(CandidateTune.objects.count(), 0)          
     
     def test_compose_page_redirects_after_POST(self):
-        response = self.post_tune()
+        response = self.post_candidate_tune()
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['location'], '/candidate-tune/1')
         
@@ -67,7 +73,7 @@ class CandidatePageTest(FolkRNNTestCase):
         self.assertEqual(response['location'], '/')
         
     def test_candidate_tune_page_shows_composing_messages(self):
-        self.post_tune()
+        self.post_candidate_tune()
         response = self.client.get('/candidate-tune/1')
         self.assertTemplateUsed(response, 'candidate-tune-in-process.html')
         self.assertContains(response, 'Composition with prime tokens "M:4/4 K:Cmaj a b c" is waiting for folk_rnn task')
@@ -79,7 +85,7 @@ class CandidatePageTest(FolkRNNTestCase):
         self.assertContains(response, 'Composition with prime tokens "M:4/4 K:Cmaj a b c" in process...')
 
     def test_candidate_tune_page_shows_results(self):
-        self.post_tune()
+        self.post_candidate_tune()
         folk_rnn_task_start_mock()
         tune = folk_rnn_task_end_mock()
         
@@ -95,11 +101,11 @@ class CandidatePageTest(FolkRNNTestCase):
         self.assertContains(response,'<li>Composition took: 0s</li>')
         
     def test_candidate_tune_page_can_save_a_POST_request(self):
-        self.post_tune()
+        self.post_candidate_tune()
         folk_rnn_task_start_mock()
         folk_rnn_task_end_mock()
         
-        self.post_edit()
+        self.post_candidate_edit()
         tune = CandidateTune.objects.first()
         self.assertEqual(tune.user_tune, 'M:4/4 K:Cmaj a b c d e f')
 
