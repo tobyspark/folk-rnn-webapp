@@ -50,3 +50,5 @@ class CandidateForm(forms.Form):
                                 ('user', ''),
                                 ))
     
+class CommentForm(forms.Form):
+    tune = forms.CharField(label='', widget=forms.Textarea(attrs={'id': 'new_comment'}))

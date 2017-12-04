@@ -103,6 +103,27 @@ class CandidatePageTest(FolkRNNTestCase):
         tune = Tune.objects.first()
         self.assertEqual(tune.user_tune, 'M:4/4 K:Cmaj a b c d e f')
 
+class ArchivePageTest(TestCase):
+    
+    def test_archive_tune_path_with_no_id_fails_gracefully(self):
+        response = self.client.get('/tune/')
+        self.assertEqual(response['location'], '/')
+    
+    def test_archive_tune_path_with_invalid_id_fails_gracefully(self):
+        response = self.client.get('/tune/1')
+        self.assertEqual(response['location'], '/')
+    
+    def test_archive_tune_page_shows_tune(self):
+        assert False
+    
+    def test_archive_tune_page_does_not_show_no_comments(self):
+        assert False
+   
+    def test_archive_tune_page_shows_comments(self):
+        assert False
+    
+    def test_archive_tune_page_can_save_a_POST_request(self):
+        assert False
 
 class TuneModelTest(TestCase):
     
