@@ -37,6 +37,9 @@ class NewVisitorTest(StaticLiveServerTestCase):
     
     def candidate_tune_url(self):
         return self.live_server_url + '/candidate-tune/{}'.format(Tune.objects.first().id)
+
+    def archive_tune_url(self):
+        return self.live_server_url + '/tune/{}'.format(Tune.objects.first().id)
    
     def test_can_compose_tune_and_display_it(self):
         # Ada navigates to the folk_rnn web app
@@ -165,3 +168,34 @@ class NewVisitorTest(StaticLiveServerTestCase):
             RNN_TUNE_TEXT + ada_text + ada_text,
             abc_textarea.get_attribute('value')
             )
+            
+    def test_can_archive_composition(self):
+        # Ada composes and gets to candidate tune page
+        self.test_can_compose_tune_and_display_it()
+        
+        # Happy, Ada hits 'archive' button
+        archive_button = self.browser.find_element_by_id('archive_button')
+        archive_button.click()
+        
+        # Ada sees tune archive page with tune and comment field
+        self.browser_wait.until(lambda x: x.current_url == self.archive_tune_url())
+        abc_textarea = self.browser.find_element_by_id('abc')
+        self.assertEqual(
+            RNN_TUNE_TEXT,
+            abc_textarea.get_attribute('value')
+            )
+        comment_textarea = self.browser.find_element_by_id('new_comment')
+        comment_submit_button = self.browswer.find_element_by_id('new_comment_submit')
+        self.assertIsNotNone(comment_textarea)
+        self.assertIsNotNone(comment_submit_button)
+        
+        # Ada comments, and sees her comment displayed
+        comment_textarea.send_keys('My first tune.')
+        comment_submit_button.click()
+        comment_list = self.browser_wait.until(lambda x: x.find_element_by_id('comment_list'))
+        self.assertContains(
+            'My first tune.',
+            comment_list.contents
+            )
+        
+        
