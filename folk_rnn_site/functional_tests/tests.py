@@ -132,6 +132,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
         
         # Ada goes back to the original to compare...
         edit_radio_original = self.browser.find_element_by_id('id_edit_0') # auto-generated id by django form. not worth the effort trying to identify more semantically, e.g. by name then value.
+        edit_radio_original.location_once_scrolled_into_view # This should scroll the element into view, needed now page is longer and may scroll these clickables off the top.
         edit_radio_original.click()
         
         # ...and sees the original. It's the original, so she can't edit it
