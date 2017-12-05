@@ -12,7 +12,7 @@
         <h2>Recent comments</h2>
         <ul>
             {% for comment in comments %}
-            <li>{{ comment.text}} — {{ comment.author }}, {{ comment.submitted|naturalday }}</li>
+            <li>{{ comment.text}} — {{ comment.author }}, {{ comment.submitted|naturalday }}, on <a href="/tune/{{ comment.tune.id }}">{{ comment.tune.title }}</a></li>
             {% endfor %}
         </ul>
     </div>
@@ -20,7 +20,7 @@
         <h2>Recent tunes</h2>
         <ul>
             {% for tune in tunes %}
-            <li>{{tune.title}}</li>
+            <li><a href="/tune/{{ tune.id }}">{{tune.title}}</a></li>
             {% endfor %}
         </ul>
     </div>
