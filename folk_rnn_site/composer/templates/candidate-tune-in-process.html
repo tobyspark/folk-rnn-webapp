@@ -4,7 +4,7 @@
 {% block headend %}<meta http-equiv="refresh" content="3">{% endblock %}
 
 {% block content %}
-<h1>Compose</h1>
+<h1>Candidate tune no{{ candidate_id }}</h1>
 <div id="compose_ui">
     Composition with prime tokens "{{ prime_tokens }}" {% if rnn_has_started %}in process...{% else %}is waiting for folk_rnn task{% endif %}
 </div>

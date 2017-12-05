@@ -41,12 +41,14 @@ def candidate_tune_page(request, tune_id=None):
         return render(request, 'candidate-tune-in-process.html', {
             'prime_tokens': tune.prime_tokens,
             'rnn_has_started': False,
+            'candidate_id': tune_id_int,
             })
     
     if not tune.rnn_finished:
         return render(request, 'candidate-tune-in-process.html', {
             'prime_tokens': tune.prime_tokens,
             'rnn_has_started': True,
+            'candidate_id': tune_id_int,
             })
     
     show_user = True
@@ -80,6 +82,7 @@ def candidate_tune_page(request, tune_id=None):
         form.fields['tune'].widget.attrs['readonly'] = True
 
     return render(request, 'candidate-tune.html', {
+        'candidate_id': tune_id_int,
         'model': tune.rnn_model_name,
         'seed': tune.seed,
         'temp': tune.temp,
@@ -112,7 +115,7 @@ def archive_tune_page(request, tune_id=None):
     tune_lines = tune.tune.split('\n')
 
     return render(request, 'archive-tune.html', {
-        'tune': tune.tune,
+        'tune': tune,
         'tune_cols': max(len(line) for line in tune_lines), # TODO: look into autosize via CSS, when CSS is a thing round here.
         'tune_rows': len(tune_lines),
         'form': form,
