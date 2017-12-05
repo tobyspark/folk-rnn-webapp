@@ -1,16 +1,18 @@
-<html>
-    <head>
-        <title>Folk RNN Composer</title>
-    </head>
-    <body>
-        <h1>Compose</h1>
-        <div id="compose_ui">
-            Compose a folk music tune using a recurrent neural network.
-            <form method="POST">
-                {% csrf_token %}
-                {{ form }}
-                <input id="compose_button" type="submit" value="Compose...">
-            </form>
-        </div>
-    </body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Compose{% endblock %}
+
+{% block headend %}{% include "_abcjs-headend.html" %}{% endblock %}
+{% block bodyend %}{% include "_abcjs-bodyend.html" %}{% endblock %}
+
+{% block content %}
+<h1>Compose</h1>
+<div id="compose_ui">
+    Compose a folk music tune using a recurrent neural network.
+    <form method="POST">
+        {% csrf_token %}
+        {{ form }}
+        <input id="compose_button" type="submit" value="Compose...">
+    </form>
+</div>
+{% endblock %}
