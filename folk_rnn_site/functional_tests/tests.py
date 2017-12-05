@@ -204,5 +204,9 @@ class NewVisitorTest(StaticLiveServerTestCase):
             'Ada',
             comment_list.text
             )
+        self.assertIn(
+            'today',
+            comment_list.text
+            )
         
         
