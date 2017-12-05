@@ -3,6 +3,8 @@ from django.shortcuts import redirect, render
 from composer.models import CandidateTune, ArchiveTune, Comment
 from composer.forms import ComposeForm, CandidateForm, CommentForm
 
+MAX_RECENT_ITEMS = 5
+
 def home_page(request):
     if request.method == 'POST':
         form = ComposeForm(request.POST)
@@ -22,7 +24,11 @@ def home_page(request):
     else:
         form = ComposeForm()
     
-    return render(request, 'home.html', {'form': form})
+    return render(request, 'home.html', {
+                                'form': form,
+                                'tunes': ArchiveTune.objects.order_by('-id')[:MAX_RECENT_ITEMS],
+                                'comments': Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS],
+                                })
 
 def candidate_tune_page(request, tune_id=None):
     try:
