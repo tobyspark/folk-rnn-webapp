@@ -11,6 +11,7 @@
                 max-width: 740px;
             }
         </style>
+        {% load humanize %}
     </head>
     <body>
         <h1>Tune Archive</h1>
@@ -37,7 +38,7 @@
             {% if comments %}
             <ul id="comment_list">
                 {% for comment in comments %}
-                <li>{{ comment.text }}<br>— {{ comment.author }}</li>
+                <li>{{ comment.text }}<br>— {{ comment.author }}, {{ comment.submitted|naturalday }}</li>
                 {% endfor %}
             </ul>
             {% endif %}

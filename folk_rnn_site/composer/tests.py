@@ -144,6 +144,8 @@ class ArchivePageTest(FolkRNNTestCase):
         self.post_archive_comment()
         comment = Comment.objects.first()
         self.assertEqual(comment.text, 'My first comment.')
+        self.assertEqual(comment.author, 'A. Person')
+        self.assertAlmostEqual(comment.submitted, now(), delta=timedelta(seconds=0.1))
 
 class CandidateTuneModelTest(TestCase):
     
