@@ -28,11 +28,11 @@ class FolkRNNTestCase(TestCase):
     def post_candidate_edit(self):
         return self.client.post('/candidate-tune/1', data={'tune': 'M:4/4 K:Cmaj a b c d e f', 'edit': 'user', 'edit_state': 'user'}) 
         
-    def post_candidate_tune_to_archive(self):
+    def post_candidate_tune_to_archive(self, tune='M:4/4 K:Cmaj a b c'):
         self.post_candidate_tune()
         folk_rnn_task_start_mock()
         folk_rnn_task_end_mock()
-        return self.client.post('/candidate-tune/1', data={'tune': 'M:4/4 K:Cmaj a b c d e f', 'edit': 'user', 'edit_state': 'user', 'archive': True})
+        return self.client.post('/candidate-tune/1', data={'tune': tune, 'edit': 'user', 'edit_state': 'user', 'archive': True})
     
     def post_archive_comment(self):
         return self.client.post('/tune/1', data={'text': 'My first comment.', 'author': 'A. Person'})
@@ -141,9 +141,14 @@ class ArchivePageTest(FolkRNNTestCase):
         self.assertEqual(response['location'], '/')
     
     def test_archive_tune_page_shows_tune(self):
+        self.post_candidate_tune_to_archive(tune='M:4/4 K:Cmaj a b c d e f')
+        
         response = self.client.get('/tune/1')
+        self.assertContains(response, 'M:4/4 K:Cmaj a b c')
+        self.assertNotContains(response, 'M:4/4 K:Cmaj a b c d e f')
+        response = self.client.get('/tune/2')
         self.assertContains(response, 'M:4/4 K:Cmaj a b c d e f')
-       
+
     def test_archive_tune_page_shows_comments(self):
         response = self.client.get('/tune/1')
         self.assertNotContains(response, 'My first comment.')
