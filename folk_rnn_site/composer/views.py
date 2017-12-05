@@ -109,13 +109,12 @@ def archive_tune_page(request, tune_id=None):
     else:
         form = CommentForm()
     
-    tune_abc = tune.candidate.user_tune
-    tune_abc_lines = tune_abc.split('\n')
+    tune_lines = tune.tune.split('\n')
 
     return render(request, 'archive-tune.html', {
-        'tune': tune_abc,
-        'tune_cols': max(len(line) for line in tune_abc_lines), # TODO: look into autosize via CSS, when CSS is a thing round here.
-        'tune_rows': len(tune_abc_lines),
+        'tune': tune.tune,
+        'tune_cols': max(len(line) for line in tune_lines), # TODO: look into autosize via CSS, when CSS is a thing round here.
+        'tune_rows': len(tune_lines),
         'form': form,
         'comments': Comment.objects.filter(tune=tune),
         })
