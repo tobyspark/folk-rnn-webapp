@@ -218,8 +218,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
             comment_list.text
             )
         tune_list = self.browser.find_element_by_id('tunes')
-        # FIXME: fails due to HTML shenanigans. Not working to fix as tunes should have titles, and that's what should be here.
         self.assertIn( 
-            RNN_TUNE_TEXT, 
+            'FolkRNN Candidate Tune No1', 
             tune_list.text
             )
