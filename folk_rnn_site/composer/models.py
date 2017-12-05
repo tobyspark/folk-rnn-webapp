@@ -1,6 +1,9 @@
 from django.db import models
+import re
 
 USERNAME_MAX_LENGTH = 128
+
+abc_regex = re.compile(r'T:(?P<title>.*)[\r\n]')
 
 class CandidateTune(models.Model):
     rnn_model_name = models.CharField(max_length=64, default='')
@@ -16,6 +19,10 @@ class CandidateTune(models.Model):
 class ArchiveTune(models.Model):
     candidate = models.ForeignKey(CandidateTune)
     tune = models.TextField(default='')
+    
+    def title(self):
+        match = abc_regex.search(self.tune)
+        return match.group('title') if match else 'Untitled'
     
 class Comment(models.Model):
     tune = models.ForeignKey(ArchiveTune)

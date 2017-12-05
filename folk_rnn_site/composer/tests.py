@@ -46,14 +46,16 @@ class HomePageTest(FolkRNNTestCase):
     def test_home_page_lists_activity(self):
         candidate_tune = CandidateTune()
         candidate_tune.save()
-        tune = ArchiveTune(candidate=candidate_tune, tune='ABC')
+        tune = ArchiveTune(candidate=candidate_tune, tune='T:title\nABC')
         tune.save()
         for i in range(1,11):
             comment = Comment(tune=tune, text='{}'.format(i), author='author')
             comment.save()
         
         response = self.client.get('/')
+        title_html = '<ul><li>title</li></ul>'
         comment_html = '<ul>' + ''.join('<li>{} — author, today</li>'.format(i) for i in [10,9,8,7,6]) + '</ul>' # Note test for only five, latest first
+        self.assertContains(response, 'title')
         self.assertContains(response, comment_html, html=True)
     
     def test_compose_page_can_save_a_POST_request(self):
