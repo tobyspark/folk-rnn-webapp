@@ -37,11 +37,11 @@ class FolkRNNTestCase(TestCase):
     def post_archive_comment(self):
         return self.client.post('/tune/1', data={'text': 'My first comment.', 'author': 'A. Person'})
 
-class ComposePageTest(FolkRNNTestCase):
+class HomePageTest(FolkRNNTestCase):
     
-    def test_compose_page_uses_compose_template(self):
+    def test_home_page_uses_home_template(self):
         response = self.client.get('/')  
-        self.assertTemplateUsed(response, 'compose.html')
+        self.assertTemplateUsed(response, 'home.html')
     
     def test_compose_page_can_save_a_POST_request(self):
         self.post_candidate_tune()
