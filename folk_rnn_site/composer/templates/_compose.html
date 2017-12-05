@@ -1,0 +1,8 @@
+<div id="compose_ui">
+    Compose a folk music tune using a recurrent neural network.
+    <form method="POST">
+        {% csrf_token %}
+        {{ form }}
+        <input id="compose_button" type="submit" value="Compose...">
+    </form>
+</div>

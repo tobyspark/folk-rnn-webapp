@@ -3,7 +3,7 @@ from django.shortcuts import redirect, render
 from composer.models import CandidateTune, ArchiveTune, Comment
 from composer.forms import ComposeForm, CandidateForm, CommentForm
 
-def composer_page(request):
+def home_page(request):
     if request.method == 'POST':
         form = ComposeForm(request.POST)
         if form.is_valid():
@@ -22,7 +22,7 @@ def composer_page(request):
     else:
         form = ComposeForm()
     
-    return render(request, 'compose.html', {'form': form})
+    return render(request, 'home.html', {'form': form})
 
 def candidate_tune_page(request, tune_id=None):
     try:
