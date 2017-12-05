@@ -7,7 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from composer.models import CandidateTune
 
 RNN_TUNE_TEXT = '''X:16
-T:FolkRNN Candidate Tune No16
+T:FolkRNN Test Tune
 M:4/4
 K:Cmaj
 abcceggc|defgdefd|bgfgecce|defga2g2|affgcegc|defgagfd|efece2c2|dcBcdBGz:|egg2egg2|gcegf2c2|Bgg2fBB2|dBd2dff2|egg2cggc|ac'c'2agfa|gcc2e2cd|BGABc2c2
@@ -210,7 +210,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
             comment_list.text
             )
         
-        # Satisfied, Ada returns to the home page to see her work in the site's activity display
+        # Satisfied, Ada checks the home page to see her work in the site's activity display...
         self.browser.get(self.live_server_url)
         comment_list = self.browser.find_element_by_id('comments')
         self.assertIn(
@@ -219,6 +219,11 @@ class NewVisitorTest(StaticLiveServerTestCase):
             )
         tune_list = self.browser.find_element_by_id('tunes')
         self.assertIn( 
-            'FolkRNN Candidate Tune No1', 
+            'FolkRNN Test Tune', 
             tune_list.text
             )
+        
+        # ...and uses the activity list to go back to her tune.
+        tune_link = self.browser.find_element_by_link_text('FolkRNN Test Tune')
+        tune_link.click()
+        self.assertEqual(self.browser.current_url, self.archive_tune_url())
