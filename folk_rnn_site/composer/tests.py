@@ -5,7 +5,7 @@ from datetime import timedelta
 from time import sleep
 from email.utils import format_datetime # RFC 2822 for parity with django template date filter
 
-from composer.models import CandidateTune, Comment
+from composer.models import CandidateTune, ArchiveTune, Comment
 
 def folk_rnn_task_start_mock():
     tune = CandidateTune.objects.first()
@@ -42,6 +42,19 @@ class HomePageTest(FolkRNNTestCase):
     def test_home_page_uses_home_template(self):
         response = self.client.get('/')  
         self.assertTemplateUsed(response, 'home.html')
+    
+    def test_home_page_lists_activity(self):
+        candidate_tune = CandidateTune()
+        candidate_tune.save()
+        tune = ArchiveTune(candidate=candidate_tune, tune='ABC')
+        tune.save()
+        for i in range(1,11):
+            comment = Comment(tune=tune, text='{}'.format(i), author='author')
+            comment.save()
+        
+        response = self.client.get('/')
+        comment_html = '<ul>' + ''.join('<li>{} — author, today</li>'.format(i) for i in [10,9,8,7,6]) + '</ul>' # Note test for only five, latest first
+        self.assertContains(response, comment_html, html=True)
     
     def test_compose_page_can_save_a_POST_request(self):
         self.post_candidate_tune()

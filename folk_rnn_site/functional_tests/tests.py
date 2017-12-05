@@ -210,4 +210,16 @@ class NewVisitorTest(StaticLiveServerTestCase):
             comment_list.text
             )
         
-        
+        # Satisfied, Ada returns to the home page to see her work in the site's activity display
+        self.browser.get(self.live_server_url)
+        comment_list = self.browser.find_element_by_id('comments')
+        self.assertIn(
+            'My first tune.',
+            comment_list.text
+            )
+        tune_list = self.browser.find_element_by_id('tunes')
+        # FIXME: fails due to HTML shenanigans. Not working to fix as tunes should have titles, and that's what should be here.
+        self.assertIn( 
+            RNN_TUNE_TEXT, 
+            tune_list.text
+            )
