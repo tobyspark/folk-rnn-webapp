@@ -50,3 +50,6 @@ class CandidateForm(forms.Form):
                                 ('user', ''),
                                 ))
     
+class CommentForm(forms.Form):
+    text = forms.CharField(label='Comment:', widget=forms.Textarea(attrs={'id': 'new_comment'}))
+    author = forms.CharField(label='Author:', widget=forms.TextInput(attrs={'id': 'new_comment_author'}))
