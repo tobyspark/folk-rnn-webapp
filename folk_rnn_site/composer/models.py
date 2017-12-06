@@ -15,6 +15,9 @@ class CandidateTune(models.Model):
     rnn_finished = models.DateTimeField(null=True)
     rnn_tune = models.TextField(default='')
     user_tune = models.TextField(default='')
+    
+    def tune(self):
+        return self.user_tune if self.user_tune else self.rnn_tune
 
 class ArchiveTune(models.Model):
     candidate = models.ForeignKey(CandidateTune)
