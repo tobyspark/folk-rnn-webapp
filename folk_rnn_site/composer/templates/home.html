@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block content %}
+{% load humanize %}
+<div id="compose">
+    <h1>Compose</h1>
+    {% include "_compose.html" %}
+</div>
+<hr>
+<div id="activity">
+    <h1>Activity</h1>
+    <div id="comments">
+        <h2>Recent comments</h2>
+        <ul>
+            {% for comment in comments %}
+            <li>{{ comment.text}} — {{ comment.author }}, {{ comment.submitted|naturalday }}, on <a href="/tune/{{ comment.tune.id }}">{{ comment.tune.title }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div id="tunes">
+        <h2>Recent tunes</h2>
+        <ul>
+            {% for tune in tunes %}
+            <li><a href="/tune/{{ tune.id }}">{{tune.title}}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+{% endblock %}

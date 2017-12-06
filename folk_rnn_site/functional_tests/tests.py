@@ -4,10 +4,10 @@ from datetime import timedelta
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
-from composer.models import Tune
+from composer.models import CandidateTune
 
 RNN_TUNE_TEXT = '''X:16
-T:FolkRNN Candidate Tune No16
+T:FolkRNN Test Tune
 M:4/4
 K:Cmaj
 abcceggc|defgdefd|bgfgecce|defga2g2|affgcegc|defgagfd|efece2c2|dcBcdBGz:|egg2egg2|gcegf2c2|Bgg2fBB2|dBd2dff2|egg2cggc|ac'c'2agfa|gcc2e2cd|BGABc2c2
@@ -15,7 +15,7 @@ abcceggc|defgdefd|bgfgecce|defga2g2|affgcegc|defgagfd|efece2c2|dcBcdBGz:|egg2egg
 :|'''
 
 def folk_rnn_task_mock_run():
-    tune = Tune.objects.first()
+    tune = CandidateTune.objects.first()
     tune.seed = 42
     tune.prime_tokens = 'M:4/4 K:Cmaj a b c'
     tune.rnn_started = now()
@@ -36,7 +36,10 @@ class NewVisitorTest(StaticLiveServerTestCase):
         self.browser.quit()
     
     def candidate_tune_url(self):
-        return self.live_server_url + '/candidate-tune/{}'.format(Tune.objects.first().id)
+        return self.live_server_url + '/candidate-tune/{}'.format(CandidateTune.objects.first().id)
+
+    def archive_tune_url(self):
+        return self.live_server_url + '/tune/{}'.format(CandidateTune.objects.first().id)
    
     def test_can_compose_tune_and_display_it(self):
         # Ada navigates to the folk_rnn web app
@@ -45,10 +48,12 @@ class NewVisitorTest(StaticLiveServerTestCase):
         # Sees that it is indeed about the folk-rnn folk music style modelling project
         self.assertIn('Folk RNN',self.browser.title)
         header_text = self.browser.find_element_by_tag_name('h1').text  
-        self.assertIn('Compose', header_text)
+        self.assertIn('Folk RNN', header_text)
         
         # Sees a compose tune section at the top of the page...
-        composing_div = self.browser.find_element_by_id('compose_ui')
+        composing_div = self.browser.find_element_by_id('compose')
+        composing_header = composing_div.find_element_by_tag_name('h1').text  
+        self.assertIn('Folk RNN', header_text)
         self.assertIn(
             'Compose a folk music tune using a recurrent neural network',
             composing_div.text
@@ -129,6 +134,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
         
         # Ada goes back to the original to compare...
         edit_radio_original = self.browser.find_element_by_id('id_edit_0') # auto-generated id by django form. not worth the effort trying to identify more semantically, e.g. by name then value.
+        edit_radio_original.location_once_scrolled_into_view # This should scroll the element into view, needed now page is longer and may scroll these clickables off the top.
         edit_radio_original.click()
         
         # ...and sees the original. It's the original, so she can't edit it
@@ -141,6 +147,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
         
         # Ada switches back to her edit...
         edit_radio_edit = self.browser.find_element_by_id('id_edit_1')
+        edit_radio_edit.location_once_scrolled_into_view
         edit_radio_edit.click()
         abc_textarea = self.browser.find_element_by_id('abc')
         self.assertEqual(
@@ -165,3 +172,61 @@ class NewVisitorTest(StaticLiveServerTestCase):
             RNN_TUNE_TEXT + ada_text + ada_text,
             abc_textarea.get_attribute('value')
             )
+            
+    def test_can_archive_composition(self):
+        # Ada composes and gets to candidate tune page
+        self.test_can_compose_tune_and_display_it()
+        
+        # Happy, Ada hits 'archive' button
+        archive_button = self.browser.find_element_by_id('archive_button')
+        archive_button.click()
+        
+        # Ada sees tune archive page with tune and comment field
+        self.browser_wait.until(lambda x: x.current_url == self.archive_tune_url())
+        abc_textarea = self.browser.find_element_by_id('abc')
+        self.assertEqual(
+            RNN_TUNE_TEXT,
+            abc_textarea.get_attribute('value')
+            )
+        comment_text_field = self.browser.find_element_by_id('new_comment')
+        comment_author_field = self.browser.find_element_by_id('new_comment_author')
+        comment_submit_button = self.browser.find_element_by_id('new_comment_submit')
+        self.assertIsNotNone(comment_text_field)
+        self.assertIsNotNone(comment_author_field)
+        self.assertIsNotNone(comment_submit_button)
+        
+        # Ada comments, and sees her comment displayed
+        comment_text_field.send_keys('My first tune.')
+        comment_author_field.send_keys('Ada')
+        comment_submit_button.click()
+        comment_list = self.browser_wait.until(lambda x: x.find_element_by_id('comment_list'))
+        self.assertIn(
+            'My first tune.',
+            comment_list.text
+            )
+        self.assertIn(
+            'Ada',
+            comment_list.text
+            )
+        self.assertIn(
+            'today',
+            comment_list.text
+            )
+        
+        # Satisfied, Ada checks the home page to see her work in the site's activity display...
+        self.browser.get(self.live_server_url)
+        comment_list = self.browser.find_element_by_id('comments')
+        self.assertIn(
+            'My first tune.',
+            comment_list.text
+            )
+        tune_list = self.browser.find_element_by_id('tunes')
+        self.assertIn( 
+            'FolkRNN Test Tune', 
+            tune_list.text
+            )
+        
+        # ...and uses the activity list to go back to her tune.
+        tune_link = self.browser.find_element_by_link_text('FolkRNN Test Tune')
+        tune_link.click()
+        self.assertEqual(self.browser.current_url, self.archive_tune_url())
