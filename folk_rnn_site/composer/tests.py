@@ -28,7 +28,7 @@ class FolkRNNTestCase(TestCase):
     def post_candidate_edit(self):
         return self.client.post('/candidate-tune/1', data={'tune': 'M:4/4 K:Cmaj a b c d e f', 'edit': 'user', 'edit_state': 'user'}) 
         
-    def post_candidate_tune_to_archive(self, tune='M:4/4 K:Cmaj a b c'):
+    def post_candidate_tune_to_archive(self, tune='T: Test Tune\nM:4/4\nK:Cmaj\na b c'):
         self.post_candidate_tune()
         folk_rnn_task_start_mock()
         folk_rnn_task_end_mock()
@@ -132,6 +132,21 @@ class ArchivePageTest(FolkRNNTestCase):
     def setUp(self):
         self.post_candidate_tune_to_archive()
     
+    def test_archive_does_not_accept_untitled_tunes(self):
+        self.assertEqual(ArchiveTune.objects.count(), 1)
+        self.post_candidate_tune_to_archive(tune='T: Folk RNN Candidate Tune\nM:4/4\nK:Cmaj\na b c')
+        self.assertEqual(ArchiveTune.objects.count(), 1)
+    
+    def test_archive_does_not_accept_same_tune_body(self):
+        self.assertEqual(ArchiveTune.objects.count(), 1)
+        self.post_candidate_tune_to_archive(tune='T: A No Different But In Title Test Tune\nM:4/4\nK:Cmaj\na b c')
+        self.assertEqual(ArchiveTune.objects.count(), 1)
+
+    def test_archive_does_not_accept_same_tune_title(self):
+        self.assertEqual(ArchiveTune.objects.count(), 1)
+        self.post_candidate_tune_to_archive(tune='T: Test Tune\nM:4/4\nK:Cmaj\na b c d e f')
+        self.assertEqual(ArchiveTune.objects.count(), 1)
+    
     def test_archive_tune_path_with_no_id_fails_gracefully(self):
         response = self.client.get('/tune/')
         self.assertEqual(response['location'], '/')
@@ -141,22 +156,15 @@ class ArchivePageTest(FolkRNNTestCase):
         self.assertEqual(response['location'], '/')
     
     def test_archive_tune_page_shows_tune(self):
-        self.post_candidate_tune_to_archive(tune='M:4/4 K:Cmaj a b c d e f')
-        
         response = self.client.get('/tune/1')
-        self.assertContains(response, 'M:4/4 K:Cmaj a b c')
-        self.assertNotContains(response, 'M:4/4 K:Cmaj a b c d e f')
+        self.assertContains(response, 'T: Test Tune\nM:4/4\nK:Cmaj\na b c')
+        
+        self.post_candidate_tune_to_archive(tune='T: Test Tune Extended\nM:4/4\nK:Cmaj\na b c d e f')
         response = self.client.get('/tune/2')
-        self.assertContains(response, 'M:4/4 K:Cmaj a b c d e f')
+        self.assertContains(response, 'T: Test Tune Extended\nM:4/4\nK:Cmaj\na b c d e f')
 
     def test_archive_tune_page_shows_comments(self):
-        response = self.client.get('/tune/1')
-        self.assertNotContains(response, 'My first comment.')
-        self.assertNotContains(response, 'A. Person')
-        
-        self.post_archive_comment()
-        
-        response = self.client.get('/tune/1')
+        response = self.post_archive_comment()
         self.assertContains(response, 'My first comment.')
         self.assertContains(response, 'A. Person')
     
@@ -166,6 +174,19 @@ class ArchivePageTest(FolkRNNTestCase):
         self.assertEqual(comment.text, 'My first comment.')
         self.assertEqual(comment.author, 'A. Person')
         self.assertAlmostEqual(comment.submitted, now(), delta=timedelta(seconds=0.1))
+
+# Note this has the naive regex defeating line of "x:xxxxx" in the body
+abc_header = '''X: 1
+T: La Chapka
+R: mazurka
+M: 3/4
+L: 1/8
+K: Gmaj'''
+abc_body = '''"G"B2 BA AB|"Em"B3G GA|"C"A3B cB|"D"BA AG GA|
+"G"B2 BA AB|"Em"B3G GA|"C"A2 AB cB|1"D"A6:|2"D"A3d BA||
+|:"G"G3A BD|"C"E3d BA|"G"G3B "Am"ce|"D"dF Ad BA|
+"Em"G3A BD|"C"E3d BA|"Am"GF GB ce|1"D"d3d BA:|2"D"d6|]'''
+abc = '{}\n{}'.format(abc_header, abc_body)
 
 class CandidateTuneModelTest(TestCase):
     
@@ -203,14 +224,21 @@ class CandidateTuneModelTest(TestCase):
         self.assertEqual(tune.rnn_tune, 'RNN ABC')
     
     def test_title_property(self):
-        tune = CandidateTune.objects.create(user_tune='T:title\na b c')
+        tune = CandidateTune(user_tune='T:title\na b c')
         self.assertEqual(tune.title, 'title')
         
-        tune = CandidateTune.objects.create(user_tune='T: title \na b c')
+        tune = CandidateTune(user_tune='T: title \na b c')
         self.assertEqual(tune.title, 'title')
         
-        tune = CandidateTune.objects.create(user_tune='\r\nT:title\r\na b c')
+        tune = CandidateTune(user_tune='\r\nT:title\r\na b c')
         self.assertEqual(tune.title, 'title')
+        
+        tune = CandidateTune(user_tune=abc)
+        self.assertEqual(tune.title, 'La Chapka')
+    
+    def test_body_property(self):
+        tune = CandidateTune(user_tune=abc)
+        self.assertEqual(tune.body, abc_body)
 
 class ABCJSTest(TestCase):
     

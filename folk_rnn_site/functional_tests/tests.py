@@ -147,6 +147,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
         
         # Ada switches back to her edit...
         edit_radio_edit = self.browser.find_element_by_id('id_edit_1')
+        edit_radio_edit.location_once_scrolled_into_view
         edit_radio_edit.click()
         abc_textarea = self.browser.find_element_by_id('abc')
         self.assertEqual(
