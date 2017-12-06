@@ -61,15 +61,16 @@ def candidate_tune_page(request, tune_id=None):
             if form.cleaned_data['edit'] == 'rnn':
                 show_user = False
             if 'archive' in request.POST:
-                tune_abc = tune.user_tune if tune.user_tune else tune.rnn_tune
+                tune_abc = tune.tune()
                 # TODO: Check there isn't already an archived tune with this abc from this candidate
+                # TODO: Check it has a new title
                 archive_tune = ArchiveTune(candidate=tune, tune=tune_abc)
                 archive_tune.save()
                 return redirect('/tune/{}'.format(archive_tune.id))
                 
     if show_user:
         form = CandidateForm({
-                    'tune': tune.user_tune if tune.user_tune else tune.rnn_tune,
+                    'tune': tune.tune(),
                     'edit': 'user',
                     'edit_state': 'user',
                     })
