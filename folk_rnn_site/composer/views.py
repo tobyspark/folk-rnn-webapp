@@ -52,6 +52,7 @@ def candidate_tune_page(request, tune_id=None):
             })
     
     show_user = True
+    archive = False
     if request.method == 'POST':
         form = CandidateForm(request.POST)
         if form.is_valid():
@@ -61,16 +62,11 @@ def candidate_tune_page(request, tune_id=None):
             if form.cleaned_data['edit'] == 'rnn':
                 show_user = False
             if 'archive' in request.POST:
-                tune_abc = tune.tune()
-                # TODO: Check there isn't already an archived tune with this abc from this candidate
-                # TODO: Check it has a new title
-                archive_tune = ArchiveTune(candidate=tune, tune=tune_abc)
-                archive_tune.save()
-                return redirect('/tune/{}'.format(archive_tune.id))
-                
+                archive = True
+                                
     if show_user:
         form = CandidateForm({
-                    'tune': tune.tune(),
+                    'tune': tune.tune,
                     'edit': 'user',
                     'edit_state': 'user',
                     })
@@ -81,6 +77,30 @@ def candidate_tune_page(request, tune_id=None):
                     'edit_state': 'rnn',
                     })
         form.fields['tune'].widget.attrs['readonly'] = True
+    
+    if archive:
+        # Check there isn't already an archived tune with this abc body
+        for archive_tune in ArchiveTune.objects.all():
+            if archive_tune.body == tune.body:
+                archive = False
+                if show_user:
+                    form.add_error('tune', 'This development is already archived as {}. You can still develop it further and archive that.'.format(archive_tune.title))
+                else:
+                    form.add_error('tune', 'This RNN original is already archived as {}. You can still develop it and archive your version.'.format(archive_tune.title))
+                break
+        
+        # Check it has a new, unique title
+        if tune.title.startswith('Folk RNN Candidate Tune'):
+            archive = False
+            form.add_error('tune', 'Provide your own title (edit the abc "T: ..." line)')
+        if any(x.title == tune.title for x in ArchiveTune.objects.all()):
+            archive = False
+            form.add_error('tune', 'Already an archived tune with this title.')
+        
+        if archive:
+            archive_tune = ArchiveTune(candidate=tune, tune=tune.tune)
+            archive_tune.save()
+            return redirect('/tune/{}'.format(archive_tune.id))
 
     return render(request, 'candidate-tune.html', {
         'candidate_id': tune_id_int,
