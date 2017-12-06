@@ -201,7 +201,16 @@ class CandidateTuneModelTest(TestCase):
         self.assertTrue(tune.rnn_started < tune.rnn_finished)
         self.assertAlmostEqual(tune.rnn_started, tune.rnn_finished, delta=timedelta(seconds=0.1))
         self.assertEqual(tune.rnn_tune, 'RNN ABC')
+    
+    def test_title_property(self):
+        tune = CandidateTune.objects.create(user_tune='T:title\na b c')
+        self.assertEqual(tune.title, 'title')
         
+        tune = CandidateTune.objects.create(user_tune='T: title \na b c')
+        self.assertEqual(tune.title, 'title')
+        
+        tune = CandidateTune.objects.create(user_tune='\r\nT:title\r\na b c')
+        self.assertEqual(tune.title, 'title')
 
 class ABCJSTest(TestCase):
     

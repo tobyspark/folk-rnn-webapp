@@ -3,7 +3,7 @@ import re
 
 USERNAME_MAX_LENGTH = 128
 
-abc_regex = re.compile(r'T:(?P<title>.*)[\r\n]')
+title_regex = re.compile(r'^T:\s*(.*?)\s*$', re.MULTILINE)
 
 class CandidateTune(models.Model):
     rnn_model_name = models.CharField(max_length=64, default='')
@@ -24,8 +24,8 @@ class ArchiveTune(models.Model):
     tune = models.TextField(default='')
     
     def title(self):
-        match = abc_regex.search(self.tune)
-        return match.group('title') if match else 'Untitled'
+        match = title_regex.search(self.tune)
+        return match.group(1) if match else 'Untitled'
     
 class Comment(models.Model):
     tune = models.ForeignKey(ArchiveTune)
