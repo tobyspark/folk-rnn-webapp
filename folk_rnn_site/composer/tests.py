@@ -3,9 +3,11 @@ from django.contrib.staticfiles import finders
 from django.utils.timezone import now
 from datetime import timedelta
 from time import sleep
+from tempfile import SpooledTemporaryFile
 from email.utils import format_datetime # RFC 2822 for parity with django template date filter
 
 from composer.models import CandidateTune, ArchiveTune, Comment
+from composer.dataset import tune_dataset, dataset_as_csv
 
 def folk_rnn_task_start_mock():
     tune = CandidateTune.objects.first()
@@ -240,6 +242,28 @@ class CandidateTuneModelTest(TestCase):
         tune = CandidateTune(user_tune=abc)
         self.assertEqual(tune.body, abc_body)
 
+class DatasetTest(FolkRNNTestCase):
+    
+    def test_tune_dataset(self):
+        self.post_candidate_tune_to_archive()
+        data = list(tune_dataset())
+        self.assertEqual(data[0].id, 1)
+        self.assertEqual(data[0].name, 'Test Tune')
+        self.assertEqual(data[0].rnn_seed, 123)
+    
+    def test_dataset_as_csv(self):
+        self.post_candidate_tune_to_archive()
+        csv = '''id,name,abc,rnn_model,rnn_temperature,rnn_seed,rnn_prime_tokens\r
+1,Test Tune,"T: Test Tune
+M:4/4
+K:Cmaj
+a b c",test_model.pickle_2,0.1,123,M:4/4 K:Cmaj a b c\r
+'''
+        with SpooledTemporaryFile(mode='w+') as f:
+            dataset_as_csv(f)
+            f.seek(0)
+            self.assertEqual(csv, f.read())
+       
 class ABCJSTest(TestCase):
     
     def test_abcjs_available(self):

@@ -1,7 +1,11 @@
 from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from django.core.files import File as dFile
+from tempfile import TemporaryFile
 
 from composer.models import CandidateTune, ArchiveTune, Comment
 from composer.forms import ComposeForm, CandidateForm, CommentForm
+from composer.dataset import dataset_as_csv
 
 MAX_RECENT_ITEMS = 5
 
@@ -142,3 +146,11 @@ def archive_tune_page(request, tune_id=None):
         'form': form,
         'comments': Comment.objects.filter(tune=tune),
         })
+        
+def dataset_download(request):
+    with TemporaryFile(mode='w+') as f:
+        dataset_as_csv(f)
+        #f.seek(0)  # checkme
+        response = HttpResponse(dFile(f), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="folkrnn_dataset_{}"'.format('FIXME-TIMESTAMP')
+        return response
