@@ -230,3 +230,10 @@ class NewVisitorTest(StaticLiveServerTestCase):
         tune_link = self.browser.find_element_by_link_text('FolkRNN Test Tune')
         tune_link.click()
         self.assertEqual(self.browser.current_url, self.archive_tune_url())
+    
+    def test_can_download_dataset(self):
+        # Ada hits the /dataset endpoint and checks the returned JSON
+        self.browser.get(self.live_server_url + '/dataset')
+        # TODO: File downloading in headless chrome currently disabled.
+        #       But this def works using the django dev server and safari!
+        #       https://bugs.chromium.org/p/chromedriver/issues/detail?id=1973
