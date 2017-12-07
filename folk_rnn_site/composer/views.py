@@ -150,7 +150,6 @@ def archive_tune_page(request, tune_id=None):
 def dataset_download(request):
     with TemporaryFile(mode='w+') as f:
         dataset_as_csv(f)
-        #f.seek(0)  # checkme
         response = HttpResponse(dFile(f), content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="folkrnn_dataset_{}"'.format('FIXME-TIMESTAMP')
         return response
