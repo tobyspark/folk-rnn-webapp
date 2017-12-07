@@ -1,6 +1,7 @@
 from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from django.core.files import File as dFile
+from django.utils.timezone import now
 from tempfile import TemporaryFile
 
 from composer.models import CandidateTune, ArchiveTune, Comment
@@ -151,5 +152,5 @@ def dataset_download(request):
     with TemporaryFile(mode='w+') as f:
         dataset_as_csv(f)
         response = HttpResponse(dFile(f), content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="folkrnn_dataset_{}"'.format('FIXME-TIMESTAMP')
+        response['Content-Disposition'] = 'attachment; filename="folkrnn_dataset_{}"'.format(now().strftime('%Y%m%d-%H%M%S'))
         return response
