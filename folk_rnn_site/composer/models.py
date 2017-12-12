@@ -6,7 +6,7 @@ USERNAME_MAX_LENGTH = 128
 title_regex = re.compile(r'^T:\s*(.*?)\s*$', re.MULTILINE)
 body_regex = re.compile(r'K:.*?\n(.*)',re.DOTALL) 
 
-class CandidateTune(models.Model):
+class Tune(models.Model):
     rnn_model_name = models.CharField(max_length=64, default='')
     seed = models.IntegerField(default=42)
     temp = models.FloatField(default=1.0)
@@ -31,8 +31,8 @@ class CandidateTune(models.Model):
         match = body_regex.search(self.tune)
         return match.group(1) if match else self.tune # FIXME: Should be logging an error here
 
-class ArchiveTune(models.Model):
-    candidate = models.ForeignKey(CandidateTune)
+class Setting(models.Model):
+    candidate = models.ForeignKey(Tune)
     tune = models.TextField(default='')
     
     @property
@@ -46,7 +46,7 @@ class ArchiveTune(models.Model):
         return match.group(1) if match else self.tune
     
 class Comment(models.Model):
-    tune = models.ForeignKey(ArchiveTune)
+    tune = models.ForeignKey(Setting)
     text = models.TextField(default='')
     author = models.CharField(max_length=USERNAME_MAX_LENGTH, default='')
     submitted = models.DateTimeField(auto_now_add=True)
