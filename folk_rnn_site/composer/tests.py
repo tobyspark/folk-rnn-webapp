@@ -16,26 +16,29 @@ def folk_rnn_task_start_mock():
 def folk_rnn_task_end_mock():
     tune = Tune.objects.first()
     tune.rnn_finished = now()
-    tune.rnn_tune = 'RNN ABC'
+    tune.abc_rnn = 'RNN ABC'
     tune.save()
     return tune
 
 class FolkRNNTestCase(TestCase):
     
-    def post_candidate_tune(self, seed=123, temp=0.1, prime_tokens='a b c'):
+    def post_tune(self, seed=123, temp=0.1, prime_tokens='a b c'):
         return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': seed, 'temp': temp, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': prime_tokens})
     
-    def post_candidate_edit(self):
-        return self.client.post('/candidate-tune/1', data={'tune': 'M:4/4 K:Cmaj a b c d e f', 'edit': 'user', 'edit_state': 'user'}) 
+    def post_edit(self):
+        return self.client.post('/tune/1', data={'tune': 'M:4/4 K:Cmaj a b c d e f', 'edit': 'user', 'edit_state': 'user'}) 
         
-    def post_candidate_tune_to_archive(self, tune='T: Test Tune\nM:4/4\nK:Cmaj\na b c'):
-        self.post_candidate_tune()
+    def post_setting(self, tune='T: Test Tune\nM:4/4\nK:Cmaj\na b c'):
+        self.post_tune()
         folk_rnn_task_start_mock()
         folk_rnn_task_end_mock()
-        return self.client.post('/candidate-tune/1', data={'tune': tune, 'edit': 'user', 'edit_state': 'user', 'archive': True})
+        return self.client.post('/tune/1', data={'tune': tune, 'edit': 'user', 'edit_state': 'user', 'submit_setting': True})
     
-    def post_archive_comment(self):
-        return self.client.post('/tune/1', data={'text': 'My first comment.', 'author': 'A. Person'})
+    def post_comment(self):
+        self.post_tune()
+        folk_rnn_task_start_mock()
+        folk_rnn_task_end_mock()
+        return self.client.post('/tune/1', data={'text': 'My first comment.', 'author': 'A. Person', 'submit_comment': True})
 
 class HomePageTest(FolkRNNTestCase):
     
@@ -44,71 +47,73 @@ class HomePageTest(FolkRNNTestCase):
         self.assertTemplateUsed(response, 'home.html')
     
     def test_home_page_lists_activity(self):
-        candidate_tune = Tune()
-        candidate_tune.save()
-        tune = Setting(candidate=candidate_tune, tune='T:title\nABC')
+        tune = Tune(abc_rnn='T:Tune\nABC')
         tune.save()
+        setting = Setting(tune=tune, abc='T:Setting\nABC')
+        setting.save()
         for i in range(1,11):
             comment = Comment(tune=tune, text='{}'.format(i), author='author')
             comment.save()
         
         response = self.client.get('/')
-        title_html = '<ul><li><a href="/tune/1">title</a></li></ul>'
-        comment_html = '<ul>' + ''.join('<li>{} — author, today, on <a href="/tune/1">title</a></li>'.format(i) for i in [10,9,8,7,6]) + '</ul>' # Note test for only five, latest first
+        title_html = '<ul><li><a href="/tune/1">Tune</a></li></ul>'
+        setting_html = '<ul><li><a href="/tune/1">Tune</a></li></ul>' # FIXME: this isn't what should be displayed, but for now...
+        comment_html = '<ul>' + ''.join('<li>{} — author, today, on <a href="/tune/1">Tune</a></li>'.format(i) for i in [10,9,8,7,6]) + '</ul>' # Note test for only five, latest first
         self.assertContains(response, title_html, html=True)
+        self.assertContains(response, setting_html, html=True)
         self.assertContains(response, comment_html, html=True)
     
     def test_compose_page_can_save_a_POST_request(self):
-        self.post_candidate_tune()
+        self.post_tune()
         self.assertEqual(Tune.objects.count(), 1)
         new_tune = Tune.objects.first()
         self.assertEqual(new_tune.temp, 0.1)
         self.assertEqual(new_tune.prime_tokens, 'M:4/4 K:Cmaj a b c')
   
     def test_compose_page_does_not_save_an_invalid_POST_request(self):
-        self.post_candidate_tune(prime_tokens='slarty bartfast')
+        self.post_tune(prime_tokens='slarty bartfast')
         self.assertEqual(Tune.objects.count(), 0)
         
-        self.post_candidate_tune(seed=-1)
+        self.post_tune(seed=-1)
         self.assertEqual(Tune.objects.count(), 0)
         
-        self.post_candidate_tune(temp=11)
+        self.post_tune(temp=11)
         self.assertEqual(Tune.objects.count(), 0)          
     
     def test_compose_page_redirects_after_POST(self):
-        response = self.post_candidate_tune()
+        response = self.post_tune()
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(response['location'], '/candidate-tune/1')
+        self.assertEqual(response['location'], '/tune/1')
         
-class CandidatePageTest(FolkRNNTestCase):
+class TunePageTest(FolkRNNTestCase):
     
-    def test_candidate_tune_path_with_no_id_fails_gracefully(self):
-        response = self.client.get('/candidate-tune/')
+    def test_tune_path_with_no_id_fails_gracefully(self):
+        response = self.client.get('/tune/')
         self.assertEqual(response['location'], '/')
     
-    def test_candidate_tune_path_with_invalid_id_fails_gracefully(self):
-        response = self.client.get('/candidate-tune/1')
+    def test_tune_path_with_invalid_id_fails_gracefully(self):
+        response = self.client.get('/tune/1')
         self.assertEqual(response['location'], '/')
         
-    def test_candidate_tune_page_shows_composing_messages(self):
-        self.post_candidate_tune()
-        response = self.client.get('/candidate-tune/1')
-        self.assertTemplateUsed(response, 'candidate-tune-in-process.html')
+    def test_tune_page_shows_composing_messages(self):
+        self.post_tune()
+        response = self.client.get('/tune/1')
+        self.assertTemplateUsed(response, 'tune-in-process.html')
         self.assertContains(response, 'Composition with prime tokens "M:4/4 K:Cmaj a b c" is waiting for folk_rnn task')
         
         folk_rnn_task_start_mock()
         
-        response = self.client.get('/candidate-tune/1')
-        self.assertTemplateUsed(response, 'candidate-tune-in-process.html')
+        response = self.client.get('/tune/1')
+        self.assertTemplateUsed(response, 'tune-in-process.html')
         self.assertContains(response, 'Composition with prime tokens "M:4/4 K:Cmaj a b c" in process...')
 
-    def test_candidate_tune_page_shows_results(self):
-        self.post_candidate_tune()
+    def test_tune_page_shows_tune(self):
+        self.post_tune()
         folk_rnn_task_start_mock()
         tune = folk_rnn_task_end_mock()
         
-        response = self.client.get('/candidate-tune/1')
-        self.assertTemplateUsed(response, 'candidate-tune.html')
+        response = self.client.get('/tune/1')
+        self.assertTemplateUsed(response, 'tune.html')
         #print(response.content)
         self.assertContains(response,'>\nRNN ABC</textarea>') # django widget inserts a newline; a django workaround to an html workaround beyond the scope of this project
         self.assertContains(response,'<li>RNN model: test_model.pickle_2')
@@ -118,58 +123,49 @@ class CandidatePageTest(FolkRNNTestCase):
         self.assertContains(response,'<li>Requested at: {}</li>'.format(format_datetime(tune.requested)), msg_prefix='FIXME: This will falsely fail for single digit day of the month due to Django template / Python RFC formatting mis-match.') # FIXME
         self.assertContains(response,'<li>Composition took: 0s</li>')
         
-    def test_candidate_tune_page_can_save_a_POST_request(self):
-        self.post_candidate_tune()
+    def test_tune_page_can_save_a_edit_POST_request(self):
+        self.post_tune()
         folk_rnn_task_start_mock()
         folk_rnn_task_end_mock()
         
-        self.post_candidate_edit()
+        self.post_edit()
         tune = Tune.objects.first()
-        self.assertEqual(tune.user_tune, 'M:4/4 K:Cmaj a b c d e f')
+        self.assertEqual(tune.abc_user, 'M:4/4 K:Cmaj a b c d e f')
+        
+    def test_tune_can_save_a_setting_POST_request(self):
+        self.post_setting()
+        self.assertEqual(Setting.objects.count(), 1)
+    
+    def test_tune_page_does_not_accept_setting_with_default_title(self):
+        self.post_setting(tune='T: Folk RNN Candidate Tune\nM:4/4\nK:Cmaj\na b c')
+        self.assertEqual(Setting.objects.count(), 0)
 
-class ArchivePageTest(FolkRNNTestCase):
+    def test_tune_page_does_not_accept_setting_with_rnn_abc_body(self):
+        self.post_setting(tune='RNN ABC') # FIXME: probably want some 'make_abc' function with title, body params, and lots o'constants. And test elsewhere for invalid ABC
+        self.assertEqual(Setting.objects.count(), 0)
     
-    def setUp(self):
-        self.post_candidate_tune_to_archive()
-    
-    def test_archive_does_not_accept_untitled_tunes(self):
-        self.assertEqual(Setting.objects.count(), 1)
-        self.post_candidate_tune_to_archive(tune='T: Folk RNN Candidate Tune\nM:4/4\nK:Cmaj\na b c')
-        self.assertEqual(Setting.objects.count(), 1)
-    
-    def test_archive_does_not_accept_same_tune_body(self):
-        self.assertEqual(Setting.objects.count(), 1)
-        self.post_candidate_tune_to_archive(tune='T: A No Different But In Title Test Tune\nM:4/4\nK:Cmaj\na b c')
+    def test_tune_page_does_not_accept_setting_with_same_tune_body(self):
+        self.post_setting()
+        self.post_setting(tune='T: A No Different But In Title Test Tune\nM:4/4\nK:Cmaj\na b c')
         self.assertEqual(Setting.objects.count(), 1)
 
-    def test_archive_does_not_accept_same_tune_title(self):
+    def test_tune_page_does_not_accept_setting_with_same_tune_title(self):
+        self.post_setting(tune='T: Test Tune\nM:4/4\nK:Cmaj\na b c d e f')
         self.assertEqual(Setting.objects.count(), 1)
-        self.post_candidate_tune_to_archive(tune='T: Test Tune\nM:4/4\nK:Cmaj\na b c d e f')
-        self.assertEqual(Setting.objects.count(), 1)
     
-    def test_archive_tune_path_with_no_id_fails_gracefully(self):
-        response = self.client.get('/tune/')
-        self.assertEqual(response['location'], '/')
-    
-    def test_archive_tune_path_with_invalid_id_fails_gracefully(self):
-        response = self.client.get('/tune/2')
-        self.assertEqual(response['location'], '/')
-    
-    def test_archive_tune_page_shows_tune(self):
+    def test_tune_page_shows_setting(self):
+        self.post_setting()
         response = self.client.get('/tune/1')
         self.assertContains(response, 'T: Test Tune\nM:4/4\nK:Cmaj\na b c')
-        
-        self.post_candidate_tune_to_archive(tune='T: Test Tune Extended\nM:4/4\nK:Cmaj\na b c d e f')
-        response = self.client.get('/tune/2')
-        self.assertContains(response, 'T: Test Tune Extended\nM:4/4\nK:Cmaj\na b c d e f')
 
-    def test_archive_tune_page_shows_comments(self):
-        response = self.post_archive_comment()
+    def test_tune_page_shows_comments(self):
+        self.post_comment()
+        response = self.post_comment()
         self.assertContains(response, 'My first comment.')
         self.assertContains(response, 'A. Person')
     
-    def test_archive_tune_page_can_save_a_POST_request(self):
-        self.post_archive_comment()
+    def test_tune_page_can_save_a_comment_POST_request(self):
+        self.post_comment()
         comment = Comment.objects.first()
         self.assertEqual(comment.text, 'My first comment.')
         self.assertEqual(comment.author, 'A. Person')
@@ -210,7 +206,7 @@ class TuneModelTest(TestCase):
     def test_tune_lifecycle(self):
         tune = Tune.objects.create()
         self.assertAlmostEqual(tune.requested, now(), delta=timedelta(seconds=0.1))
-        self.assertEqual(tune.rnn_tune, '')
+        self.assertEqual(tune.abc_rnn, '')
         
         folk_rnn_task_start_mock()
         
@@ -221,23 +217,23 @@ class TuneModelTest(TestCase):
         tune = Tune.objects.first()
         self.assertTrue(tune.rnn_started < tune.rnn_finished)
         self.assertAlmostEqual(tune.rnn_started, tune.rnn_finished, delta=timedelta(seconds=0.1))
-        self.assertEqual(tune.rnn_tune, 'RNN ABC')
+        self.assertEqual(tune.abc_rnn, 'RNN ABC')
     
     def test_title_property(self):
-        tune = Tune(user_tune='T:title\na b c')
+        tune = Tune(abc_user='T:title\na b c')
         self.assertEqual(tune.title, 'title')
         
-        tune = Tune(user_tune='T: title \na b c')
+        tune = Tune(abc_user='T: title \na b c')
         self.assertEqual(tune.title, 'title')
         
-        tune = Tune(user_tune='\r\nT:title\r\na b c')
+        tune = Tune(abc_user='\r\nT:title\r\na b c')
         self.assertEqual(tune.title, 'title')
         
-        tune = Tune(user_tune=abc)
+        tune = Tune(abc_user=abc)
         self.assertEqual(tune.title, 'La Chapka')
     
     def test_body_property(self):
-        tune = Tune(user_tune=abc)
+        tune = Tune(abc_user=abc)
         self.assertEqual(tune.body, abc_body)
 
 class ABCJSTest(TestCase):

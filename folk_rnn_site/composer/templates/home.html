@@ -9,19 +9,27 @@
 <hr>
 <div id="activity">
     <h1>Activity</h1>
-    <div id="comments">
-        <h2>Recent comments</h2>
-        <ul>
-            {% for comment in comments %}
-            <li>{{ comment.text}} — {{ comment.author }}, {{ comment.submitted|naturalday }}, on <a href="/tune/{{ comment.tune.id }}">{{ comment.tune.title }}</a></li>
-            {% endfor %}
-        </ul>
-    </div>
     <div id="tunes">
         <h2>Recent tunes</h2>
         <ul>
             {% for tune in tunes %}
             <li><a href="/tune/{{ tune.id }}">{{tune.title}}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div id="settings">
+        <h2>Recent settings</h2>
+        <ul>
+            {% for setting in settings %}
+            <li><a href="/tune/{{ setting.tune.id }}">{{ setting.tune.title }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+    <div id="comments">
+        <h2>Recent comments</h2>
+        <ul>
+            {% for comment in comments %}
+            <li>{{ comment.text}} — {{ comment.author }}, {{ comment.submitted|naturalday }}, on <a href="/tune/{{ comment.tune.id }}">{{ comment.tune.title }}</a></li>
             {% endfor %}
         </ul>
     </div>
