@@ -1,6 +1,6 @@
 from django.shortcuts import redirect, render
 
-from composer.models import CandidateTune, ArchiveTune, Comment
+from composer.models import Tune, Setting, Comment
 from composer.forms import ComposeForm, CandidateForm, CommentForm
 
 MAX_RECENT_ITEMS = 5
@@ -9,7 +9,7 @@ def home_page(request):
     if request.method == 'POST':
         form = ComposeForm(request.POST)
         if form.is_valid():
-            tune = CandidateTune()
+            tune = Tune()
             tune.rnn_model_name = form.cleaned_data['model']
             tune.seed = form.cleaned_data['seed']
             tune.temp = form.cleaned_data['temp']
@@ -26,15 +26,15 @@ def home_page(request):
     
     return render(request, 'home.html', {
                                 'form': form,
-                                'tunes': ArchiveTune.objects.order_by('-id')[:MAX_RECENT_ITEMS],
+                                'tunes': Setting.objects.order_by('-id')[:MAX_RECENT_ITEMS],
                                 'comments': Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS],
                                 })
 
 def candidate_tune_page(request, tune_id=None):
     try:
         tune_id_int = int(tune_id)
-        tune = CandidateTune.objects.get(id=tune_id_int)
-    except (TypeError, CandidateTune.DoesNotExist):
+        tune = Tune.objects.get(id=tune_id_int)
+    except (TypeError, Tune.DoesNotExist):
         return redirect('/')
     
     if not tune.rnn_started:
@@ -80,7 +80,7 @@ def candidate_tune_page(request, tune_id=None):
     
     if archive:
         # Check there isn't already an archived tune with this abc body
-        for archive_tune in ArchiveTune.objects.all():
+        for archive_tune in Setting.objects.all():
             if archive_tune.body == tune.body:
                 archive = False
                 if show_user:
@@ -93,12 +93,12 @@ def candidate_tune_page(request, tune_id=None):
         if tune.title.startswith('Folk RNN Candidate Tune'):
             archive = False
             form.add_error('tune', 'Provide your own title (edit the abc "T: ..." line)')
-        if any(x.title == tune.title for x in ArchiveTune.objects.all()):
+        if any(x.title == tune.title for x in Setting.objects.all()):
             archive = False
             form.add_error('tune', 'Already an archived tune with this title.')
         
         if archive:
-            archive_tune = ArchiveTune(candidate=tune, tune=tune.tune)
+            archive_tune = Setting(candidate=tune, tune=tune.tune)
             archive_tune.save()
             return redirect('/tune/{}'.format(archive_tune.id))
 
@@ -117,8 +117,8 @@ def candidate_tune_page(request, tune_id=None):
 def archive_tune_page(request, tune_id=None):
     try:
         tune_id_int = int(tune_id)
-        tune = ArchiveTune.objects.get(id=tune_id_int)
-    except (TypeError, ArchiveTune.DoesNotExist):
+        tune = Setting.objects.get(id=tune_id_int)
+    except (TypeError, Setting.DoesNotExist):
         return redirect('/')
     
     if request.method == 'POST':
