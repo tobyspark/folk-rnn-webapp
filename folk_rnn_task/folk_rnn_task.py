@@ -57,7 +57,7 @@ def process_job(job_spec):
     tune = 'X:{id}\nT:Folk RNN Candidate Tune No{id}\n{m}\n{k}\n{t}\n'.format(id=job_spec['id'], m=tune_tokens[0], k=tune_tokens[1], t=''.join(tune_tokens[2:]))
     with open(tune_path, 'w') as f:
         f.write(tune)
-    conform_abc_command = ['/usr/bin/abc2abc', tune_path]
+    conform_abc_command = ['/usr/bin/abc2abc', tune_path, '-e']
     tune = subprocess.check_output(conform_abc_command)
     with open(tune_path, 'w') as f:
         f.write(tune)
