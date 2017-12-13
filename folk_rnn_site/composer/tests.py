@@ -140,7 +140,16 @@ class TunePageTest(FolkRNNTestCase):
         
         self.post_edit()
         tune = Tune.objects.first()
-        self.assertEqual(tune.abc_user, mint_abc(body=ABC_BODY*2))
+        self.assertEqual(tune.abc, mint_abc(body=ABC_BODY*2))
+
+    def test_tune_page_does_not_save_an_invalid_edit_POST_request(self):
+        self.post_tune()
+        folk_rnn_task_start_mock()
+        folk_rnn_task_end_mock()
+        
+        self.post_edit(tune='A B C')
+        tune = Tune.objects.first()
+        self.assertEqual(tune.abc, mint_abc())
         
     def test_tune_can_save_a_setting_POST_request(self):
         self.post_setting()
@@ -160,7 +169,7 @@ class TunePageTest(FolkRNNTestCase):
         self.assertEqual(Setting.objects.count(), 1)
 
     def test_tune_page_does_not_accept_setting_with_same_tune_title(self): # TODO: remove this, settings have same title as tune
-        self.post_setting(tune='T: Test Tune\nM:4/4\nK:Cmaj\na b c d e f')
+        self.post_setting(tune=mint_abc(body=ABC_BODY*4))
         self.assertEqual(Setting.objects.count(), 1)
     
     def test_tune_page_shows_setting(self):
@@ -229,6 +238,23 @@ class TuneModelTest(TestCase):
         self.assertAlmostEqual(tune.rnn_started, tune.rnn_finished, delta=timedelta(seconds=0.1))
         self.assertEqual(tune.abc_rnn, mint_abc())
     
+    def test_tune_abc_property(self):
+        tune = Tune(abc_rnn=mint_abc())
+        self.assertEqual(tune.abc, mint_abc())
+        
+        tune.abc = mint_abc(body=ABC_BODY*2)
+        self.assertEqual(tune.abc, mint_abc(body=ABC_BODY*2))
+        
+        with self.assertRaises(AttributeError):
+            tune.abc = 'A B C' # There are more permutations of invalid ABC
+           
+        previous_abc = tune.abc 
+        try:
+            tune.abc = 'A B C'
+        except AttributeError:
+            pass
+        self.assertEqual(tune.abc, previous_abc)
+    
     def test_title_property(self):
         tune = Tune(abc_user=mint_abc())
         self.assertEqual(tune.title, ABC_TITLE)
@@ -243,10 +269,10 @@ class TuneModelTest(TestCase):
         self.assertEqual(tune.title, 'La Chapka')
 
     def test_x_property(self):
-        setting = Setting(abc=mint_abc(x='    3    '))
-        self.assertEqual(setting.header_x, '3')
-        setting.header_x = 0
-        self.assertEqual(setting.abc, mint_abc())
+        tune = Tune(abc=mint_abc(x='    3    '))
+        self.assertEqual(tune.header_x, '3')
+        tune.header_x = 0
+        self.assertEqual(tune.abc, mint_abc())
     
     def test_body_property(self):
         tune = Tune(abc_user=chapka_abc)

@@ -16,17 +16,17 @@ class ABCModel(models.Model):
     @property
     def title(self):
         match = header_t_regex.search(self.abc)
-        return match.group(1) if match else 'Untitled'
+        return match.group(1)
     
     @property
     def body(self):
         match = body_regex.search(self.abc)
-        return match.group(1) if match else self.abc
+        return match.group(1)
 
     @property
     def header_x(self):
         match = header_x_regex.search(self.abc)
-        return match.group(1) if match else '0'
+        return match.group(1)
     
     @header_x.setter
     def header_x(self, value):
@@ -46,6 +46,19 @@ class Tune(ABCModel):
     @property
     def abc(self):
         return self.abc_user if self.abc_user else self.abc_rnn
+        
+    @abc.setter
+    def abc(self, value):
+        old_abc_user = self.abc_user
+        self.abc_user = value
+        # validate user abc
+        try:
+            self.title
+            self.body
+            self.header_x
+        except AttributeError:
+            self.abc_user = old_abc_user
+            raise AttributeError('Invalid user ABC')
 
 class SettingManager(models.Manager):
     def create_setting(self, tune):
