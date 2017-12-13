@@ -55,29 +55,43 @@ def tune_page(request, tune_id=None):
             })
     
     # Default content
-    
-    tune_form_show = 'user'
-    tune_form_errors = []
+    tune_form = TuneForm({
+                    'tune': tune.abc,
+                    'edit': 'user',
+                    'edit_state': 'user',
+                    })
     comment_form = CommentForm()
     
     # Handle POST
     if request.method == 'POST':
         if 'tune' in request.POST:
-            tune_form = TuneForm(request.POST)
-            if tune_form.is_valid():
-                if tune_form.cleaned_data['edit_state'] == 'user':
+            form = TuneForm(request.POST)
+            if form.is_valid():
+                if form.cleaned_data['edit_state'] == 'user':
                     try:
-                        tune.abc = tune_form.cleaned_data['tune']
+                        tune.abc = form.cleaned_data['tune']
                         tune.save()
+                        tune_form = TuneForm({
+                                        'tune': tune.abc, # now conformed
+                                        'edit': 'user',
+                                        'edit_state': 'user',
+                                        })
                     except AttributeError as e:
-                        tune_form_errors.append(('tune', e))
-                if tune_form.cleaned_data['edit'] == 'rnn':
-                    tune_form_show = 'rnn'
+                        tune_form = form
+                        tune_form.add_error('tune', e) 
+                if form.cleaned_data['edit'] == 'rnn':
+                    tune_form = TuneForm({
+                                    'tune': tune.abc_rnn,
+                                    'edit': 'rnn',
+                                    'edit_state': 'rnn',
+                                    })
+                    tune_form.fields['tune'].widget.attrs['readonly'] = True
                 if 'submit_setting' in request.POST:
                     try:
                         Setting.objects.create_setting(tune)
                     except ValueError as e:
-                        tune_form_errors.append(('tune', e))
+                        tune_form = form
+                        tune_form.add_error('tune', e)
         elif 'submit_comment' in request.POST:
             form = CommentForm(request.POST)
             if form.is_valid():
@@ -89,19 +103,7 @@ def tune_page(request, tune_id=None):
                 comment.save()
             else:
                 comment_form = form
-    
-    # Update content
-    
-    tune_form = TuneForm({
-                    'tune': tune.abc if tune_form_show == 'user' else tune.abc_rnn,
-                    'edit': tune_form_show,
-                    'edit_state': tune_form_show,
-                    })
-    if tune_form_show == 'rnn':
-        tune_form.fields['tune'].widget.attrs['readonly'] = True
-    for error in tune_form_errors:
-        tune_form.add_error(*error)
-    
+        
     tune_lines = tune.abc.split('\n')
     
     return render(request, 'tune.html', {
@@ -110,7 +112,7 @@ def tune_page(request, tune_id=None):
         'comments': Comment.objects.filter(tune=tune),
         'tune_form': tune_form,
         'comment_form': comment_form,
-        'show_user': tune_form_show == 'user',
+        'show_user': True,
         'tune_cols': max(len(line) for line in tune_lines), # TODO: look into autosize via CSS, when CSS is a thing round here.
         'tune_rows': len(tune_lines),
         })
