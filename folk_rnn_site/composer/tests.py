@@ -231,6 +231,12 @@ class TuneModelTest(TestCase):
         
         tune = Tune(abc_user=abc)
         self.assertEqual(tune.title, 'La Chapka')
+
+    def test_x_property(self):
+        setting = Setting(abc='X:   3   \na b c')
+        self.assertEqual(setting.header_x, '3')
+        setting.header_x = 0
+        self.assertEqual(setting.abc, 'X:0\na b c')
     
     def test_body_property(self):
         tune = Tune(abc_user=abc)

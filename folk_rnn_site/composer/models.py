@@ -3,11 +3,12 @@ import re
 
 USERNAME_MAX_LENGTH = 128
 
-title_regex = re.compile(r'^T:\s*(.*?)\s*$', re.MULTILINE)
+header_t_regex = re.compile(r'^T:\s*(.*?)\s*$', re.MULTILINE)
+header_x_regex = re.compile(r'(?<=^X:)\s*([0-9]+)\s*$', re.MULTILINE)                            
 body_regex = re.compile(r'K:.*?\n(.*)',re.DOTALL) # FIXME: also ignore any final /n
 
 def abc_title(abc):
-    match = title_regex.search(abc)
+    match = header_t_regex.search(abc)
     return match.group(1) if match else 'Untitled' # FIXME: Should be logging an error here
 
 def abc_body(abc):
@@ -54,7 +55,9 @@ class SettingManager(models.Manager):
         if any(x.title == tune.title for x in self.all()):
             raise ValueError('Existing setting title.')
         # Checks done, actually create
-        setting = self.create(tune=tune, abc=tune.abc)
+        setting = Setting(tune=tune, abc=tune.abc)
+        setting.header_x = self.filter(tune=tune).count()
+        setting.save()
         return setting
 
 class Setting(models.Model):
@@ -70,6 +73,15 @@ class Setting(models.Model):
     @property
     def body(self):
         return abc_body(self.abc)
+        
+    @property
+    def header_x(self):
+        match = header_x_regex.search(self.abc)
+        return match.group(1) if match else '0'
+    
+    @header_x.setter
+    def header_x(self, value):
+        self.abc = header_x_regex.sub(str(value), self.abc)
     
 class Comment(models.Model):
     tune = models.ForeignKey(Tune)
