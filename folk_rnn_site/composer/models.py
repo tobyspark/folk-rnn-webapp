@@ -91,8 +91,6 @@ class SettingManager(models.Manager):
             raise ValueError('Default tune title')
         if any(x.title == tune.title for x in Tune.objects.exclude(id=tune.id)):
             raise ValueError('Existing tune title.')
-        if any(x.title == tune.title for x in self.all()):
-            raise ValueError('Existing setting title.')
 
         setting = Setting(tune=tune, abc=tune.abc)
         setting.header_x = self.filter(tune=tune).count()
