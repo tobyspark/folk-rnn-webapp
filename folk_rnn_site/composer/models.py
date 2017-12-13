@@ -7,25 +7,21 @@ header_t_regex = re.compile(r'^T:\s*(.*?)\s*$', re.MULTILINE)
 header_x_regex = re.compile(r'(?<=^X:)\s*([0-9]+)\s*$', re.MULTILINE)                            
 body_regex = re.compile(r'K:.*?\n(.*)',re.DOTALL) # FIXME: also ignore any final /n
 
-def abc_title(abc):
-    match = header_t_regex.search(abc)
-    return match.group(1) if match else 'Untitled' # FIXME: Should be logging an error here
-
-def abc_body(abc):
-    match = body_regex.search(abc)
-    return match.group(1) if match else abc # FIXME: Should be logging an error here
-
 class ABCModel(models.Model):
     class Meta:
         abstract = True
+        
+    # FIXME: Need a ABC validator, plus errors if matches not found
     
     @property
     def title(self):
-        return abc_title(self.abc)
+        match = header_t_regex.search(self.abc)
+        return match.group(1) if match else 'Untitled'
     
     @property
     def body(self):
-        return abc_body(self.abc)
+        match = body_regex.search(self.abc)
+        return match.group(1) if match else self.abc
 
     @property
     def header_x(self):
@@ -54,7 +50,7 @@ class Tune(ABCModel):
 class SettingManager(models.Manager):
     def create_setting(self, tune):
         # Check the abc body is new
-        if abc_body(tune.abc_rnn) == abc_body(tune.abc_user):
+        if body_regex.search(tune.abc_rnn).group(1) == body_regex.search(tune.abc_user).group(1):
             raise ValueError('Setting is same as RNN')
         # Check there isn't already a setting with this abc body
         for setting in self.all():
@@ -67,7 +63,7 @@ class SettingManager(models.Manager):
             raise ValueError('Existing tune title.')
         if any(x.title == tune.title for x in self.all()):
             raise ValueError('Existing setting title.')
-        # Checks done, actually create
+
         setting = Setting(tune=tune, abc=tune.abc)
         setting.header_x = self.filter(tune=tune).count()
         setting.save()
