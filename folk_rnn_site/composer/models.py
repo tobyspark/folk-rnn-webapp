@@ -15,7 +15,28 @@ def abc_body(abc):
     match = body_regex.search(abc)
     return match.group(1) if match else abc # FIXME: Should be logging an error here
 
-class Tune(models.Model):
+class ABCModel(models.Model):
+    class Meta:
+        abstract = True
+    
+    @property
+    def title(self):
+        return abc_title(self.abc)
+    
+    @property
+    def body(self):
+        return abc_body(self.abc)
+
+    @property
+    def header_x(self):
+        match = header_x_regex.search(self.abc)
+        return match.group(1) if match else '0'
+    
+    @header_x.setter
+    def header_x(self, value):
+        self.abc = header_x_regex.sub(str(value), self.abc)
+
+class Tune(ABCModel):
     rnn_model_name = models.CharField(max_length=64, default='')
     seed = models.IntegerField(default=42)
     temp = models.FloatField(default=1.0)
@@ -29,14 +50,6 @@ class Tune(models.Model):
     @property
     def abc(self):
         return self.abc_user if self.abc_user else self.abc_rnn
-    
-    @property
-    def title(self):
-        return abc_title(self.abc)
-    
-    @property
-    def body(self):
-        return abc_body(self.abc)
 
 class SettingManager(models.Manager):
     def create_setting(self, tune):
@@ -60,28 +73,11 @@ class SettingManager(models.Manager):
         setting.save()
         return setting
 
-class Setting(models.Model):
+class Setting(ABCModel):
     tune = models.ForeignKey(Tune)
     abc = models.TextField(default='')
     
     objects = SettingManager()
-            
-    @property
-    def title(self):
-        return abc_title(self.abc)
-    
-    @property
-    def body(self):
-        return abc_body(self.abc)
-        
-    @property
-    def header_x(self):
-        match = header_x_regex.search(self.abc)
-        return match.group(1) if match else '0'
-    
-    @header_x.setter
-    def header_x(self, value):
-        self.abc = header_x_regex.sub(str(value), self.abc)
     
 class Comment(models.Model):
     tune = models.ForeignKey(Tune)
