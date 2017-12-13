@@ -168,10 +168,6 @@ class TunePageTest(FolkRNNTestCase):
         self.post_setting()
         self.post_setting()
         self.assertEqual(Setting.objects.count(), 1)
-
-    def test_tune_page_does_not_accept_setting_with_same_tune_title(self): # TODO: remove this, settings have same title as tune
-        self.post_setting(tune=mint_abc(body=ABC_BODY*4))
-        self.assertEqual(Setting.objects.count(), 1)
     
     def test_tune_page_shows_setting(self):
         self.post_setting()
