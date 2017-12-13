@@ -52,7 +52,7 @@
 {% if settings %}
     <h2>{{ settings|length|apnumber|capfirst }} setting{{ settings|length|pluralize }}</h2>
     {% for setting in settings %}
-        <div> <!-- TODO: each setting id -->
+        <div id="setting {{ setting.header_x }}">
             <pre>{{ setting.abc }}</pre>
             <!-- TODO: Added by..., Download..., Sheet music..., -->
         </div>
