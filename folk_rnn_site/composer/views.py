@@ -66,8 +66,11 @@ def tune_page(request, tune_id=None):
             tune_form = TuneForm(request.POST)
             if tune_form.is_valid():
                 if tune_form.cleaned_data['edit_state'] == 'user':
-                    tune.abc_user = tune_form.cleaned_data['tune']
-                    tune.save()
+                    try:
+                        tune.abc = tune_form.cleaned_data['tune']
+                        tune.save()
+                    except AttributeError as e:
+                        tune_form_errors.append(('tune', e))
                 if tune_form.cleaned_data['edit'] == 'rnn':
                     tune_form_show = 'rnn'
                 if 'submit_setting' in request.POST:
