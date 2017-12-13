@@ -15,7 +15,8 @@ def mint_abc(x='0', title=ABC_TITLE, body=ABC_BODY):
 T:{title}
 M:4/4
 K:Cmaj
-{body}'''.format(x=x, title=title, body=body)
+{body}
+'''.format(x=x, title=title, body=body)
 
 def folk_rnn_task_start_mock():
     tune = Tune.objects.first()

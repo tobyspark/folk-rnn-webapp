@@ -1,5 +1,8 @@
 from django.db import models
+import subprocess
 import re
+
+ABC2ABC_PATH = '/usr/bin/abc2abc'
 
 USERNAME_MAX_LENGTH = 128
 
@@ -7,11 +10,24 @@ header_t_regex = re.compile(r'^T:\s*(.*?)\s*$', re.MULTILINE)
 header_x_regex = re.compile(r'(?<=^X:)\s*([0-9]+)\s*$', re.MULTILINE)                            
 body_regex = re.compile(r'K:.*?\n(.*)',re.DOTALL) # FIXME: also ignore any final /n
 
+def conform_abc(abc):
+    try:
+        abc_bytes = abc.encode()
+        result = subprocess.run([ABC2ABC_PATH, 'stdin'], input=abc_bytes, stdout=subprocess.PIPE)
+    except:
+        raise AttributeError('Parsing ABC failed')
+    errors = []
+    for prefix, pos in [(x, len(x)) for x in [b'%Warning : ', b'%Error : ']]:
+        for line in result.stdout.splitlines():
+            if line[:pos] == prefix:
+                errors.append(line[pos:].decode())
+    if errors:
+        raise AttributeError('Invalid ABC: ' + ', '.join(errors))
+    return result.stdout.decode()
+
 class ABCModel(models.Model):
     class Meta:
         abstract = True
-        
-    # FIXME: Need a ABC validator, plus errors if matches not found
     
     @property
     def title(self):
@@ -50,19 +66,20 @@ class Tune(ABCModel):
     @abc.setter
     def abc(self, value):
         old_abc_user = self.abc_user
-        self.abc_user = value
-        # validate user abc
+        self.abc_user = conform_abc(value)
         try:
             self.title
             self.body
             self.header_x
         except AttributeError:
             self.abc_user = old_abc_user
-            raise AttributeError('Invalid user ABC')
+            raise AttributeError('Invalid ABC')
 
 class SettingManager(models.Manager):
     def create_setting(self, tune):
         # Check the abc body is new
+        if not tune.abc_user:
+            raise ValueError('Setting is same as RNN')
         if body_regex.search(tune.abc_rnn).group(1) == body_regex.search(tune.abc_user).group(1):
             raise ValueError('Setting is same as RNN')
         # Check there isn't already a setting with this abc body
