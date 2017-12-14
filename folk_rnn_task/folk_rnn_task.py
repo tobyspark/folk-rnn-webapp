@@ -14,7 +14,7 @@ import subprocess
 def get_new_job():
     # Retrieve the oldest, uncomposed tune from the site's db
     # Going by row order rather than requested datetime
-    tune_select = dbc.execute('SELECT id, seed, temp, prime_tokens, rnn_model_name FROM composer_candidatetune WHERE rnn_finished IS NULL LIMIT 1').fetchone()
+    tune_select = dbc.execute('SELECT id, seed, temp, prime_tokens, rnn_model_name FROM composer_tune WHERE rnn_finished IS NULL LIMIT 1').fetchone()
 
     if tune_select is not None:
         tune_id, tune_seed, tune_temp, tune_prime_tokens, model_name = tune_select
@@ -30,7 +30,7 @@ def get_new_job():
         return job_spec
 
 def process_job(job_spec):
-    dbc.execute('UPDATE composer_candidatetune SET rnn_started=? WHERE id=?', 
+    dbc.execute('UPDATE composer_tune SET rnn_started=? WHERE id=?', 
         (datetime.now(), job_spec['id'])
         )
     db.commit()
@@ -57,12 +57,12 @@ def process_job(job_spec):
     tune = 'X:{id}\nT:Folk RNN Candidate Tune No{id}\n{m}\n{k}\n{t}\n'.format(id=job_spec['id'], m=tune_tokens[0], k=tune_tokens[1], t=''.join(tune_tokens[2:]))
     with open(tune_path, 'w') as f:
         f.write(tune)
-    conform_abc_command = ['/usr/bin/abc2abc', tune_path]
+    conform_abc_command = ['/usr/bin/abc2abc', tune_path, '-e']
     tune = subprocess.check_output(conform_abc_command)
     with open(tune_path, 'w') as f:
         f.write(tune)
 
-    dbc.execute('UPDATE composer_candidatetune SET rnn_finished=?, rnn_tune=? WHERE id=?', 
+    dbc.execute('UPDATE composer_tune SET rnn_finished=?, abc_rnn=? WHERE id=?', 
         (datetime.now(), tune, job_spec['id'])
         )
     db.commit()
