@@ -4,8 +4,8 @@ from django.core.files import File as dFile
 from django.utils.timezone import now
 from tempfile import TemporaryFile
 
-from composer.models import CandidateTune, ArchiveTune, Comment
-from composer.forms import ComposeForm, CandidateForm, CommentForm
+from composer.models import Tune, Setting, Comment
+from composer.forms import ComposeForm, TuneForm, CommentForm
 from composer.dataset import dataset_as_csv
 
 MAX_RECENT_ITEMS = 5
@@ -14,7 +14,7 @@ def home_page(request):
     if request.method == 'POST':
         form = ComposeForm(request.POST)
         if form.is_valid():
-            tune = CandidateTune()
+            tune = Tune()
             tune.rnn_model_name = form.cleaned_data['model']
             tune.seed = form.cleaned_data['seed']
             tune.temp = form.cleaned_data['temp']
@@ -25,127 +25,101 @@ def home_page(request):
             if form.cleaned_data['prime_tokens']:
                 tune.prime_tokens += ' {}'.format(form.cleaned_data['prime_tokens'])
             tune.save()
-            return redirect('/candidate-tune/{}'.format(tune.id))
+            return redirect('/tune/{}'.format(tune.id))
     else:
         form = ComposeForm()
     
     return render(request, 'home.html', {
                                 'form': form,
-                                'tunes': ArchiveTune.objects.order_by('-id')[:MAX_RECENT_ITEMS],
+                                'tunes': Tune.objects.order_by('-id')[:MAX_RECENT_ITEMS],
+                                'settings': Setting.objects.order_by('-id')[:MAX_RECENT_ITEMS],
                                 'comments': Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS],
                                 })
 
-def candidate_tune_page(request, tune_id=None):
+def tune_page(request, tune_id=None):
     try:
         tune_id_int = int(tune_id)
-        tune = CandidateTune.objects.get(id=tune_id_int)
-    except (TypeError, CandidateTune.DoesNotExist):
+        tune = Tune.objects.get(id=tune_id_int)
+    except (TypeError, Tune.DoesNotExist):
         return redirect('/')
     
+    # Handle rnn-in-process
+    
     if not tune.rnn_started:
-        return render(request, 'candidate-tune-in-process.html', {
+        return render(request, 'tune-in-process.html', {
             'prime_tokens': tune.prime_tokens,
             'rnn_has_started': False,
             'candidate_id': tune_id_int,
             })
     
     if not tune.rnn_finished:
-        return render(request, 'candidate-tune-in-process.html', {
+        return render(request, 'tune-in-process.html', {
             'prime_tokens': tune.prime_tokens,
             'rnn_has_started': True,
             'candidate_id': tune_id_int,
             })
     
-    show_user = True
-    archive = False
-    if request.method == 'POST':
-        form = CandidateForm(request.POST)
-        if form.is_valid():
-            if form.cleaned_data['edit_state'] == 'user':
-                tune.user_tune = form.cleaned_data['tune']
-                tune.save()
-            if form.cleaned_data['edit'] == 'rnn':
-                show_user = False
-            if 'archive' in request.POST:
-                archive = True
-                                
-    if show_user:
-        form = CandidateForm({
-                    'tune': tune.tune,
+    # Default content
+    tune_form = TuneForm({
+                    'tune': tune.abc,
                     'edit': 'user',
                     'edit_state': 'user',
                     })
-    else:
-        form = CandidateForm({
-                    'tune': tune.rnn_tune,
-                    'edit': 'rnn',
-                    'edit_state': 'rnn',
-                    })
-        form.fields['tune'].widget.attrs['readonly'] = True
+    comment_form = CommentForm()
     
-    if archive:
-        # Check there isn't already an archived tune with this abc body
-        for archive_tune in ArchiveTune.objects.all():
-            if archive_tune.body == tune.body:
-                archive = False
-                if show_user:
-                    form.add_error('tune', 'This development is already archived as {}. You can still develop it further and archive that.'.format(archive_tune.title))
-                else:
-                    form.add_error('tune', 'This RNN original is already archived as {}. You can still develop it and archive your version.'.format(archive_tune.title))
-                break
-        
-        # Check it has a new, unique title
-        if tune.title.startswith('Folk RNN Candidate Tune'):
-            archive = False
-            form.add_error('tune', 'Provide your own title (edit the abc "T: ..." line)')
-        if any(x.title == tune.title for x in ArchiveTune.objects.all()):
-            archive = False
-            form.add_error('tune', 'Already an archived tune with this title.')
-        
-        if archive:
-            archive_tune = ArchiveTune(candidate=tune, tune=tune.tune)
-            archive_tune.save()
-            return redirect('/tune/{}'.format(archive_tune.id))
-
-    return render(request, 'candidate-tune.html', {
-        'candidate_id': tune_id_int,
-        'model': tune.rnn_model_name,
-        'seed': tune.seed,
-        'temp': tune.temp,
-        'prime_tokens': tune.prime_tokens,
-        'requested': tune.requested,
-        'rnn_duration': (tune.rnn_finished - tune.rnn_started).total_seconds(),
-        'form': form,
-        'show_user': show_user,
-        })
-
-def archive_tune_page(request, tune_id=None):
-    try:
-        tune_id_int = int(tune_id)
-        tune = ArchiveTune.objects.get(id=tune_id_int)
-    except (TypeError, ArchiveTune.DoesNotExist):
-        return redirect('/')
-    
+    # Handle POST
     if request.method == 'POST':
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = Comment(
-                        tune=tune, 
-                        text=form.cleaned_data['text'], 
-                        author=form.cleaned_data['author'],
-                        )
-            comment.save()
-    else:
-        form = CommentForm()
+        if 'tune' in request.POST:
+            form = TuneForm(request.POST)
+            if form.is_valid():
+                if form.cleaned_data['edit_state'] == 'user':
+                    try:
+                        tune.abc = form.cleaned_data['tune']
+                        tune.save()
+                        tune_form = TuneForm({
+                                        'tune': tune.abc, # now conformed
+                                        'edit': 'user',
+                                        'edit_state': 'user',
+                                        })
+                    except AttributeError as e:
+                        tune_form = form
+                        tune_form.add_error('tune', e) 
+                if form.cleaned_data['edit'] == 'rnn':
+                    tune_form = TuneForm({
+                                    'tune': tune.abc_rnn,
+                                    'edit': 'rnn',
+                                    'edit_state': 'rnn',
+                                    })
+                    tune_form.fields['tune'].widget.attrs['readonly'] = True
+                if 'submit_setting' in request.POST:
+                    try:
+                        Setting.objects.create_setting(tune)
+                    except ValueError as e:
+                        tune_form = form
+                        tune_form.add_error('tune', e)
+        elif 'submit_comment' in request.POST:
+            form = CommentForm(request.POST)
+            if form.is_valid():
+                comment = Comment(
+                            tune=tune, 
+                            text=form.cleaned_data['text'], 
+                            author=form.cleaned_data['author'],
+                            )
+                comment.save()
+            else:
+                comment_form = form
+        
+    tune_lines = tune.abc.split('\n')
     
-    tune_lines = tune.tune.split('\n')
-
-    return render(request, 'archive-tune.html', {
+    return render(request, 'tune.html', {
         'tune': tune,
+        'settings': Setting.objects.filter(tune=tune),
+        'comments': Comment.objects.filter(tune=tune),
+        'tune_form': tune_form,
+        'comment_form': comment_form,
+        'rnn_duration': (tune.rnn_finished - tune.rnn_started).total_seconds(),
         'tune_cols': max(len(line) for line in tune_lines), # TODO: look into autosize via CSS, when CSS is a thing round here.
         'tune_rows': len(tune_lines),
-        'form': form,
-        'comments': Comment.objects.filter(tune=tune),
         })
         
 def dataset_download(request):
