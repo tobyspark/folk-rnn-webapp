@@ -4,23 +4,32 @@ from datetime import timedelta
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
-from composer.models import CandidateTune
+from composer.models import Tune
 
-RNN_TUNE_TEXT = '''X:16
-T:FolkRNN Test Tune
+RNN_TUNE_TEXT = '''X:1
+T:Folk RNN Candidate Tune No1
 M:4/4
 K:Cmaj
-abcceggc|defgdefd|bgfgecce|defga2g2|affgcegc|defgagfd|efece2c2|dcBcdBGz:|egg2egg2|gcegf2c2|Bgg2fBB2|dBd2dff2|egg2cggc|ac'c'2agfa|gcc2e2cd|BGABc2c2
-%Warning : No repeat expected, found :|
-:|'''
+GccBGBdf|edcdecdB|cBBGAFGA|_BGGFGFEF|GccBGBdf|edcBGBdf|edcBGA_BG|FDAFDCB,B,:||:efgagfec|BAGEFDB,D|efgagfec|BGFDDCCf|efgagfec|BAGEDFFB|cBcdefge|fdBddcBd:|
+'''
+
+SETTING_TEXT = '''X:0
+T:Ada's Tune
+M:4/4
+K:Cmaj
+GccBGBdf|edcdecdB|cBBGAFGA|_BGGFGFEF|
+GccBGBdf|edcBGBdf|edcBGA_BG|FDAFDCB,B,:|
+|:efgagfec|BAGEFDB,D|efgagfec|BGFDDCCf
+|efgagfec|BAGEDFFB|cBcdefge|fdBddcBd:|
+'''
 
 def folk_rnn_task_mock_run():
-    tune = CandidateTune.objects.first()
+    tune = Tune.objects.first()
     tune.seed = 42
     tune.prime_tokens = 'M:4/4 K:Cmaj a b c'
     tune.rnn_started = now()
     tune.rnn_finished = now() + timedelta(seconds=24)
-    tune.rnn_tune = RNN_TUNE_TEXT
+    tune.abc_rnn = RNN_TUNE_TEXT
     tune.save() 
 
 class NewVisitorTest(StaticLiveServerTestCase):
@@ -35,13 +44,19 @@ class NewVisitorTest(StaticLiveServerTestCase):
     def tearDown(self):
         self.browser.quit()
     
-    def candidate_tune_url(self):
-        return self.live_server_url + '/candidate-tune/{}'.format(CandidateTune.objects.first().id)
-
-    def archive_tune_url(self):
-        return self.live_server_url + '/tune/{}'.format(CandidateTune.objects.first().id)
+    def tune_url(self):
+        return self.live_server_url + '/tune/{}'.format(Tune.objects.first().id)
+        
+    def assertEqualIgnoringTrailingNewline(self, l, r):
+        '''
+        The ABC may or may not have a trailing newline, depending on e.g. has it
+        has been through the DB and conformed, is it a textarea value or plain 
+        html text, etc.
+        This function strips any trailing newlines and whitespace before comparing 
+        '''
+        self.assertEqual(l.rstrip(), r.rstrip())
    
-    def test_can_compose_tune_and_display_it(self):
+    def test_can_create_tune(self):
         # Ada navigates to the folk_rnn web app
         self.browser.get(self.live_server_url)
         
@@ -76,7 +91,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
         compose_button.click()
         
         # Compose section changes to "composition in process"...
-        self.browser_wait.until(lambda x: x.current_url == self.candidate_tune_url())
+        self.browser_wait.until(lambda x: x.current_url == self.tune_url())
         composing_div = self.browser.find_element_by_id('compose_ui')
         self.assertIn(
             'Composition with prime tokens "M:4/4 K:Cmaj a b c" is waiting for folk_rnn task',
@@ -98,11 +113,7 @@ class NewVisitorTest(StaticLiveServerTestCase):
             div = self.browser.find_element_by_id(div_id)
             injected_elements = div.find_elements_by_xpath('*')
             self.assertGreater(len(injected_elements), 0)
-    
-    def test_can_start_again_after_composing(self):
-        # Ada composes and gets to candidate tune page
-        self.test_can_compose_tune_and_display_it()
-    
+            
         # Satisfied that this works, she starts again, to explore algorithmic composition some more
         compose_button = self.browser.find_element_by_id('compose_button')
         self.assertEqual(
@@ -119,15 +130,17 @@ class NewVisitorTest(StaticLiveServerTestCase):
             composing_div.text
             )
             
-    def test_can_edit_composition(self):
-        # Ada composes and gets to candidate tune page
-        self.test_can_compose_tune_and_display_it()
+    def test_can_develop_setting(self):
+        # Ada creates a tune. This is tested above, so here's the shortcut
+        Tune.objects.create()
+        folk_rnn_task_mock_run()
+        self.browser.get(self.tune_url())
         
-        # Ada wants to edit the composition, so she tweaks the ABC
-        ada_text = 'ada woz ere'
+        # Ada wants to make a setting of the rnn tune, so she tweaks the ABC
+        ada_text = 'ada ada ada' # valid ABC
         abc_textarea = self.browser.find_element_by_id('abc')
         abc_textarea.send_keys([Keys.END, ada_text])
-        self.assertIn(
+        self.assertEqualIgnoringTrailingNewline(
             RNN_TUNE_TEXT + ada_text,
             abc_textarea.get_attribute('value')
             )
@@ -139,25 +152,25 @@ class NewVisitorTest(StaticLiveServerTestCase):
         
         # ...and sees the original. It's the original, so she can't edit it
         abc_textarea = self.browser.find_element_by_id('abc')
-        abc_textarea.send_keys([Keys.END, ada_text]) # will raise error?
-        self.assertEqual(
+        abc_textarea.send_keys([Keys.END, Keys.BACKSPACE, ada_text])
+        self.assertEqualIgnoringTrailingNewline(
             RNN_TUNE_TEXT,
             abc_textarea.get_attribute('value')
             )
         
-        # Ada switches back to her edit...
+        # Ada switches back to her setting...
         edit_radio_edit = self.browser.find_element_by_id('id_edit_1')
         edit_radio_edit.location_once_scrolled_into_view
         edit_radio_edit.click()
         abc_textarea = self.browser.find_element_by_id('abc')
-        self.assertEqual(
+        self.assertEqualIgnoringTrailingNewline(
             RNN_TUNE_TEXT + ada_text,
             abc_textarea.get_attribute('value')
             )
             
         # ...and edits it some more
-        abc_textarea.send_keys([Keys.END, ada_text])
-        self.assertEqual(
+        abc_textarea.send_keys([Keys.END, Keys.BACKSPACE, ada_text])
+        self.assertEqualIgnoringTrailingNewline(
             RNN_TUNE_TEXT + ada_text + ada_text,
             abc_textarea.get_attribute('value')
             )
@@ -166,31 +179,42 @@ class NewVisitorTest(StaticLiveServerTestCase):
         save_button = self.browser.find_element_by_id('save_button')
         save_button.click()
         self.browser.get(self.live_server_url)
-        self.browser.get(self.candidate_tune_url())
+        self.browser.get(self.tune_url())
         abc_textarea = self.browser.find_element_by_id('abc')
-        self.assertEqual(
+        self.assertEqualIgnoringTrailingNewline(
             RNN_TUNE_TEXT + ada_text + ada_text,
             abc_textarea.get_attribute('value')
             )
             
-    def test_can_archive_composition(self):
-        # Ada composes and gets to candidate tune page
-        self.test_can_compose_tune_and_display_it()
+    def test_can_archive_setting(self):
+        # Ada creates a tune. This is tested above, so here's the shortcut
+        Tune.objects.create()
+        folk_rnn_task_mock_run()
+        self.browser.get(self.tune_url())
         
-        # Happy, Ada hits 'archive' button
-        archive_button = self.browser.find_element_by_id('archive_button')
-        archive_button.click()
-        
-        # Ada sees tune archive page with tune and comment field
-        self.browser_wait.until(lambda x: x.current_url == self.archive_tune_url())
+        # Ada wants to make a setting of the rnn tune, so she tweaks the ABC
         abc_textarea = self.browser.find_element_by_id('abc')
-        self.assertEqual(
-            RNN_TUNE_TEXT,
+        abc_textarea.clear()
+        abc_textarea.send_keys(SETTING_TEXT)
+        self.assertEqualIgnoringTrailingNewline(
+            SETTING_TEXT,
             abc_textarea.get_attribute('value')
+            )
+        
+        # Happy, Ada hits 'submit setting' button
+        setting_button = self.browser.find_element_by_id('setting_button')
+        setting_button.click()
+        
+        # Ada sees tune page with setting and comment field
+        self.browser_wait.until(lambda x: x.current_url == self.tune_url())
+        setting_div = self.browser.find_element_by_id('setting 0')
+        self.assertEqualIgnoringTrailingNewline(
+            SETTING_TEXT,
+            setting_div.text
             )
         comment_text_field = self.browser.find_element_by_id('new_comment')
         comment_author_field = self.browser.find_element_by_id('new_comment_author')
-        comment_submit_button = self.browser.find_element_by_id('new_comment_submit')
+        comment_submit_button = self.browser.find_element_by_id('comment_button')
         self.assertIsNotNone(comment_text_field)
         self.assertIsNotNone(comment_author_field)
         self.assertIsNotNone(comment_submit_button)
@@ -222,18 +246,18 @@ class NewVisitorTest(StaticLiveServerTestCase):
             )
         tune_list = self.browser.find_element_by_id('tunes')
         self.assertIn( 
-            'FolkRNN Test Tune', 
+            "Ada's Tune", # The title is currently set by the "your setting" ABC. This needs to change, but let's implement users first.
             tune_list.text
             )
         
         # ...and uses the activity list to go back to her tune.
-        tune_link = self.browser.find_element_by_link_text('FolkRNN Test Tune')
+        tune_link = self.browser.find_element_by_link_text("Ada's Tune")
         tune_link.click()
-        self.assertEqual(self.browser.current_url, self.archive_tune_url())
-    
-    def test_can_download_dataset(self):
-        # Ada hits the /dataset endpoint and checks the returned JSON
-        self.browser.get(self.live_server_url + '/dataset')
-        # TODO: File downloading in headless chrome currently disabled.
-        #       But this def works using the django dev server and safari!
-        #       https://bugs.chromium.org/p/chromedriver/issues/detail?id=1973
+        self.assertEqual(self.browser.current_url, self.tune_url())
+
+def test_can_download_dataset(self):
+    # Ada hits the /dataset endpoint and checks the returned JSON
+    self.browser.get(self.live_server_url + '/dataset')
+# TODO: File downloading in headless chrome currently disabled.
+#       But this def works using the django dev server and safari!
+#       https://bugs.chromium.org/p/chromedriver/issues/detail?id=1973
