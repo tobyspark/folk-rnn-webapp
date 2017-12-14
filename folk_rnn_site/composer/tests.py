@@ -7,7 +7,7 @@ from tempfile import SpooledTemporaryFile
 from email.utils import format_datetime # RFC 2822 for parity with django template date filter
 
 from composer.models import Tune, Setting, Comment
-from composer.dataset import tune_dataset, dataset_as_csv
+from composer.dataset import setting_dataset, dataset_as_csv
 
 ABC_TITLE = 'Test Tune'
 ABC_BODY = 'A B C'
@@ -280,19 +280,25 @@ class TuneModelTest(TestCase):
 class DatasetTest(FolkRNNTestCase):
     
     def test_tune_dataset(self):
-        self.post_candidate_tune_to_archive()
-        data = list(tune_dataset())
+        self.post_setting()
+        data = list(setting_dataset())
         self.assertEqual(data[0].id, 1)
         self.assertEqual(data[0].name, 'Test Tune')
+        self.assertEqual(data[0].abc, mint_abc(body=ABC_BODY*3))
+        self.assertEqual(data[0].meter, '4/4')
+        self.assertEqual(data[0].key, 'Cmaj')
+        self.assertEqual(data[0].tune_id, 1)
         self.assertEqual(data[0].rnn_seed, 123)
     
     def test_dataset_as_csv(self):
-        self.post_candidate_tune_to_archive()
-        csv = '''id,name,abc,rnn_model,rnn_temperature,rnn_seed,rnn_prime_tokens\r
-1,Test Tune,"T: Test Tune
+        self.post_setting()
+        csv = '''id,name,abc,meter,key,tune_id,rnn_model,rnn_temperature,rnn_seed,rnn_prime_tokens\r
+1,Test Tune,"X:0
+T:Test Tune
 M:4/4
 K:Cmaj
-a b c",test_model.pickle_2,0.1,123,M:4/4 K:Cmaj a b c\r
+A B CA B CA B C
+",4/4,Cmaj,1,test_model.pickle_2,0.1,123,M:4/4 K:Cmaj a b c\r
 '''
         with SpooledTemporaryFile(mode='w+') as f:
             dataset_as_csv(f)
