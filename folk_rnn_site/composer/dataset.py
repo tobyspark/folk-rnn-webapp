@@ -1,29 +1,35 @@
 from collections import namedtuple
 import csv
 
-from composer.models import CandidateTune, ArchiveTune
+from composer.models import Tune, Setting
 
-TuneDatum = namedtuple('TuneDatum', [
+SettingDatum = namedtuple('SettingDatum', [
                             'id', 
                             'name', 
-                            'abc', 
+                            'abc',
+                            'meter',
+                            'key',
+                            'tune_id', 
                             'rnn_model', 
                             'rnn_temperature', 
                             'rnn_seed', 
                             'rnn_prime_tokens',
                             ])
 
-def tune_dataset():
-    return (TuneDatum(id=x.id,
+def setting_dataset():
+    return (SettingDatum(id=x.id,
                         name=x.title,
-                        abc=x.tune,
-                        rnn_model=x.candidate.rnn_model_name,
-                        rnn_temperature=x.candidate.temp,
-                        rnn_seed=x.candidate.seed,
-                        rnn_prime_tokens=x.candidate.prime_tokens,
-                    ) for x in ArchiveTune.objects.all())
+                        abc=x.abc,
+                        meter=x.header_m,
+                        key=x.header_k,
+                        tune_id=x.tune.id,
+                        rnn_model=x.tune.rnn_model_name,
+                        rnn_temperature=x.tune.temp,
+                        rnn_seed=x.tune.seed,
+                        rnn_prime_tokens=x.tune.prime_tokens,
+                    ) for x in Setting.objects.all())
     
 def dataset_as_csv(f):
-    tune_writer = csv.writer(f)
-    tune_writer.writerow(TuneDatum._fields)
-    tune_writer.writerows(tune_dataset())
+    setting_writer = csv.writer(f)
+    setting_writer.writerow(SettingDatum._fields)
+    setting_writer.writerows(setting_dataset())
