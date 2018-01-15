@@ -1,7 +1,12 @@
 from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from django.core.files import File as dFile
+from django.utils.timezone import now
+from tempfile import TemporaryFile
 
 from composer.models import Tune, Setting, Comment
 from composer.forms import ComposeForm, TuneForm, CommentForm
+from composer.dataset import dataset_as_csv
 
 MAX_RECENT_ITEMS = 5
 
@@ -116,3 +121,10 @@ def tune_page(request, tune_id=None):
         'tune_cols': max(len(line) for line in tune_lines), # TODO: look into autosize via CSS, when CSS is a thing round here.
         'tune_rows': len(tune_lines),
         })
+        
+def dataset_download(request):
+    with TemporaryFile(mode='w+') as f:
+        dataset_as_csv(f)
+        response = HttpResponse(dFile(f), content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename="folkrnn_dataset_{}"'.format(now().strftime('%Y%m%d-%H%M%S'))
+        return response

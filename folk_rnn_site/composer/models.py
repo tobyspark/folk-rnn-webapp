@@ -7,6 +7,8 @@ ABC2ABC_PATH = '/usr/bin/abc2abc'
 USERNAME_MAX_LENGTH = 128
 
 header_t_regex = re.compile(r'^T:\s*(.*?)\s*$', re.MULTILINE)
+header_m_regex = re.compile(r'^M:\s*(.*?)\s*$', re.MULTILINE)
+header_k_regex = re.compile(r'^K:\s*(.*?)\s*$', re.MULTILINE)
 header_x_regex = re.compile(r'(?<=^X:)\s*([0-9]+)\s*$', re.MULTILINE)                            
 body_regex = re.compile(r'K:.*?\n(.*)',re.DOTALL) # FIXME: also ignore any final /n
 
@@ -47,6 +49,14 @@ class ABCModel(models.Model):
     @header_x.setter
     def header_x(self, value):
         self.abc = header_x_regex.sub(str(value), self.abc)
+    
+    @property
+    def header_m(self):
+        return header_m_regex.search(self.abc).group(1)
+
+    @property
+    def header_k(self):
+        return header_k_regex.search(self.abc).group(1)
 
 class Tune(ABCModel):
     rnn_model_name = models.CharField(max_length=64, default='')
