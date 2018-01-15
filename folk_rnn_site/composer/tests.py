@@ -3,9 +3,11 @@ from django.contrib.staticfiles import finders
 from django.utils.timezone import now
 from datetime import timedelta
 from time import sleep
+from tempfile import SpooledTemporaryFile
 from email.utils import format_datetime # RFC 2822 for parity with django template date filter
 
 from composer.models import Tune, Setting, Comment
+from composer.dataset import setting_dataset, dataset_as_csv
 
 ABC_TITLE = 'Test Tune'
 ABC_BODY = 'A B C'
@@ -275,6 +277,34 @@ class TuneModelTest(TestCase):
         tune = Tune(abc_user=chapka_abc)
         self.assertEqual(tune.body, chapka_abc_body)
 
+class DatasetTest(FolkRNNTestCase):
+    
+    def test_tune_dataset(self):
+        self.post_setting()
+        data = list(setting_dataset())
+        self.assertEqual(data[0].id, 1)
+        self.assertEqual(data[0].name, 'Test Tune')
+        self.assertEqual(data[0].abc, mint_abc(body=ABC_BODY*3))
+        self.assertEqual(data[0].meter, '4/4')
+        self.assertEqual(data[0].key, 'Cmaj')
+        self.assertEqual(data[0].tune_id, 1)
+        self.assertEqual(data[0].rnn_seed, 123)
+    
+    def test_dataset_as_csv(self):
+        self.post_setting()
+        csv = '''id,name,abc,meter,key,tune_id,rnn_model,rnn_temperature,rnn_seed,rnn_prime_tokens\r
+1,Test Tune,"X:0
+T:Test Tune
+M:4/4
+K:Cmaj
+A B CA B CA B C
+",4/4,Cmaj,1,test_model.pickle_2,0.1,123,M:4/4 K:Cmaj a b c\r
+'''
+        with SpooledTemporaryFile(mode='w+') as f:
+            dataset_as_csv(f)
+            f.seek(0)
+            self.assertEqual(csv, f.read())
+       
 class ABCJSTest(TestCase):
     
     def test_abcjs_available(self):
