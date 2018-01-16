@@ -26,7 +26,7 @@ def home_page(request):
             if form.cleaned_data['prime_tokens']:
                 tune.prime_tokens += ' {}'.format(form.cleaned_data['prime_tokens'])
             tune.save()
-            Channel('folk_rnn').send({'message': 'hello world, via channels'})
+            Channel('folk_rnn').send({'id': tune.id})
             return redirect('/tune/{}'.format(tune.id))
     else:
         form = ComposeForm()

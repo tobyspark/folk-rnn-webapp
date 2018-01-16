@@ -17,10 +17,6 @@ echo "* Checking database..."
 python3 /vagrant/folk_rnn_site/manage.py migrate --no-input
 
 echo
-echo "* Backgrounding folk_rnn processing task..."
-/vagrant/folk_rnn_task/folk_rnn_task.py &
-
-echo
 echo "* Running the webapp using Django's built-in server..."
 # Note 0.0.0.0 is necessary for access from outside the VM
 python3 /vagrant/folk_rnn_site/manage.py runserver 0.0.0.0:8000

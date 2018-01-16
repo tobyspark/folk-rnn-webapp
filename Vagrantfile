@@ -61,20 +61,19 @@ Vagrant.configure("2") do |config|
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", inline: <<-SHELL
     apt-get update
-    # folk_rnn_task
-    apt-get install --yes python-pip
-    pip2 install --upgrade pip
+    apt-get install --yes python3-pip
+    pip3 install --upgrade pip
+    # folk_rnn package
     cd /vagrant_frnn
-    pip2 --no-cache-dir install -e .
+    pip3 install -e .
+    # folk_rnn models
     mkdir /var/opt/folk_rnn_task
     chown ubuntu:ubuntu /var/opt/folk_rnn_task
     su ubuntu -c /vagrant/tools/create_model_from_config_meta.py
-    apt-get install --yes abcmidi
-    # folk_rnn_webapp
-    apt-get install --yes python3-pip
-    pip3 install --upgrade pip
+    # folk_rnn webapp
     pip3 install "django<1.12"
     pip3 install "channels"
+    apt-get install --yes abcmidi
     # browser testing
     pip3 install "selenium<4"
     apt-get install --yes chromium-browser
