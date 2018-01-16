@@ -36,7 +36,7 @@ def folk_rnn_task_end_mock():
 class FolkRNNTestCase(TestCase):
     
     def post_tune(self, seed=123, temp=0.1, prime_tokens='a b c'):
-        return self.client.post('/', data={'model': 'test_model.pickle_2', 'seed': seed, 'temp': temp, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': prime_tokens})
+        return self.client.post('/', data={'model': 'test_model.pickle', 'seed': seed, 'temp': temp, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': prime_tokens})
     
     def post_edit(self, tune=mint_abc(body=ABC_BODY*2)):
         return self.client.post('/tune/1', data={'tune': tune, 'edit': 'user', 'edit_state': 'user'}) 
@@ -129,7 +129,7 @@ class TunePageTest(FolkRNNTestCase):
         self.assertTemplateUsed(response, 'tune.html')
         #print(response.content)
         self.assertContains(response,'>\n{}</textarea>'.format(mint_abc())) # django widget inserts a newline; a django workaround to an html workaround beyond the scope of this project
-        self.assertContains(response,'<li>RNN model: test_model.pickle_2')
+        self.assertContains(response,'<li>RNN model: test_model.pickle')
         self.assertContains(response,'<li>RNN seed: 123')
         self.assertContains(response,'<li>RNN temperature: 0.1')
         self.assertContains(response,'<li>Prime tokens: M:4/4 K:Cmaj a b c</li>')
@@ -298,7 +298,7 @@ T:Test Tune
 M:4/4
 K:Cmaj
 A B CA B CA B C
-",4/4,Cmaj,1,test_model.pickle_2,0.1,123,M:4/4 K:Cmaj a b c\r
+",4/4,Cmaj,1,test_model.pickle,0.1,123,M:4/4 K:Cmaj a b c\r
 '''
         with SpooledTemporaryFile(mode='w+') as f:
             dataset_as_csv(f)
