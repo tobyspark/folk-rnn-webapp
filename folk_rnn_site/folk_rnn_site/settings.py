@@ -54,7 +54,10 @@ MIDDLEWARE = [
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'asgiref.inmemory.ChannelLayer',
+        'BACKEND': 'asgi_redis.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': ['redis://localhost:6379'],
+        },
         'ROUTING': 'folk_rnn_site.routing.channel_routing',
     },
 }
