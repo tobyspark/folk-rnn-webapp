@@ -33,7 +33,7 @@ def home_page(request):
     
     return render(request, 'home.html', {
                                 'form': form,
-                                'tunes': Tune.objects.order_by('-id')[:MAX_RECENT_ITEMS],
+                                'tunes': Tune.objects.filter(rnn_finished__isnull=False).order_by('-id')[:MAX_RECENT_ITEMS],
                                 'settings': Setting.objects.order_by('-id')[:MAX_RECENT_ITEMS],
                                 'comments': Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS],
                                 })
