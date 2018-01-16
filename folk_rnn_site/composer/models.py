@@ -2,7 +2,7 @@ from django.db import models
 import subprocess
 import re
 
-ABC2ABC_PATH = '/usr/bin/abc2abc'
+from composer import ABC2ABC_PATH
 
 USERNAME_MAX_LENGTH = 128
 
