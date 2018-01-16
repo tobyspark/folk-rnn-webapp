@@ -1,6 +1,7 @@
 .vagrant
 *.log
 db.sqlite3
+folk_rnn_site/dump.rdb
 __pycache__
 *.pyc
 
