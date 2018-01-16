@@ -2,6 +2,7 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from django.core.files import File as dFile
 from django.utils.timezone import now
+from channels import Channel
 from tempfile import TemporaryFile
 
 from composer.models import Tune, Setting, Comment
@@ -25,6 +26,7 @@ def home_page(request):
             if form.cleaned_data['prime_tokens']:
                 tune.prime_tokens += ' {}'.format(form.cleaned_data['prime_tokens'])
             tune.save()
+            Channel('folk_rnn').send({'message': 'hello world, via channels'})
             return redirect('/tune/{}'.format(tune.id))
     else:
         form = ComposeForm()
