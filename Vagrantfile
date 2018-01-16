@@ -73,6 +73,8 @@ Vagrant.configure("2") do |config|
     # folk_rnn webapp
     pip3 install "django<1.12"
     pip3 install "channels"
+    apt-get install --yes redis-server
+    pip3 install "asgi_redis"
     apt-get install --yes abcmidi
     # browser testing
     pip3 install "selenium<4"
