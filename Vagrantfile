@@ -74,6 +74,7 @@ Vagrant.configure("2") do |config|
     apt-get install --yes python3-pip
     pip3 install --upgrade pip
     pip3 install "django<1.12"
+    pip3 install "channels"
     # browser testing
     pip3 install "selenium<4"
     apt-get install --yes chromium-browser
