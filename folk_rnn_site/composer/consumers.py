@@ -5,21 +5,8 @@ import subprocess
 
 from folk_rnn import Folk_RNN
 
-from composer.models import Tune, ABC2ABC_PATH
-
-STORE_PATH = '/var/opt/folk_rnn_task'
-MODEL_PATH = os.path.join(STORE_PATH, 'models')
-TUNE_PATH = os.path.join(STORE_PATH, 'tunes')
-
-try:
-    os.makedirs(MODEL_PATH)
-except OSError:
-    pass
-    
-try:
-    os.makedirs(TUNE_PATH)
-except OSError:
-    pass
+from composer import ABC2ABC_PATH, STORE_PATH, MODEL_PATH, TUNE_PATH
+from composer.models import Tune
 
 def folk_rnn_task(message):
     tune = Tune.objects.get(id=message['id'])
