@@ -8,6 +8,14 @@ from folk_rnn import Folk_RNN
 from composer import ABC2ABC_PATH, STORE_PATH, MODEL_PATH, TUNE_PATH
 from composer.models import Tune
 
+ABC2ABC_COMMAND = [
+            ABC2ABC_PATH, 
+            'stdin', # a special filename revealed by looking at the source code!
+            '-e', # -e for no error checking
+            '-s', # -s to re-space
+            '-n', '4' # -n 4 for newline every four bars
+            ]
+
 def folk_rnn_task(message):
     tune = Tune.objects.get(id=message['id'])
     
@@ -42,7 +50,7 @@ def folk_rnn_task(message):
     try:
         abc_bytes = abc.encode()
         result = subprocess.run(
-                    [ABC2ABC_PATH, 'stdin'], 
+                    ABC2ABC_COMMAND,
                     input=abc_bytes, 
                     stdout=subprocess.PIPE,
                     )
