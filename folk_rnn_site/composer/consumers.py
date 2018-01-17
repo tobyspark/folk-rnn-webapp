@@ -30,11 +30,9 @@ def folk_rnn_task(message):
         job_spec['token2idx'],
         job_spec['param_values'], 
         job_spec['num_layers'], 
-        tune.seed, 
-        tune.temp,
         )
     folk_rnn.seed_tune(tune.prime_tokens if len(tune.prime_tokens) > 0 else None)
-    tune_tokens = folk_rnn.compose_tune()
+    tune_tokens = folk_rnn.generate_tune(random_number_generator_seed=tune.seed, temperature=tune.temp)
     
     tune_path_raw = os.path.join(TUNE_PATH, 'test_tune_{}_raw'.format(tune.id))
     with open(tune_path_raw, 'w') as f:
