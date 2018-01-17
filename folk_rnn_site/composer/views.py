@@ -2,6 +2,7 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from django.core.files import File as dFile
 from django.utils.timezone import now
+from channels import Channel
 from tempfile import TemporaryFile
 
 from composer.models import Tune, Setting, Comment
@@ -25,13 +26,14 @@ def home_page(request):
             if form.cleaned_data['prime_tokens']:
                 tune.prime_tokens += ' {}'.format(form.cleaned_data['prime_tokens'])
             tune.save()
+            Channel('folk_rnn').send({'id': tune.id})
             return redirect('/tune/{}'.format(tune.id))
     else:
         form = ComposeForm()
     
     return render(request, 'home.html', {
                                 'form': form,
-                                'tunes': Tune.objects.order_by('-id')[:MAX_RECENT_ITEMS],
+                                'tunes': Tune.objects.filter(rnn_finished__isnull=False).order_by('-id')[:MAX_RECENT_ITEMS],
                                 'settings': Setting.objects.order_by('-id')[:MAX_RECENT_ITEMS],
                                 'comments': Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS],
                                 })

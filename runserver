@@ -7,20 +7,27 @@ echo "*                                                    *"
 echo "* About to launch web app                            *"
 echo "* Browse to 127.0.0.1:8000 on the host machine       *"
 echo "*                                                    *"
-echo "* To quit the folk_rnn_task loop:                    *"
-echo "* killall /usr/bin/python                            *"
-echo "*                                                    *"
 echo "******************************************************"
 
 echo
 echo "* Checking database..."
 python3 /vagrant/folk_rnn_site/manage.py migrate --no-input
 
-echo
-echo "* Backgrounding folk_rnn processing task..."
-/vagrant/folk_rnn_task/folk_rnn_task.py &
+if [ $1 = "dev" ]; then
 
 echo
-echo "* Running the webapp using Django's built-in server..."
-# Note 0.0.0.0 is necessary for access from outside the VM
+echo "* Running the webapp using Django's test server"
 python3 /vagrant/folk_rnn_site/manage.py runserver 0.0.0.0:8000
+
+else
+
+echo
+echo "* Running the webapp using Daphne and Redis..."
+# Note 0.0.0.0 is necessary for access from outside the VM
+cd /vagrant/folk_rnn_site
+redis-server & 
+python3 /vagrant/folk_rnn_site/manage.py runworker --exclude-channels=folk_rnn &
+python3 /vagrant/folk_rnn_site/manage.py runworker &
+daphne folk_rnn_site.asgi:channel_layer --bind 0.0.0.0 --port 8000
+
+fi
