@@ -2,10 +2,11 @@ from datetime import datetime
 import os
 import pickle
 import subprocess
+import functools
 
 from folk_rnn import Folk_RNN
 
-from composer import ABC2ABC_PATH, STORE_PATH, MODEL_PATH, TUNE_PATH
+from composer import ABC2ABC_PATH, STORE_PATH, MODEL_PATH, TUNE_PATH, FOLKRNN_INSTANCE_CACHE_COUNT
 from composer.models import Tune
 
 ABC2ABC_COMMAND = [
@@ -15,6 +16,17 @@ ABC2ABC_COMMAND = [
             '-s', # -s to re-space
             '-n', '4' # -n 4 for newline every four bars
             ]
+            
+@functools.lru_cache(maxsize=FOLKRNN_INSTANCE_CACHE_COUNT)
+def folk_rnn_cached(rnn_model_name):
+    model_path = os.path.join(MODEL_PATH, rnn_model_name)
+    with open(model_path, "rb") as f:
+        job_spec = pickle.load(f)
+    return Folk_RNN(
+        job_spec['token2idx'],
+        job_spec['param_values'], 
+        job_spec['num_layers'], 
+        )
 
 def folk_rnn_task(message):
     tune = Tune.objects.get(id=message['id'])
@@ -22,15 +34,7 @@ def folk_rnn_task(message):
     tune.rnn_started = datetime.now()
     tune.save()
     
-    model_path = os.path.join(MODEL_PATH, tune.rnn_model_name)
-    with open(model_path, "rb") as f:
-        job_spec = pickle.load(f)
-        
-    folk_rnn = Folk_RNN(
-        job_spec['token2idx'],
-        job_spec['param_values'], 
-        job_spec['num_layers'], 
-        )
+    folk_rnn = folk_rnn_cached(tune.rnn_model_name)
     folk_rnn.seed_tune(tune.prime_tokens if len(tune.prime_tokens) > 0 else None)
     tune_tokens = folk_rnn.generate_tune(random_number_generator_seed=tune.seed, temperature=tune.temp)
     
