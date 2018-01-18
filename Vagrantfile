@@ -11,6 +11,17 @@ Vagrant.configure("2") do |config|
   # https://docs.vagrantup.com.
 
   config.ssh.username = 'folkrnn'
+  config.ssh.private_key_path = '~/.ssh/id_rsa'
+  
+  config.vm.provider :linode do |provider, override|
+    override.vm.box = 'linode'
+    
+    provider.label = 'folkmachine'
+    provider.api_key = ENV['LINODE_API_KEY']
+    provider.distribution = 'Ubuntu 16.04 LTS'
+    provider.datacenter = 'london'
+    provider.plan = 'Linode 1024'
+  end
   
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
