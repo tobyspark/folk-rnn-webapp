@@ -10,6 +10,8 @@ Vagrant.configure("2") do |config|
   # For a complete reference, please see the online documentation at
   # https://docs.vagrantup.com.
 
+  config.ssh.username = 'folkrnn'
+  
   # Every Vagrant development environment requires a box. You can search for
   # boxes at https://vagrantcloud.com/search.
   config.vm.box = "ubuntu/xenial64"
@@ -68,8 +70,8 @@ Vagrant.configure("2") do |config|
     pip3 install -e .
     # folk_rnn models
     mkdir /var/opt/folk_rnn_task
-    chown ubuntu:ubuntu /var/opt/folk_rnn_task
-    su ubuntu -c /vagrant/tools/create_model_from_config_meta.py
+    chown folkrnn:folkrnn /var/opt/folk_rnn_task
+    su folkrnn -c /vagrant/tools/create_model_from_config_meta.py
     # folk_rnn webapp
     pip3 install "django<1.12"
     pip3 install "channels"
