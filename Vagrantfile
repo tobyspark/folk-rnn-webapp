@@ -15,6 +15,7 @@ Vagrant.configure("2") do |config|
   
   config.vm.provider :linode do |provider, override|
     override.vm.box = 'linode'
+    override.vm.box_url = 'https://github.com/displague/vagrant linode/raw/master/box/linode.box'
     override.nfs.functional = false
     
     provider.label = 'folkmachine'
@@ -42,7 +43,7 @@ Vagrant.configure("2") do |config|
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine and only allow access
   # via 127.0.0.1 to disable public access
-  config.vm.network "forwarded_port", guest: 8000, host: 8000, host_ip: "127.0.0.1"
+  config.vm.network "forwarded_port", guest: 8000, host: 8000, host_ip: "127.0.0.1" if ENV['FOLKRNN_DEV']
 
   # Create a private network, which allows host-only access to the machine
   # using a specific IP.
@@ -57,9 +58,9 @@ Vagrant.configure("2") do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder ".", "/vagrant", type: "rsync" # type should default to rsync with linode box. but i get an error. hmmm.
-  config.vm.synced_folder "../folk-rnn", "/vagrant_frnn", type: "rsync"
-  config.vm.synced_folder "../midi-js-soundfonts/MusyngKite", "/vagrant_sf/soundfont", type: "rsync"
+  config.vm.synced_folder ".", "/vagrant"
+  config.vm.synced_folder "../folk-rnn", "/vagrant_frnn"
+  config.vm.synced_folder "../midi-js-soundfonts/MusyngKite", "/vagrant_sf/soundfont"
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
@@ -76,5 +77,5 @@ Vagrant.configure("2") do |config|
   # documentation for more information about their specific syntax and use.
   config.vm.provision "shell", path: "tools/provision.sh"
   config.vm.provision "shell", path: "tools/provision_folkrnn.sh"
-  config.vm.provision "shell", path: "tools/provision_tests.sh"
+  config.vm.provision "shell", path: "tools/provision_tests.sh" if ENV['FOLKRNN_DEV']
 end
