@@ -10,7 +10,7 @@ echo ***
 pip3 install "selenium<4"
 
 # Chrome and Selenium ChromeDriver (to be used headless)
-if [ -f /usr/local/bin/chromedriver ]; then
+if [ ! -f /usr/local/bin/chromedriver ]; then
     apt-get install --yes chromium-browser
     apt-get install --yes unzip
     apt-get install --yes libgconf-2-4
