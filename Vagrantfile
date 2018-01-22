@@ -74,32 +74,7 @@ Vagrant.configure("2") do |config|
   # Enable provisioning with a shell script. Additional provisioners such as
   # Puppet, Chef, Ansible, Salt, and Docker are also available. Please see the
   # documentation for more information about their specific syntax and use.
-  config.vm.provision "shell", inline: <<-SHELL
-    apt-get update
-    apt-get install --yes python3-pip
-    pip3 install --upgrade pip
-    # folk_rnn package
-    cd /vagrant_frnn
-    pip3 install -e .
-    # folk_rnn models
-    mkdir /var/opt/folk_rnn_task
-    chown folkrnn:folkrnn /var/opt/folk_rnn_task
-    su folkrnn -c /vagrant/tools/create_model_from_config_meta.py
-    # folk_rnn webapp
-    pip3 install "django<1.12"
-    pip3 install "channels"
-    apt-get install --yes redis-server
-    pip3 install "asgi_redis"
-    apt-get install --yes abcmidi
-    # browser testing
-    pip3 install "selenium<4"
-    apt-get install --yes chromium-browser
-    apt-get install --yes unzip
-    apt-get install --yes libgconf-2-4
-    wget --no-verbose https://chromedriver.storage.googleapis.com/2.33/chromedriver_linux64.zip
-    unzip chromedriver*
-    chmod +x chromedriver
-    mv chromedriver /usr/local/bin/chromedriver
-    rm chromedriver*
-  SHELL
+  config.vm.provision "shell", path: "tools/provision.sh"
+  config.vm.provision "shell", path: "tools/provision_folkrnn.sh"
+  config.vm.provision "shell", path: "tools/provision_tests.sh"
 end
