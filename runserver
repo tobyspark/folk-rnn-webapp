@@ -11,23 +11,23 @@ echo "******************************************************"
 
 echo
 echo "* Checking database..."
-python3 /vagrant/folk_rnn_site/manage.py migrate --no-input
+python3 /folk_rnn_webapp/folk_rnn_site/manage.py migrate --no-input
 
 if [ $1 = "dev" ]; then
 
 echo
 echo "* Running the webapp using Django's test server"
-python3 /vagrant/folk_rnn_site/manage.py runserver 0.0.0.0:8000
+python3 /folk_rnn_webapp/folk_rnn_site/manage.py runserver 0.0.0.0:8000
 
 else
 
 echo
 echo "* Running the webapp using Daphne and Redis..."
 # Note 0.0.0.0 is necessary for access from outside the VM
-cd /vagrant/folk_rnn_site
+cd /folk_rnn_webapp/folk_rnn_site
 redis-server & 
-python3 /vagrant/folk_rnn_site/manage.py runworker --exclude-channels=folk_rnn &
-python3 /vagrant/folk_rnn_site/manage.py runworker &
+python3 /folk_rnn_webapp/folk_rnn_site/manage.py runworker --exclude-channels=folk_rnn &
+python3 /folk_rnn_webapp/folk_rnn_site/manage.py runworker &
 daphne folk_rnn_site.asgi:channel_layer --bind 0.0.0.0 --port 8000
 
 fi
