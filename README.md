@@ -30,7 +30,7 @@ In a shell, navigate to the `folk-rnn-webapp` directory, and issue the following
 ```
 vagrant up
 vagrant ssh
-/vagrant/runserver
+/folk_rnn_webapp/runserver
 ```
 
 On first run, `vagrant up` will download Ubuntu 16.04, create a VM and install the OS, and then run the configuration tasks, all as prescribed by the [Vagrantfile](https://github.com/tobyspark/folk-rnn-webapp/blob/master/Vagrantfile).
@@ -47,6 +47,6 @@ Note: if the specification for the VM changes, e.g. what's in the `Vagrantfile`,
 ```
 vagrant up
 vagrant ssh
-python3 /vagrant/folk_rnn_site/manage.py test composer
-python3 /vagrant/folk_rnn_site/manage.py test functional_tests
+python3 /folk_rnn_webapp/folk_rnn_site/manage.py test composer
+python3 /folk_rnn_webapp/folk_rnn_site/manage.py test functional_tests
 ```

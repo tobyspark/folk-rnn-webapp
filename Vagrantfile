@@ -58,9 +58,9 @@ Vagrant.configure("2") do |config|
   # the path on the host to the actual folder. The second argument is
   # the path on the guest to mount the folder. And the optional third
   # argument is a set of non-required options.
-  config.vm.synced_folder ".", "/vagrant"
-  config.vm.synced_folder "../folk-rnn", "/vagrant_frnn"
-  config.vm.synced_folder "../midi-js-soundfonts/MusyngKite", "/vagrant_sf/soundfont"
+  config.vm.synced_folder ".", "/folk_rnn_webapp"
+  config.vm.synced_folder "../folk-rnn", "/folk_rnn"
+  config.vm.synced_folder "../midi-js-soundfonts/MusyngKite", "/folk_rnn_sf/soundfont"
 
   # Provider-specific configuration so you can fine-tune various
   # backing providers for Vagrant. These expose provider-specific options.
