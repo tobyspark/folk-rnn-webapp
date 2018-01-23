@@ -1,0 +1,14 @@
+[Unit]
+Description = Worker service (all) for folk_rnn.org, instance %i
+After=network.target
+
+[Service]
+Restart = on-failure
+User = folkrnn
+WorkingDirectory = /folk_rnn_webapp/folk_rnn_site
+EnvironmentFile = /folk_rnn_webapp/.env
+
+ExecStart = /usr/bin/python3 /folk_rnn_webapp/folk_rnn_site/manage.py runworker
+
+[Install]
+WantedBy = multi-user.target

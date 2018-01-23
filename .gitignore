@@ -1,3 +1,5 @@
+.env
+
 .vagrant
 *.log
 db.sqlite3

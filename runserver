@@ -13,21 +13,33 @@ echo
 echo "* Checking database..."
 python3 /folk_rnn_webapp/folk_rnn_site/manage.py migrate --no-input
 
-if [ $1 = "dev" ]; then
+if [ ${1:-prod} = "dev" ]; then
 
 echo
 echo "* Running the webapp using Django's test server"
+# Note 0.0.0.0 is necessary for access from outside the VM
 python3 /folk_rnn_webapp/folk_rnn_site/manage.py runserver 0.0.0.0:8000
 
 else
 
 echo
-echo "* Running the webapp using Daphne and Redis..."
-# Note 0.0.0.0 is necessary for access from outside the VM
-cd /folk_rnn_webapp/folk_rnn_site
-redis-server & 
-python3 /folk_rnn_webapp/folk_rnn_site/manage.py runworker --exclude-channels=folk_rnn &
-python3 /folk_rnn_webapp/folk_rnn_site/manage.py runworker &
-daphne folk_rnn_site.asgi:channel_layer --bind 0.0.0.0 --port 8000
+echo "* Collecting static files"
+
+python3 /folk_rnn_webapp/folk_rnn_site/manage.py collectstatic --no-input
+
+echo
+echo "* Running the webapp using NGINX, Daphne and Redis"
+
+sudo systemctl restart nginx
+sudo systemctl restart daphne
+sudo systemctl restart redis-server
+sudo systemctl restart worker-http@{1..1} # Worker numbers should scale with CPU cores.
+sudo systemctl restart worker-all@{1..1}
+
+sudo systemctl status nginx
+sudo systemctl status daphne
+sudo systemctl status redis-server
+sudo systemctl status worker-http@1
+sudo systemctl status worker-all@1
 
 fi

@@ -1,0 +1,14 @@
+[Unit]
+Description = Daphne server for folk_rnn.org
+After = network.target
+
+[Service]
+Restart = on-failure
+User = folkrnn
+WorkingDirectory = /folk_rnn_webapp/folk_rnn_site
+EnvironmentFile = /folk_rnn_webapp/.env
+
+ExecStart = /usr/local/bin/daphne --unix-socket kSOCKET folk_rnn_site.asgi:channel_layer
+
+[Install]
+WantedBy = multi-user.target
