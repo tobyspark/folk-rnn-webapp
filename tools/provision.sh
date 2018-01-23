@@ -13,7 +13,7 @@ echo *** Check hostname
 echo ***
 if [ `hostname` != 'folkmachine' ]; then
     sudo hostnamectl set-hostname folkmachine
-    echo '127.0.1.1 folkmachine' >> /etc/hosts
+    echo '127.0.0.1 folkmachine' >> /etc/hosts
 fi
 
 echo ***
