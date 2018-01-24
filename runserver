@@ -22,6 +22,13 @@ python3 /folk_rnn_webapp/folk_rnn_site/manage.py runserver 0.0.0.0:8000
 
 else
 
+# VAGRANT BUG WORKAROUND
+if [ $USER = root ]; then
+    echo "* Error: This has been run by root user. It should be run by folkrnn. Please ssh in and /folk_rnn_webapp/runserver"
+    echo "* ...this seems to be an issue when vagrant up creates a fresh linode instance; priviliged:false is ignored"
+    exit 1
+fi
+
 echo
 echo "* Collecting static files"
 
