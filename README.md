@@ -65,7 +65,16 @@ Before starting you will need
 - Linode API key
 - ssh key configured
 
-In a shell, navigate to the `folk-rnn-webapp` directory. 
+You will also want a sibling `folk_rnn_webapp` repository to keep dev and production separate (also a requirement of `vagrant`, which can’t handle a virtualbox VM and a remote Linode server simultaneously). So clone a fresh repo in addition to the above, adding a `production` suffix. You should have four folders like so
+```
+some-directory
+├── folk-rnn
+├── folk-rnn-webapp
+├── folk-rnn-webapp-production
+└── midi-js-soundfonts
+```
+
+In a shell, navigate to the `folk-rnn-webapp-production` directory. 
 
 Create an environment file to configure the app for production. Create an `.env` file using `template.env`.
 
@@ -77,8 +86,10 @@ export FOLKRNN_PRODUCTION=foo
 vagrant up --provider=linode
 ```
 
-After some time, the server should be deployed and the webapp running.
+After some time, the server should be deployed and the webapp running (see note below).
 
 As before, `vagrant ssh` to log in to the server, and `vagrant provision` to update. 
 
-Note: there is a bug in `vagrant up` for the first time, the provisioning scripts that should run unprivileged instead run as root. However, rather than `vagrant destroy; vagrant up` to rebuild a machine, do this: `vagrant halt`, pause, `vagrant rebuild`, pause, `vagrant provision`. This will keep the IP address and provision correctly. So for a new server, do the rebuild dance and all should be good (alternatively, `chown folkrnn:folkrnn` the directory `/var/opt/folk_rnn_task/tune` and the contents of `/folk_rnn_static`).
+Note 1: there is a bug in `vagrant up` for the first time, the provisioning scripts that should run unprivileged instead run as root. However, rather than `vagrant destroy; vagrant up` to rebuild a machine, do this: `vagrant halt`, pause, `vagrant rebuild`, pause, `vagrant provision`. This will keep the IP address and provision correctly. So for a new server, do the rebuild dance and all should be good (alternatively, `chown folkrnn:folkrnn` the directory `/var/opt/folk_rnn_task/tune` and the contents of `/folk_rnn_static`).
+
+Note 2: `vagrant provision` can wipe the server database, if you have `folk_rnn_site/db.sqlite3` in your local `folk-rnn-webapp-production` folder. Provisioning rsyncs over the sqlite file from the dev machine. The production provisioning (i.e. `vagrant up --provider=linode`) should never create that file, but it will if you `vagrant up --provider=virtualbox` and then `runserver` from that production folder.
