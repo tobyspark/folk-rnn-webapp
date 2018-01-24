@@ -79,4 +79,6 @@ vagrant up --provider=linode
 
 After some time, the server should be deployed and the webapp running.
 
-As before, `vagrant ssh` to log in to the server, and `vagrant provision` to update. There is a new option: `vagrant rebuild` is equivalent to `destroy` and `up` but keeps the same IP address.
+As before, `vagrant ssh` to log in to the server, and `vagrant provision` to update. 
+
+Note: there is a bug in `vagrant up` for the first time, the provisioning scripts that should run unprivileged instead run as root. However, rather than `vagrant destroy; vagrant up` to rebuild a machine, do this: `vagrant halt`, pause, `vagrant rebuild`, pause, `vagrant provision`. This will keep the IP address and provision correctly. So for a new server, do the rebuild dance and all should be good (alternatively, `chown folkrnn:folkrnn` the directory `/var/opt/folk_rnn_task/tune` and the contents of `/folk_rnn_static`).
