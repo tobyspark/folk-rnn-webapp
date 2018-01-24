@@ -79,4 +79,4 @@ vagrant up --provider=linode
 
 After some time, the server should be deployed and the webapp running.
 
-As before, `vagrant ssh` to log in to the server, and `vagrant provision` to update.
+As before, `vagrant ssh` to log in to the server, and `vagrant provision` to update. There is a new option: `vagrant rebuild` is equivalent to `destroy` and `up` but keeps the same IP address.
