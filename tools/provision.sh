@@ -40,7 +40,7 @@ fi
 echo *** 
 echo *** Check fail2ban
 echo ***
-apt-get install fail2ban
+apt-get install --yes fail2ban
 
 echo ***
 echo *** Check UFW
