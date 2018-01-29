@@ -10,6 +10,10 @@ Vagrant.configure("2") do |config|
   # For a complete reference, please see the online documentation at
   # https://docs.vagrantup.com.
 
+  # Default to VirtualBox VM...
+  config.vm.provider "virtualbox"
+
+  # ...and have option to deploy to Linode VPS for production
   config.vm.provider :linode do |provider, override|
     override.ssh.private_key_path = '~/.ssh/id_rsa'
     override.vm.box = 'linode'
