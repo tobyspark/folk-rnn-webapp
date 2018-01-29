@@ -15,6 +15,7 @@ Vagrant.configure("2") do |config|
 
   # ...and have option to deploy to Linode VPS for production
   config.vm.provider :linode do |provider, override|
+    override.ssh.username = 'vagrant'
     override.ssh.private_key_path = '~/.ssh/id_rsa'
     override.vm.box = 'linode'
     override.vm.box_url = 'https://github.com/displague/vagrant linode/raw/master/box/linode.box'
