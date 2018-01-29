@@ -11,23 +11,51 @@ echo "******************************************************"
 
 echo
 echo "* Checking database..."
-python3 /vagrant/folk_rnn_site/manage.py migrate --no-input
+python3 /folk_rnn_webapp/folk_rnn_site/manage.py migrate --no-input
 
-if [ $1 = "dev" ]; then
+if [ ${1:-prod} = "dev" ]; then
 
 echo
 echo "* Running the webapp using Django's test server"
-python3 /vagrant/folk_rnn_site/manage.py runserver 0.0.0.0:8000
+
+# Allow test app port through firewall
+sudo ufw allow 8000/tcp
+
+# Note 0.0.0.0 is necessary for access from outside the VM
+python3 /folk_rnn_webapp/folk_rnn_site/manage.py runserver 0.0.0.0:8000
 
 else
 
+# VAGRANT BUG WORKAROUND
+if [ $USER = root ]; then
+    echo "* Error: This has been run by root user. It should be run by folkrnn. Please ssh in and /folk_rnn_webapp/runserver"
+    echo "* ...this seems to be an issue when vagrant up creates a fresh linode instance; priviliged:false is ignored"
+    exit 1
+fi
+
 echo
-echo "* Running the webapp using Daphne and Redis..."
-# Note 0.0.0.0 is necessary for access from outside the VM
-cd /vagrant/folk_rnn_site
-redis-server & 
-python3 /vagrant/folk_rnn_site/manage.py runworker --exclude-channels=folk_rnn &
-python3 /vagrant/folk_rnn_site/manage.py runworker &
-daphne folk_rnn_site.asgi:channel_layer --bind 0.0.0.0 --port 8000
+echo "* Collecting static files"
+
+python3 /folk_rnn_webapp/folk_rnn_site/manage.py collectstatic --no-input
+
+echo
+echo "* Running the webapp using NGINX, Daphne and Redis"
+
+# Disallow test app port through firewall, in case it was set through using test server.
+if sudo ufw status | grep "8000/tcp"; then
+    sudo ufw delete allow 8000/tcp
+fi
+
+sudo systemctl restart nginx
+sudo systemctl restart daphne
+sudo systemctl restart redis-server
+sudo systemctl restart worker-http@{1..1} # Worker numbers should scale with CPU cores.
+sudo systemctl restart worker-all@{1..1}
+
+sudo systemctl status nginx
+sudo systemctl status daphne
+sudo systemctl status redis-server
+sudo systemctl status worker-http@1
+sudo systemctl status worker-all@1
 
 fi

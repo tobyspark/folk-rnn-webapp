@@ -7,7 +7,7 @@ import importlib
 import pickle
 
 config_module = 'configurations.config5'
-metadata_path = '/vagrant_frnn/metadata/config5-wrepeats-20160112-222521.pkl'
+metadata_path = '/folk_rnn/metadata/config5-wrepeats-20160112-222521.pkl'
 model_dir = '/var/opt/folk_rnn_task/models/'
 
 config = importlib.import_module(config_module, package='folk_rnn')
