@@ -10,10 +10,8 @@ Vagrant.configure("2") do |config|
   # For a complete reference, please see the online documentation at
   # https://docs.vagrantup.com.
 
-  config.ssh.username = 'folkrnn'
-  config.ssh.private_key_path = '~/.ssh/id_rsa'
-  
   config.vm.provider :linode do |provider, override|
+    override.ssh.private_key_path = '~/.ssh/id_rsa'
     override.vm.box = 'linode'
     override.vm.box_url = 'https://github.com/displague/vagrant linode/raw/master/box/linode.box'
     override.nfs.functional = false

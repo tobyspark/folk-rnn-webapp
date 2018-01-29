@@ -4,7 +4,7 @@ After = network.target
 
 [Service]
 Restart = on-failure
-User = folkrnn
+User = vagrant
 WorkingDirectory = /folk_rnn_webapp/folk_rnn_site
 EnvironmentFile = /folk_rnn_webapp/.env
 
