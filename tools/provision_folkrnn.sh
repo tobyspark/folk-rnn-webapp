@@ -21,13 +21,13 @@ pip3 install -e .
 # folk_rnn models
 if [ ! -d /var/opt/folk_rnn_task ]; then
     mkdir /var/opt/folk_rnn_task
-    chown folkrnn:folkrnn /var/opt/folk_rnn_task
-    su folkrnn -c /folk_rnn_webapp/tools/create_model_from_config_meta.py
+    chown vagrant:vagrant /var/opt/folk_rnn_task
+    su vagrant -c /folk_rnn_webapp/tools/create_model_from_config_meta.py
 fi
 
 # folk_rnn webapp static dir
 mkdir -p /folk_rnn_static
-chown folkrnn:folkrnn /folk_rnn_static
+chown vagrant:vagrant /folk_rnn_static
 
 # folk_rnn webapp packages
 apt-get install --yes nginx
@@ -50,7 +50,7 @@ sudo ln -sf /etc/nginx/sites-available/folk_rnn.org /etc/nginx/sites-enabled/fol
 
 # ...nginx-daphne setup
 mkdir -p /folk_rnn_tmp
-chown folkrnn:folkrnn /folk_rnn_tmp
+chown vagrant:vagrant /folk_rnn_tmp
 
 # ...systemd setup
 cat ./tools/systemd/daphne.service \

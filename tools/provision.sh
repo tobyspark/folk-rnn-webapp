@@ -22,14 +22,6 @@ echo ***
 apt-get install --yes unattended-upgrades
 
 echo ***
-echo *** Check for folkrnn user
-echo ***
-if [ ! -d /home/folkrnn ]; then
-    adduser folkrnn
-    adduser folkrnn sudo
-fi
-
-echo ***
 echo *** Check SSH config
 echo ***
 if grep --regex='^PermitRootLogin yes' /etc/ssh/sshd_config; then
