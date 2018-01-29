@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'channels',
     'composer',
+    'archiver',
 ]
 
 MIDDLEWARE = [
