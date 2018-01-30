@@ -1,0 +1,21 @@
+<html>
+    <head>
+        <title>The Machine Folk Session – {% block title %}An archive of folk music co-composed with machines{% endblock %}</title>
+        {% block headend %}{% endblock %}
+    </head>
+    <body>
+        <div id="header">
+            <h1><a href="/">The <em>machine folk</em> Session</a></h1>
+            <hr>
+        </div>
+        <div id="content">
+            {% block content %}{% endblock %}
+        </div>
+        <div id="footer">
+            <hr>
+            <p> The Machine Folk Session is a project by...</p>
+            <p> Funded by...</p>
+        </div>
+        {% block bodyend %}{% endblock %}
+    </body>
+</html>
