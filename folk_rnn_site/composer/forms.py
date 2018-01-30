@@ -35,3 +35,8 @@ class ComposeForm(forms.Form):
             tokens = self.cleaned_data['prime_tokens'].split(' ')
             if not validate_tokens(tokens, model_file_name=self.cleaned_data['model']):
                 self.add_error('prime_tokens', ValidationError('Invalid ABC as per RNN model', code='invalid'))
+
+class ArchiveForm(forms.Form):
+    title = forms.CharField(label='Name your tune:')
+    folkrnn_id = forms.IntegerField(widget=forms.HiddenInput)
+    

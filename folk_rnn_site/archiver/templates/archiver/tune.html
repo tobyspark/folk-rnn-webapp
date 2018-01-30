@@ -11,7 +11,14 @@
 <div>
     <div id="composition">
         <p>The composition –</p>
-        <pre id="abc">{{ tune.abc }}</pre>
+        <form method="POST">
+            {% csrf_token %}
+            {{ tune_form }}
+            {% ifequal tune_form.edit.data 'user' %}
+                <input id="save_button" name="save" type="submit" value="Save">
+                <input id="setting_button" type="submit" name="submit_setting" value="Submit Setting">
+            {% endifequal %}
+        </form>
     </div>
     <div id="midi"></div>
     <div id="midi-download"></div>
