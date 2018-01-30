@@ -1,0 +1,56 @@
+{% extends "archiver/base.html" %}
+
+{% block title %}{{ tune.title }}{% endblock %}
+
+{% block headend %}{% include "archiver/_abcjs-headend.html" %}{% endblock %}
+{% block bodyend %}{% include "archiver/_abcjs-bodyend.html" %}{% endblock %}
+
+{% block content %}
+{% load humanize %}
+<h1>{{ tune.title }}</h1>
+<div>
+    <div id="composition">
+        <p>The composition –</p>
+        <pre id="abc">{{ tune.abc }}</pre>
+    </div>
+    <div id="midi"></div>
+    <div id="midi-download"></div>
+    <div id="warnings"></div>
+    <div id="music"></div>
+    <div id="paper0"></div>
+    <div id="paper1"></div>
+    <div id="paper2"></div>
+    <div id="paper3"></div>
+    <div id="selection"></div>
+</div>
+
+<div id="settings">
+{% if settings %}
+    <h2>{{ settings|length|apnumber|capfirst }} setting{{ settings|length|pluralize }}</h2>
+    {% for setting in settings %}
+        <div id="setting {{ setting.header_x }}">
+            <pre>{{ setting.abc }}</pre>
+            <!-- TODO: Added by..., Download..., Sheet music..., -->
+        </div>
+    {%  endfor %}
+{% else %}
+    <h2>No settings</h2>
+{%  endif %}
+</div>
+
+<div id="comments">
+    <h2>Comments</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {{ comment_form }}
+        <input id="comment_button" type="submit" name="submit_comment" value="Submit">
+    </form>
+    {% if comments %}
+    <ul id="comment_list">
+        {% for comment in comments %}
+        <li>{{ comment.text }}<br>— {{ comment.author }}, {{ comment.submitted|naturalday }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,7 +1,7 @@
 from collections import namedtuple
 import csv
 
-from composer.models import Tune, Setting
+from archiver.models import Tune, Setting
 
 SettingDatum = namedtuple('SettingDatum', [
                             'id', 

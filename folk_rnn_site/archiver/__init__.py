@@ -1,0 +1,1 @@
+MAX_RECENT_ITEMS = 5
