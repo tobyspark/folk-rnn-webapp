@@ -38,8 +38,10 @@
     <div id="paper2"></div>
     <div id="paper3"></div>
     <div id="selection"></div>
-    <form action="/">
-       <input id="compose_button" type="submit" value="Start again...">
-    </form> 
+    <form method="POST" action="/archive/tune/new">
+        {% csrf_token %}
+        {{ archive_form }}
+        <input id="archive_button" type="submit" value="Archive to the machine folk session">
+    </form>
 </div>
 {% endblock %}

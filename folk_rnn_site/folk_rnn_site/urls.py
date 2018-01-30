@@ -26,5 +26,6 @@ urlpatterns = [
     url(r'^archive/$', a_views.home_page, name='home'),
     url(r'^archive/tune/$', a_views.tune_page, name='tune'),
     url(r'^archive/tune/(?P<tune_id>[0-9]+)$', a_views.tune_page, name='tune'),
+    url(r'^archive/tune/new', a_views.new_tune),
     url(r'^archive/dataset$', a_views.dataset_download),
 ]

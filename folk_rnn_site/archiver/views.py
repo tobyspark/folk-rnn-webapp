@@ -9,12 +9,26 @@ from archiver.models import Tune, Setting, Comment
 from archiver.forms import TuneForm, CommentForm
 from archiver.dataset import dataset_as_csv
 
+from composer.forms import ArchiveForm
+from composer.models import RNNTune
+
 def home_page(request):
     return render(request, 'archiver/home.html', {
                                 'tunes': Tune.objects.order_by('-id')[:MAX_RECENT_ITEMS],
                                 'settings': Setting.objects.order_by('-id')[:MAX_RECENT_ITEMS],
                                 'comments': Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS],
                                 })
+
+def new_tune(request):
+    if request.method == 'POST':
+        form = ArchiveForm(request.POST)
+        if form.is_valid():
+            rnn_tune = RNNTune.objects.get(id=form.cleaned_data['folkrnn_id'])
+            # TODO: check the rnn_tune has not already been archived here
+            tune = Tune.objects.create(rnn_tune=rnn_tune, abc_rnn=rnn_tune.abc)
+            return redirect('/archive/tune/{}'.format(tune.id))
+    return redirect('/')
+
 
 def tune_page(request, tune_id=None):
     try:
@@ -81,7 +95,6 @@ def tune_page(request, tune_id=None):
         'comments': Comment.objects.filter(tune=tune),
         'tune_form': tune_form,
         'comment_form': comment_form,
-        'rnn_duration': (tune.rnn_finished - tune.rnn_started).total_seconds(),
         'tune_cols': max(len(line) for line in tune_lines), # TODO: look into autosize via CSS, when CSS is a thing round here.
         'tune_rows': len(tune_lines),
         })
