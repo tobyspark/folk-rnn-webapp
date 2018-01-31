@@ -6,7 +6,7 @@ from composer import ABC2ABC_PATH
 
 USERNAME_MAX_LENGTH = 128
 
-header_t_regex = re.compile(r'^T:\s*(.*?)\s*$', re.MULTILINE)
+header_t_regex = re.compile(r'(?<=^T:)\s*(.*?)\s*$', re.MULTILINE)
 header_m_regex = re.compile(r'^M:\s*(.*?)\s*$', re.MULTILINE)
 header_k_regex = re.compile(r'^K:\s*(.*?)\s*$', re.MULTILINE)
 header_x_regex = re.compile(r'(?<=^X:)\s*([0-9]+)\s*$', re.MULTILINE)                            
@@ -35,6 +35,10 @@ class ABCModel(models.Model):
     def title(self):
         match = header_t_regex.search(self.abc)
         return match.group(1)
+    
+    @title.setter
+    def title(self, value):
+        self.abc = header_t_regex.sub(str(value), self.abc)
     
     @property
     def body(self):
