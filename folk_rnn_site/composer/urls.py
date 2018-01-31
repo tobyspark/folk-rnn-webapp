@@ -14,18 +14,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url
-from composer import views as c_views
-from archiver import views as a_views
+from composer import views
 
 urlpatterns = [
-    # FIXME, composer host
-    url(r'^$', c_views.home_page, name='home'),
-    url(r'^tune/$', c_views.tune_page, name='tune'),
-    url(r'^tune/(?P<tune_id>[0-9]+)$', c_views.tune_page, name='tune'),
-    # FIXME, archive host
-    url(r'^archive/$', a_views.home_page, name='home'),
-    url(r'^archive/tune/$', a_views.tune_page, name='tune'),
-    url(r'^archive/tune/(?P<tune_id>[0-9]+)$', a_views.tune_page, name='tune'),
-    url(r'^archive/tune/new', a_views.new_tune),
-    url(r'^archive/dataset$', a_views.dataset_download),
+    url(r'^$', views.home_page, name='home'),
+    url(r'^tune/$', views.tune_page, name='tune'),
+    url(r'^tune/(?P<tune_id>[0-9]+)$', views.tune_page, name='tune'),
 ]

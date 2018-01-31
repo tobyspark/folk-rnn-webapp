@@ -26,7 +26,13 @@ if 'FOLKRNN_PRODUCTION' in os.environ:
 else:
     DEBUG = True  
     SECRET_KEY = 'h0rpwz_a*dows+-gzl5a)8ev5^_rmx($tby=y6ep5x_b5*7w56'
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS = [
+                '127.0.0.1',
+                'folkrnn.org',
+                'themachinefolksession.org',
+                'folkrnn.org.local',
+                'themachinefolksession.org.local',
+                ]
 
 # Application definition
 
@@ -38,12 +44,14 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'django_hosts',
     'channels',
     'composer',
     'archiver',
 ]
 
 MIDDLEWARE = [
+    'django_hosts.middleware.HostsRequestMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -51,6 +59,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_hosts.middleware.HostsResponseMiddleware'
 ]
 
 CHANNEL_LAYERS = {
@@ -63,7 +72,9 @@ CHANNEL_LAYERS = {
     },
 }
 
-ROOT_URLCONF = 'folk_rnn_site.urls'
+ROOT_HOSTCONF = 'folk_rnn_site.hosts'
+DEFAULT_HOST = 'composer'
+ROOT_URLCONF = 'composer.urls'
 
 TEMPLATES = [
     {

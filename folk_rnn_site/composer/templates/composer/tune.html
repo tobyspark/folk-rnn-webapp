@@ -7,6 +7,7 @@
 
 {% block content %}
 {% load humanize %}
+{% load hosts %}
 <h1>{{ tune.title }}</h1>
 <div id="compose_ui">
     <div id="composition">
@@ -38,7 +39,7 @@
     <div id="paper2"></div>
     <div id="paper3"></div>
     <div id="selection"></div>
-    <form method="POST" action="/archive/tune/new">
+    <form method="POST" action="{% host_url 'new_tune' host 'archiver' %}">
         {% csrf_token %}
         {{ archive_form }}
         <input id="archive_button" type="submit" value="Archive to the machine folk session">
