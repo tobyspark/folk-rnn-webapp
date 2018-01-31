@@ -1,10 +1,10 @@
 from django.db import models
 
-from composer import models as c_models
-from composer.models import conform_abc, body_regex, USERNAME_MAX_LENGTH
+from folk_rnn_site.models import ABCModel, conform_abc, body_regex, USERNAME_MAX_LENGTH
+from composer.models import RNNTune
 
-class Tune(c_models.ABCModel):
-    rnn_tune = models.ForeignKey(c_models.RNNTune)
+class Tune(ABCModel):
+    rnn_tune = models.ForeignKey(RNNTune)
     abc_rnn = models.TextField(default='')
     abc_user = models.TextField(default='')
 
@@ -49,7 +49,7 @@ class SettingManager(models.Manager):
         setting.save()
         return setting
 
-class Setting(c_models.ABCModel):
+class Setting(ABCModel):
     tune = models.ForeignKey(Tune)
     abc = models.TextField(default='')
 
