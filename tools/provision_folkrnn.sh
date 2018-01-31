@@ -42,19 +42,14 @@ apt-get install --yes abcmidi
 cd /folk_rnn_webapp
 
 # ...nginx setup
-cat ./tools/template.nginx.conf \
-| sed "s/kDOMAIN/$COMPOSER_HOST/g" \
-| sed 's,kSOCKET,/folk_rnn_tmp/folk_rnn.org.socket,g' \
-| sed 's,kSTATIC,/folk_rnn_static,g' \
-> /etc/nginx/sites-available/$COMPOSER_HOST
-sudo ln -sf /etc/nginx/sites-available/$COMPOSER_HOST /etc/nginx/sites-enabled/$COMPOSER_HOST
-
-cat ./tools/template.nginx.conf \
-| sed "s/kDOMAIN/$ARCHIVER_HOST/g" \
-| sed 's,kSOCKET,/folk_rnn_tmp/folk_rnn.org.socket,g' \
-| sed 's,kSTATIC,/folk_rnn_static,g' \
-> /etc/nginx/sites-available/$ARCHIVER_HOST
-sudo ln -sf /etc/nginx/sites-available/$ARCHIVER_HOST /etc/nginx/sites-enabled/$ARCHIVER_HOST
+for HOST in $COMPOSER_HOST $ARCHIVER_HOST; do
+    cat ./tools/template.nginx.conf \
+    | sed "s/kDOMAIN/$HOST/g" \
+    | sed 's,kSOCKET,/folk_rnn_tmp/folk_rnn.org.socket,g' \
+    | sed 's,kSTATIC,/folk_rnn_static,g' \
+    > /etc/nginx/sites-available/$HOST
+    sudo ln -sf /etc/nginx/sites-available/$HOST /etc/nginx/sites-enabled/$HOST
+done
 
 # ...nginx-daphne setup
 mkdir -p /folk_rnn_tmp
