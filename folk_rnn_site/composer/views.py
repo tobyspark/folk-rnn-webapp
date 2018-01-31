@@ -1,8 +1,11 @@
 from django.shortcuts import redirect, render
 from channels import Channel
+from django_hosts.resolvers import reverse
 
 from composer.models import RNNTune
 from composer.forms import ComposeForm, ArchiveForm
+
+from archiver.models import Tune
 
 def home_page(request):
     if request.method == 'POST':
@@ -62,3 +65,18 @@ def tune_page(request, tune_id=None):
         'tune_cols': max(len(line) for line in tune_lines), # TODO: look into autosize via CSS, when CSS is a thing round here.
         'tune_rows': len(tune_lines),
         })
+
+def archive_tune(request, tune_id=None):
+    try:
+        tune_id_int = int(tune_id)
+        tune = RNNTune.objects.get(id=tune_id_int)
+    except (TypeError, RNNTune.DoesNotExist):
+        return redirect('/')
+        
+    if request.method == 'POST':
+        form = ArchiveForm(request.POST)
+        if form.is_valid():
+            # TODO: check the rnn_tune has not already been archived 
+            tune_in_archive = Tune.objects.create(rnn_tune=tune, abc_rnn=tune.abc)
+            return redirect(reverse('tune', host='archiver', kwargs={'tune_id': tune_in_archive.id}))
+    return redirect('/')

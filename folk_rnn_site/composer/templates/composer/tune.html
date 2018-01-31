@@ -39,7 +39,7 @@
     <div id="paper2"></div>
     <div id="paper3"></div>
     <div id="selection"></div>
-    <form method="POST" action="{% host_url 'new_tune' host 'archiver' %}">
+    <form method="POST" action="{% url 'archive_tune' tune_id=tune.id %}"> <!-- FIXME: Can host_url work? Using url only works here because ROOT_URLCONF = 'composer.urls' -->
         {% csrf_token %}
         {{ archive_form }}
         <input id="archive_button" type="submit" value="Archive to the machine folk session">
