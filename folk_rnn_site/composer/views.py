@@ -76,7 +76,11 @@ def archive_tune(request, tune_id=None):
     if request.method == 'POST':
         form = ArchiveForm(request.POST)
         if form.is_valid():
-            # TODO: check the rnn_tune has not already been archived 
-            tune_in_archive = Tune.objects.create(rnn_tune=tune, abc_rnn=tune.abc)
+            try:
+                tune_in_archive = Tune.objects.get(rnn_tune=tune)
+            except Tune.DoesNotExist:
+                tune_in_archive = Tune(rnn_tune=tune, abc_rnn=tune.abc)  
+                tune_in_archive.title = form.cleaned_data['title']          
+                tune_in_archive.save()
             return redirect(reverse('tune', host='archiver', kwargs={'tune_id': tune_in_archive.id}))
     return redirect('/')
