@@ -20,6 +20,5 @@ urlpatterns = [
     url(r'^$', views.home_page, name='home'),
     url(r'^tune/$', views.tune_page, name='tune'),
     url(r'^tune/(?P<tune_id>[0-9]+)$', views.tune_page, name='tune'),
-    url(r'^tune/new', views.new_tune, name='new_tune'),
     url(r'^dataset$', views.dataset_download),
 ]
