@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if 'FOLKRNN_PRODUCTION' in os.environ:
     DEBUG = False
     SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
-    ALLOWED_HOSTS = [os.environ['DJANGO_ALLOWED_HOSTS']]
+    ALLOWED_HOSTS = [os.environ['COMPOSER_HOST'], os.environ['ARCHIVER_HOST']]
 else:
     DEBUG = True  
     SECRET_KEY = 'h0rpwz_a*dows+-gzl5a)8ev5^_rmx($tby=y6ep5x_b5*7w56'
