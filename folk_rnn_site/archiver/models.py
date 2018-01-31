@@ -14,15 +14,18 @@ class Tune(c_models.ABCModel):
 
     @abc.setter
     def abc(self, value):
-        old_abc_user = self.abc_user
-        self.abc_user = conform_abc(value)
-        try:
-            self.title
-            self.body
-            self.header_x
-        except AttributeError:
-            self.abc_user = old_abc_user
-            raise AttributeError('Invalid ABC')
+        # FIXME: Tune to just hold RNN generated ABC.
+        # Validation of user ABC to go to Setting.
+        self.abc_user = value
+        # old_abc_user = self.abc_user
+        # self.abc_user = conform_abc(value)
+        # try:
+        #     self.title
+        #     self.body
+        #     self.header_x
+        # except AttributeError:
+        #     self.abc_user = old_abc_user
+        #     raise AttributeError('Invalid ABC')
 
 class SettingManager(models.Manager):
     def create_setting(self, tune):
