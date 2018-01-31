@@ -32,6 +32,7 @@ chown vagrant:vagrant /folk_rnn_static
 # folk_rnn webapp packages
 apt-get install --yes nginx
 pip3 install "django<1.12"
+pip3 install "django-hosts"
 pip3 install "channels"
 apt-get install --yes redis-server
 pip3 install "asgi_redis"

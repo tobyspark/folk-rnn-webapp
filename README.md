@@ -1,6 +1,8 @@
 # Folk RNN WebApp
 
-The Folk RNN webapp is written in Python 3 using the Django framework. It uses the Channels architecture to handle websocket connections and a task queue.
+The Folk RNN web app is in two parts: a composer for users to generate tunes using folkrnn, and an archiver to host and tweak them (and any other machine co-authored tunes). 
+
+The web app is written in Python 3 using the Django framework. It uses the Channels architecture to handle websocket connections and a task queue. It uses the django-hosts middleware to route the composer and archiver apps on separate domains.
 
 ## Deployment
 
@@ -46,7 +48,13 @@ Thereafter, `vagrant up` will boot the machine, and `vagrant halt` will shut it 
 
 To get in, `vagrant ssh` and you should see your shell prompt change to `ubuntu@ubuntu`. Type `logout` or `<ctrl-d>` to close the ssh connection.
 
-Once you have issued the runserver command,  navigate to http://127.0.0.1:8000 in your browser as it tells you.
+Once you have issued the runserver command, navigate to http://`127.0.0.1:8000` in your browser as it tells you. 
+
+Note: Using the localhost IP address as above will route to the default app (currently the composer). To mimick real-world use and be able to access both apps typing e.g. `http://themachinefolksession.org.local:8000`, add the following to your `/etc/hosts` file. 
+```
+127.0.0.1	folkrnn.org.local
+127.0.0.1	themachinefolksession.org.local
+```
 
 Note: if the specification for the VM changes, e.g. what's in the `Vagrantfile`, those changes will need to be retrospectively applied to any existing machines. Either `vagrant reload --provision` the existing machine, or `vagrant destroy; vagrant up` to create a fresh machine to this spec.
 
