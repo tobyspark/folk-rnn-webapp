@@ -6,8 +6,8 @@ import functools
 
 from folk_rnn import Folk_RNN
 
-from composer import ABC2ABC_PATH, STORE_PATH, MODEL_PATH, TUNE_PATH, FOLKRNN_INSTANCE_CACHE_COUNT
-from composer.models import Tune
+from composer import ABC2ABC_PATH, MODEL_PATH, TUNE_PATH, FOLKRNN_INSTANCE_CACHE_COUNT
+from composer.models import RNNTune
 
 ABC2ABC_COMMAND = [
             ABC2ABC_PATH, 
@@ -29,7 +29,7 @@ def folk_rnn_cached(rnn_model_name):
         )
 
 def folk_rnn_task(message):
-    tune = Tune.objects.get(id=message['id'])
+    tune = RNNTune.objects.get(id=message['id'])
     
     tune.rnn_started = datetime.now()
     tune.save()
@@ -65,8 +65,8 @@ def folk_rnn_task(message):
     tune_path = os.path.join(TUNE_PATH, 'test_tune_{}'.format(tune.id))
     with open(tune_path, 'w') as f:
         f.write(abc)
-    
-    tune.abc_rnn = abc
+
+    tune.abc = abc
     tune.rnn_finished = datetime.now()
     tune.save()
     
