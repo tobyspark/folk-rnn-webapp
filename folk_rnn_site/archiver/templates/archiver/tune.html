@@ -1,14 +1,14 @@
-{% extends "base.html" %}
+{% extends "archiver/base.html" %}
 
-{% block title %}{{ tune.title }} on Folk RNN{% endblock %}
+{% block title %}{{ tune.title }}{% endblock %}
 
-{% block headend %}{% include "_abcjs-headend.html" %}{% endblock %}
-{% block bodyend %}{% include "_abcjs-bodyend.html" %}{% endblock %}
+{% block headend %}{% include "archiver/_abcjs-headend.html" %}{% endblock %}
+{% block bodyend %}{% include "archiver/_abcjs-bodyend.html" %}{% endblock %}
 
 {% block content %}
 {% load humanize %}
 <h1>{{ tune.title }}</h1>
-<div id="compose_ui">
+<div>
     <div id="composition">
         <p>The composition –</p>
         <form method="POST">
@@ -20,22 +20,6 @@
             {% endifequal %}
         </form>
     </div>
-    <div id="composition_metadata">
-        <p>Was made with –<br>
-            <ul>
-                <li>RNN model: {{ tune.rnn_model_name }}</li>
-                <li>RNN seed: {{ tune.seed }}</li>
-                <li>RNN temperature: {{ tune.temp }}</li>
-                <li>Prime tokens: {{ tune.prime_tokens }}</li>
-            </ul>
-        </p>
-        <p>The task was –<br>
-            <ul>
-                <li>Requested at: {{ tune.requested|date:"r" }}</li>
-                <li>Composition took: {{ rnn_duration|floatformat:"0" }}s</li>
-            </ul>
-        </p>
-    </div>
     <div id="midi"></div>
     <div id="midi-download"></div>
     <div id="warnings"></div>
@@ -45,9 +29,6 @@
     <div id="paper2"></div>
     <div id="paper3"></div>
     <div id="selection"></div>
-    <form action="/">
-       <input id="compose_button" type="submit" value="Start again...">
-    </form> 
 </div>
 
 <div id="settings">

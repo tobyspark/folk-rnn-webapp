@@ -32,6 +32,7 @@ chown vagrant:vagrant /folk_rnn_static
 # folk_rnn webapp packages
 apt-get install --yes nginx
 pip3 install "django<1.12"
+pip3 install "django-hosts"
 pip3 install "channels"
 apt-get install --yes redis-server
 pip3 install "asgi_redis"
@@ -41,12 +42,14 @@ apt-get install --yes abcmidi
 cd /folk_rnn_webapp
 
 # ...nginx setup
-cat ./tools/template.nginx.conf \
-| sed "s/kDOMAIN/$DJANGO_ALLOWED_HOSTS/g" \
-| sed 's,kSOCKET,/folk_rnn_tmp/folk_rnn.org.socket,g' \
-| sed 's,kSTATIC,/folk_rnn_static,g' \
-> /etc/nginx/sites-available/folk_rnn.org
-sudo ln -sf /etc/nginx/sites-available/folk_rnn.org /etc/nginx/sites-enabled/folk_rnn.org
+for HOST in $COMPOSER_HOST $ARCHIVER_HOST; do
+    cat ./tools/template.nginx.conf \
+    | sed "s/kDOMAIN/$HOST/g" \
+    | sed 's,kSOCKET,/folk_rnn_tmp/folk_rnn.org.socket,g' \
+    | sed 's,kSTATIC,/folk_rnn_static,g' \
+    > /etc/nginx/sites-available/$HOST
+    sudo ln -sf /etc/nginx/sites-available/$HOST /etc/nginx/sites-enabled/$HOST
+done
 
 # ...nginx-daphne setup
 mkdir -p /folk_rnn_tmp

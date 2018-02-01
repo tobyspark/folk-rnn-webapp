@@ -1,12 +1,7 @@
-{% extends "base.html" %}
+{% extends "archiver/base.html" %}
 
 {% block content %}
 {% load humanize %}
-<div id="compose">
-    <h1>Compose</h1>
-    {% include "_compose.html" %}
-</div>
-<hr>
 <div id="activity">
     <h1>Activity</h1>
     <div id="tunes">
@@ -33,4 +28,5 @@
             {% endfor %}
         </ul>
     </div>
+</div>
 {% endblock %}
