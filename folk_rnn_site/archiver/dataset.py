@@ -23,10 +23,10 @@ def setting_dataset():
                         meter=x.header_m,
                         key=x.header_k,
                         tune_id=x.tune.id,
-                        rnn_model=x.tune.rnn_model_name,
-                        rnn_temperature=x.tune.temp,
-                        rnn_seed=x.tune.seed,
-                        rnn_prime_tokens=x.tune.prime_tokens,
+                        rnn_model=x.tune.rnn_tune.rnn_model_name,
+                        rnn_temperature=x.tune.rnn_tune.temp,
+                        rnn_seed=x.tune.rnn_tune.seed,
+                        rnn_prime_tokens=x.tune.rnn_tune.prime_tokens,
                     ) for x in Setting.objects.all())
     
 def dataset_as_csv(f):
