@@ -8,8 +8,13 @@
 {% block content %}
 {% load humanize %}
 {% load hosts %}
-<h1>{{ tune.title }}</h1>
-<div id="compose_ui">
+<div id="compose">
+    <h2>Compose</h1>
+    {% include "composer/_compose.html" %}
+</div>
+<hr>
+<div id="tune">
+    <h2>{{ tune.title }}</h1>
     <div id="composition">
         <p>The composition –</p>
         <pre id="abc">{{ tune.abc }}</pre>
