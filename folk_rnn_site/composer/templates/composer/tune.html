@@ -17,7 +17,7 @@
     <h2>{{ tune.title }}</h1>
     <div id="composition">
         <p>The composition –</p>
-        <pre id="abc">{{ tune.abc }}</pre>
+        <textarea id="abc" readonly rows="{{ tune_rows }}" cols="{{ tune_cols }}">{{ tune.abc }}</textarea>
     </div>
     <div id="composition_metadata">
         <p>Was made with –<br>
@@ -35,19 +35,26 @@
             </ul>
         </p>
     </div>
-    <div id="midi"></div>
-    <div id="midi-download"></div>
-    <div id="warnings"></div>
-    <div id="music"></div>
-    <div id="paper0"></div>
-    <div id="paper1"></div>
-    <div id="paper2"></div>
-    <div id="paper3"></div>
-    <div id="selection"></div>
-    <form method="POST" action="{% url 'archive_tune' tune_id=tune.id %}"> <!-- FIXME: Can host_url work? Using url only works here because ROOT_URLCONF = 'composer.urls' -->
-        {% csrf_token %}
-        {{ archive_form }}
-        <input id="archive_button" type="submit" value="Archive to the machine folk session">
-    </form>
+    <div id="abcjs_divs">
+        <p>Hear it –</p>
+        <div id="midi"></div>
+        <div id="midi-download"></div>
+        <p>See it –</p>
+        <div id="warnings"></div>
+        <div id="music"></div>
+        <div id="paper0"></div>
+        <div id="paper1"></div>
+        <div id="paper2"></div>
+        <div id="paper3"></div>
+        <!-- <div id="selection"></div> -->
+    </div>
+    <div id=export>
+        <p>Save it –</p>
+        <form method="POST" action="{% url 'archive_tune' tune_id=tune.id %}"> <!-- FIXME: Can host_url work? Using url only works here because ROOT_URLCONF = 'composer.urls' -->
+            {% csrf_token %}
+            {{ archive_form }}
+            <input id="archive_button" type="submit" value="Archive to the machine folk session">
+        </form>
+    </div>
 </div>
 {% endblock %}
