@@ -28,7 +28,7 @@ def home_page(request):
         form = ComposeForm()
     
     return render(request, 'composer/home.html', {
-                                'form': form,
+                                'compose_form': form,
                                 })
 
 def tune_page(request, tune_id=None):
@@ -45,6 +45,7 @@ def tune_page(request, tune_id=None):
             'prime_tokens': tune.prime_tokens,
             'rnn_has_started': False,
             'candidate_id': tune_id_int,
+            'compose_form': ComposeForm(),
             })
 
     if not tune.rnn_finished:
@@ -52,6 +53,7 @@ def tune_page(request, tune_id=None):
             'prime_tokens': tune.prime_tokens,
             'rnn_has_started': True,
             'candidate_id': tune_id_int,
+            'compose_form': ComposeForm(),
             })
             
     # Display generated tune
@@ -64,6 +66,7 @@ def tune_page(request, tune_id=None):
         'rnn_duration': (tune.rnn_finished - tune.rnn_started).total_seconds(),
         'tune_cols': max(len(line) for line in tune_lines), # TODO: look into autosize via CSS, when CSS is a thing round here.
         'tune_rows': len(tune_lines),
+        'compose_form': ComposeForm(),
         })
 
 def archive_tune(request, tune_id=None):
