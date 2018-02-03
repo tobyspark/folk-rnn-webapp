@@ -1,20 +1,27 @@
+<!doctype html>
 <html>
     <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
         <title>Folk RNN – {% block title %}Compose folk music with a recurrent neural network{% endblock %}</title>
+        
+        <link rel="stylesheet" href="/static/pure/pure-min.css">
         {% block headend %}{% endblock %}
     </head>
     <body>
-        <div id="header">
-            <h1><a href="/">Folk RNN</a></h1>
-            <p>This website lets you generate music using an artificial intelligence called a "recurrent neural network" (RNN). It's called "folk-rnn" because the RNN was trained on over <a href="http://thesession.org" target="_blank">23,000 transcriptions of folk music</a>. The transcriptions are in <a href="http://abcnotation.com/wiki/abc:standard:v2.1" target="_blank">ABC format</a>, but also displayed in common notation. You can also copy and paste the ABC <a href="http://mandolintab.net/abcconverter.php" target="_blank">here</a> to transpose it to any key you want. (More technical information, as well as links to several compositions created using this program, can be found at the <a href="https://github.com/IraKorshunova/folk-rnn" target="_blank">folk-rnn project webpage</a>.)</p>
-            <hr>
+        <div id="header" class="pure-g">
+            <div class="pure-u-1">
+                <h1><a href="/">Folk RNN</a></h1>
+                <p>This website lets you generate music using an artificial intelligence called a "recurrent neural network" (RNN). It's called "folk-rnn" because the RNN was trained on over <a href="http://thesession.org" target="_blank">23,000 transcriptions of folk music</a>. The transcriptions are in <a href="http://abcnotation.com/wiki/abc:standard:v2.1" target="_blank">ABC format</a>, but also displayed in common notation. You can also copy and paste the ABC <a href="http://mandolintab.net/abcconverter.php" target="_blank">here</a> to transpose it to any key you want. (More technical information, as well as links to several compositions created using this program, can be found at the <a href="https://github.com/IraKorshunova/folk-rnn" target="_blank">folk-rnn project webpage</a>.)</p>
+            </div>
         </div>
-        <div id="content">
-            {% block content %}{% endblock %}
+        {% block content %}{% endblock %}
         </div>
-        <div id="footer">
-            <hr>
-            <p> folk-rnn is a project funded by the <a href="http://www.ahrc.ac.uk/" target="_blank">UK Arts and Humanities Research Council</a>, grant no. <a href="http://gtr.rcuk.ac.uk/projects?ref=AH%2FR004706%2F1" target="_blank">AH/R004706/1: "Engaging three user communities with applications and outcomes of computational music creativity"<a/>. See also: <a href="http://themachinefolksession.org">The Machine Folk Session</a>. Web applications by <a href="http://tobyz.net">Toby Harris</a>.</p>
+        <div id="footer" class="pure-g">
+            <div class="pure-u-1">
+                <p> folk-rnn is a project funded by the <a href="http://www.ahrc.ac.uk/" target="_blank">UK Arts and Humanities Research Council</a>, grant no. <a href="http://gtr.rcuk.ac.uk/projects?ref=AH%2FR004706%2F1" target="_blank">AH/R004706/1: "Engaging three user communities with applications and outcomes of computational music creativity"<a/>. See also: <a href="http://themachinefolksession.org">The Machine Folk Session</a>. Web applications by <a href="http://tobyz.net">Toby Harris</a>.</p>
+            </div>
         </div>
         {% block bodyend %}{% endblock %}
     </body>

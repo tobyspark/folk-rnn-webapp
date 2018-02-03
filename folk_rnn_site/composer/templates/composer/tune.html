@@ -8,53 +8,50 @@
 {% block content %}
 {% load humanize %}
 {% load hosts %}
-<div id="compose">
-    <h2>Compose</h1>
-    {% include "composer/_compose.html" %}
-</div>
-<hr>
-<div id="tune">
-    <h2>{{ tune.title }}</h1>
-    <div id="composition">
-        <p>The composition –</p>
-        <textarea id="abc" readonly rows="{{ tune_rows }}" cols="{{ tune_cols }}">{{ tune.abc }}</textarea>
+{% include "composer/_compose.html" %}
+<div class="pure-g">
+    <div id="tune" class="pure-u-1">
+        <h2>{{ tune.title }}</h1>
+        <div id="composition">
+            <p>The composition –</p>
+            <textarea id="abc" readonly rows="{{ tune_rows }}" cols="{{ tune_cols }}">{{ tune.abc }}</textarea>
+        </div>
+        <div id="composition_metadata">
+            <p>Was made with –<br>
+                <ul>
+                    <li>RNN model: {{ tune.rnn_model_name }}</li>
+                    <li>RNN seed: {{ tune.seed }}</li>
+                    <li>RNN temperature: {{ tune.temp }}</li>
+                    <li>Prime tokens: {{ tune.prime_tokens }}</li>
+                </ul>
+            </p>
+            <p>The task was –<br>
+                <ul>
+                    <li>Requested at: {{ tune.requested|date:"r" }}</li>
+                    <li>Composition took: {{ rnn_duration|floatformat:"0" }}s</li>
+                </ul>
+            </p>
+        </div>
+        <div id="abcjs_divs">
+            <p>Hear it –</p>
+            <div id="midi"></div>
+            <div id="midi-download"></div>
+            <p>See it –</p>
+            <div id="warnings"></div>
+            <div id="music"></div>
+            <div id="paper0"></div>
+            <div id="paper1"></div>
+            <div id="paper2"></div>
+            <div id="paper3"></div>
+            <!-- <div id="selection"></div> -->
+        </div>
+        <div id=export>
+            <p>Save it –</p>
+            <form method="POST" action="{% url 'archive_tune' tune_id=tune.id %}"> <!-- FIXME: Can host_url work? Using url only works here because ROOT_URLCONF = 'composer.urls' -->
+                {% csrf_token %}
+                {{ archive_form }}
+                <input id="archive_button" type="submit" value="Archive to the machine folk session" class="pure-button pure-button-primary">
+            </form>
+        </div>
     </div>
-    <div id="composition_metadata">
-        <p>Was made with –<br>
-            <ul>
-                <li>RNN model: {{ tune.rnn_model_name }}</li>
-                <li>RNN seed: {{ tune.seed }}</li>
-                <li>RNN temperature: {{ tune.temp }}</li>
-                <li>Prime tokens: {{ tune.prime_tokens }}</li>
-            </ul>
-        </p>
-        <p>The task was –<br>
-            <ul>
-                <li>Requested at: {{ tune.requested|date:"r" }}</li>
-                <li>Composition took: {{ rnn_duration|floatformat:"0" }}s</li>
-            </ul>
-        </p>
-    </div>
-    <div id="abcjs_divs">
-        <p>Hear it –</p>
-        <div id="midi"></div>
-        <div id="midi-download"></div>
-        <p>See it –</p>
-        <div id="warnings"></div>
-        <div id="music"></div>
-        <div id="paper0"></div>
-        <div id="paper1"></div>
-        <div id="paper2"></div>
-        <div id="paper3"></div>
-        <!-- <div id="selection"></div> -->
-    </div>
-    <div id=export>
-        <p>Save it –</p>
-        <form method="POST" action="{% url 'archive_tune' tune_id=tune.id %}"> <!-- FIXME: Can host_url work? Using url only works here because ROOT_URLCONF = 'composer.urls' -->
-            {% csrf_token %}
-            {{ archive_form }}
-            <input id="archive_button" type="submit" value="Archive to the machine folk session">
-        </form>
-    </div>
-</div>
 {% endblock %}

@@ -4,14 +4,11 @@
 {% block headend %}<meta http-equiv="refresh" content="1">{% endblock %}
 
 {% block content %}
-<div id="compose">
-    <h2>Compose</h2>
-    {% include "composer/_compose.html" %}
-</div>
-<hr>
-<div id="tune-in-process">
-    <h2>Folk RNN Candidate tune no{{ candidate_id }}</h2>
-    <p>Composition with prime tokens "{{ prime_tokens }}" {% if rnn_has_started %}in process...{% else %}is waiting for folk_rnn task{% endif %}</p>
+{% include "composer/_compose.html" %}
+<div class="pure-g">
+    <div id="tune-in-process" class="pure-u-1">
+        <h2>Folk RNN Candidate tune no{{ candidate_id }}</h2>
+        <p>Composition with prime tokens "{{ prime_tokens }}" {% if rnn_has_started %}in process...{% else %}is waiting for folk_rnn task{% endif %}</p>
     </div>
 </div>
 {% endblock %}

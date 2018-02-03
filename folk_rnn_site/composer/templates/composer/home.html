@@ -1,9 +1,5 @@
 {% extends "composer/base.html" %}
 
 {% block content %}
-{% load humanize %}
-<div id="compose">
-    <h2>Compose</h1>
-    {% include "composer/_compose.html" %}
-</div>
+{% include "composer/_compose.html" %}
 {% endblock %}
