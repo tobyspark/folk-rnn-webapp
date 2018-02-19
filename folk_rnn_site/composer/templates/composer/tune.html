@@ -10,11 +10,9 @@
 {% load hosts %}
 {% load widget_tweaks %}
 <div id="tune">
-    <h1 class="content-subhead">Your generated tunes</h1>
+    <h1 class="content-subhead">Your generated tune</h1>
     <section class="post">
-        <h2>{{ tune.title }}</h1>
         <div id="composition">
-            <p>The composition –</p>
             <textarea id="abc" readonly class="pure-u-1" rows="{{ tune_rows }}">{{ tune.abc }}</textarea>
         </div>
         <div id="composition_metadata">
@@ -24,8 +22,8 @@
         </div>
         <div id="abcjs_divs">
             <h3 class="content-subhead">Hear it</h3>
-            <div id="midi"></div>
-            <div id="midi-download"></div>
+            <div id="midi" class="pure-u-3-4"></div>
+            <div id="midi-download" class="pure-u-1-4"></div>
             <h3 class="content-subhead">See it</h3>
             <div id="warnings"></div>
             <div id="music"></div>
@@ -36,17 +34,17 @@
             <!-- <div id="selection"></div> -->
         </div>
         <div id=export>
-            <h3 class="content-subhead">Save it to the Machine Folk Session</h3>
+            <h3 class="content-subhead">Save it</h3>
             <form method="POST" action="{% url 'archive_tune' tune_id=tune.id %}" class="pure-form"> <!-- FIXME: Can host_url work? Using url only works here because ROOT_URLCONF = 'composer.urls' -->
                 {% csrf_token %}
-                <div class="pure-u-3-4">
-                    <!-- <label for="{{ archive_form.title.id_for_label }}">Title</label> -->
+                <div class="pure-u-17-24"> <!-- should be pure-u-3-4 -->
                     {% render_field archive_form.title class+="pure-input-1" %}
                 </div>
                 <div class="pure-u-1-4">
                     <input id="archive_button" type="submit" value="Archive" class="pure-button pure-button-primary pure-input-1">
                 </div>
             </form>
+            <p class="post-description"><a href="http://themachinefolksession.org">The Machine Folk Session</a> hosts <em>...x...</em> machine originated folk tunes, from folk-rnn and elsewhere, and hand-crafted settings of these tunes. Give your tune here a title, hit 'Archive', and go tweak! It will take you the machine folk session site.</p>
         </div>
     </section>
 </div>

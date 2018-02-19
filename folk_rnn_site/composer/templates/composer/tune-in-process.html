@@ -5,7 +5,10 @@
 
 {% block content %}
 <div id="tune-in-process">
-    <h2>Folk RNN Candidate tune no{{ candidate_id }}</h2>
-    <p>Composition with prime tokens "{{ prime_tokens }}" {% if rnn_has_started %}in process...{% else %}is waiting for folk_rnn task{% endif %}</p>
+    <h1 class="content-subhead">Your generated tune</h1>
+    <section class="post">
+        <h2>Folk RNN Candidate tune no{{ candidate_id }}</h2>
+        <p>Composition with prime tokens "{{ prime_tokens }}" {% if rnn_has_started %}in process...{% else %}is waiting for folk_rnn task{% endif %}</p>
+    </section>
 </div>
 {% endblock %}

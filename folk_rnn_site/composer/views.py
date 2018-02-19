@@ -58,14 +58,11 @@ def tune_page(request, tune_id=None):
             
     # Display generated tune
 
-    tune_lines = tune.abc.split('\n')
-
     return render(request, 'composer/tune.html', {
         'tune': tune,
         'archive_form': ArchiveForm({'folkrnn_id': tune_id_int, 'title': tune.title}),
         'rnn_duration': (tune.rnn_finished - tune.rnn_started).total_seconds(),
-        'tune_cols': max(len(line) for line in tune_lines), # TODO: look into autosize via CSS, when CSS is a thing round here.
-        'tune_rows': len(tune_lines),
+        'tune_rows': tune.abc.count('\n'),
         'compose_form': ComposeForm(),
         })
 

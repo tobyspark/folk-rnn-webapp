@@ -34,8 +34,16 @@ h3 {
 }
 
 .sidebar {
-    background: rgb(61, 79, 93);
+    background: black;
     color: #fff;
+}
+
+.sidebar select, input, textarea {
+    color: black;
+}
+
+.sidebar #compose_button {
+    color: white
 }
 
 .brand-title,
@@ -77,7 +85,7 @@ h3 {
 
 .content-subhead {
     text-transform: uppercase;
-    color: #aaa;
+    color: #000;
     border-bottom: 1px solid #eee;
     padding: 0.4em 0;
     font-size: 80%;
@@ -153,6 +161,19 @@ h3 {
 .footer .pure-menu a:hover,
 .footer .pure-menu a:focus {
     background: none;
+}
+
+#abc {
+    resize: none;
+    overflow:hidden;
+    border: 0px;
+    font-family: monospace;
+}
+
+#composition_metadata p {
+    font-size: 80%;
+    margin-top: 0.5em;
+    margin-bottom: 0;
 }
 
 @media (min-width: 48em) {
