@@ -38,5 +38,4 @@ class ComposeForm(forms.Form):
 
 class ArchiveForm(forms.Form):
     title = forms.CharField(label='Name your tune:')
-    folkrnn_id = forms.IntegerField(widget=forms.HiddenInput)
     

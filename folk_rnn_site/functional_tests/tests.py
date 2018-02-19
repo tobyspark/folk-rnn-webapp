@@ -101,7 +101,7 @@ class ComposerNewVisitorTest(FolkRNNLiveServerTestCase):
         # Sees that it is indeed about the folk-rnn folk music style modelling project
         self.assertIn('Folk RNN',self.browser.title)
         header_text = self.browser.find_element_by_tag_name('h1').text  
-        self.assertIn('Folk RNN', header_text)
+        self.assertIn('FOLK RNN', header_text)
         
         # # Sees a compose tune section at the top of the page...
         # composing_div = self.browser.find_element_by_id('compose')
