@@ -34,6 +34,7 @@ apt-get install --yes nginx
 pip3 install "django<1.12"
 pip3 install "django-hosts"
 pip3 install "channels"
+pip3 install "django-widget-tweaks"
 apt-get install --yes redis-server
 pip3 install "asgi_redis"
 apt-get install --yes abcmidi

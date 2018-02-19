@@ -24,7 +24,7 @@ class ComposeForm(forms.Form):
                                                 ('K:Cmix', 'C Mixolydian'),
                                                 ))
     prime_tokens = forms.CharField(label='Prime tokens:', 
-                           widget=forms.TextInput(attrs={'placeholder':'Enter start of tune in ABC notation'}),
+                           widget=forms.Textarea(),
                            error_messages={'invalid': 'Invalid ABC notation as per the RNN model'},
                            required=False)
 
