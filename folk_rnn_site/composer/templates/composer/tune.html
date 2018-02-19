@@ -8,35 +8,25 @@
 {% block content %}
 {% load humanize %}
 {% load hosts %}
-{% include "composer/_compose.html" %}
-<div class="pure-g">
-    <div id="tune" class="pure-u-1">
+{% load widget_tweaks %}
+<div id="tune">
+    <h1 class="content-subhead">Your generated tunes</h1>
+    <section class="post">
         <h2>{{ tune.title }}</h1>
         <div id="composition">
             <p>The composition –</p>
-            <textarea id="abc" readonly rows="{{ tune_rows }}" cols="{{ tune_cols }}">{{ tune.abc }}</textarea>
+            <textarea id="abc" readonly class="pure-u-1" rows="{{ tune_rows }}">{{ tune.abc }}</textarea>
         </div>
         <div id="composition_metadata">
-            <p>Was made with –<br>
-                <ul>
-                    <li>RNN model: {{ tune.rnn_model_name }}</li>
-                    <li>RNN seed: {{ tune.seed }}</li>
-                    <li>RNN temperature: {{ tune.temp }}</li>
-                    <li>Prime tokens: {{ tune.prime_tokens }}</li>
-                </ul>
-            </p>
-            <p>The task was –<br>
-                <ul>
-                    <li>Requested at: {{ tune.requested|date:"r" }}</li>
-                    <li>Composition took: {{ rnn_duration|floatformat:"0" }}s</li>
-                </ul>
-            </p>
+            <p>The RNN properties were <span class="post-category">{{ tune.rnn_model_name }}</span> with seed and temperature <span class="post-category">{{ tune.seed }}</span>, <span span class="post-category">{{ tune.temp }}</span>.</p>
+            <p>The prime tokens were <span class="post-category">{{ tune.prime_tokens }}</span>.</p>
+            <p>Generated on <span class="post-category">{{ tune.requested|date:"DATETIME_FORMAT" }}</span>.</p>
         </div>
         <div id="abcjs_divs">
-            <p>Hear it –</p>
+            <h3 class="content-subhead">Hear it</h3>
             <div id="midi"></div>
             <div id="midi-download"></div>
-            <p>See it –</p>
+            <h3 class="content-subhead">See it</h3>
             <div id="warnings"></div>
             <div id="music"></div>
             <div id="paper0"></div>
@@ -46,12 +36,18 @@
             <!-- <div id="selection"></div> -->
         </div>
         <div id=export>
-            <p>Save it –</p>
-            <form method="POST" action="{% url 'archive_tune' tune_id=tune.id %}"> <!-- FIXME: Can host_url work? Using url only works here because ROOT_URLCONF = 'composer.urls' -->
+            <h3 class="content-subhead">Save it to the Machine Folk Session</h3>
+            <form method="POST" action="{% url 'archive_tune' tune_id=tune.id %}" class="pure-form"> <!-- FIXME: Can host_url work? Using url only works here because ROOT_URLCONF = 'composer.urls' -->
                 {% csrf_token %}
-                {{ archive_form }}
-                <input id="archive_button" type="submit" value="Archive to the machine folk session" class="pure-button pure-button-primary">
+                <div class="pure-u-3-4">
+                    <!-- <label for="{{ archive_form.title.id_for_label }}">Title</label> -->
+                    {% render_field archive_form.title class+="pure-input-1" %}
+                </div>
+                <div class="pure-u-1-4">
+                    <input id="archive_button" type="submit" value="Archive" class="pure-button pure-button-primary pure-input-1">
+                </div>
             </form>
         </div>
-    </div>
+    </section>
+</div>
 {% endblock %}

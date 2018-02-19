@@ -1,12 +1,37 @@
-<div id="compose" class="pure-g">
-    <div class="pure-u">
-        <h2>Compose</h1>
+<div id="compose" class="sidebar pure-u-1-4">
+    <div class="header">
+        <h1 class="brand-title">Folk RNN</h1>
+        <!-- <h2 class="brand-tagline">Compose</h2> -->
         <div id="compose_ui">
-            Compose a folk music tune using a recurrent neural network.
-            <form method="POST" action="/" class="pure-form">
+            Compose folk music using a recurrent neural network
+            <form method="POST" action="/" class="pure-form pure-g">
+                {% load widget_tweaks %}
                 {% csrf_token %}
-                {{ compose_form }}
-                <input id="compose_button" type="submit" value="Compose..." class="pure-button pure-button-primary">
+                <legend><!-- RNN Properties --></legend>
+                <div class="pure-u-1">
+                    <label for="{{ compose_form.model.id_for_label }}">Model</label>
+                    {% render_field compose_form.model class+="pure-input-1" %}
+                </div>
+                <div class="pure-u-1-2">
+                    <label for="{{ compose_form.temp.id_for_label }}">Temperature</label>
+                    {% render_field compose_form.temp class+="pure-input-1" %}
+                </div>
+                <div class="pure-u-1-2">
+                    <label for="{{ compose_form.seed.id_for_label }}">Seed</label>
+                    {% render_field compose_form.seed class+="pure-input-1" %}
+                </div>
+                <legend><!-- Tune Properties --></legend>
+                <div class="pure-u-1-2">
+                    {% render_field compose_form.meter class+="pure-input-1" %}
+                </div>
+                <div class="pure-u-1-2">
+                    {% render_field compose_form.key class+="pure-input-1" %}
+                </div>
+                <div class="pure-u-1">
+                    {% render_field compose_form.prime_tokens class+="pure-input-1" rows="3" placeholder="Enter start of tune in ABC notation" %}
+                </div>
+                <legend></legend>
+                <input id="compose_button" type="submit" value="Compose..." class="pure-button pure-button-primary pure-input-1">
             </form>
         </div>
     </div>
