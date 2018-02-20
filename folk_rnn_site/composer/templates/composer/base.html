@@ -1,20 +1,23 @@
+<!doctype html>
 <html>
     <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
         <title>Folk RNN – {% block title %}Compose folk music with a recurrent neural network{% endblock %}</title>
+        
+        <link rel="stylesheet" href="/static/pure/pure-min.css">
+        <link rel="stylesheet" href="/static/composer.css">
         {% block headend %}{% endblock %}
     </head>
     <body>
-        <div id="header">
-            <h1><a href="/">Folk RNN</a></h1>
-            <hr>
-        </div>
-        <div id="content">
-            {% block content %}{% endblock %}
-        </div>
-        <div id="footer">
-            <hr>
-            <p> Folk RNN is a project by...</p>
-            <p> Funded by...</p>
+        <div id="layout" class="pure-g">
+            {% include "composer/_compose.html" %}
+            <div class="content pure-u-3-4">
+                {% include "composer/_header.html" %}
+                {% block content %}{% endblock %}
+                {% include "composer/_footer.html" %}
+            </div>
         </div>
         {% block bodyend %}{% endblock %}
     </body>
