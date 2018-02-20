@@ -1,31 +1,45 @@
-# folk_rnn_site cannot rely on being on the same server as folk_rnn_task.
-# therefore no e.g. MODEL_PATH as per folk_rnn_task
-# instead have token set loaded into folk_rnn_site somehow
-# currently, manual process
-#
-# python (2.7)
-#
-# f = open('/var/opt/folk_rnn_task/models/test_model.pickle_2', 'r')
-# d = pickle.load(f)
-# d['token2idx'].keys()
-#
-# ...and copy and paste in, using set literal {x, y,...} notation
+import os
+import pickle
+import functools
+import json
 
-models = [
-    { 
-        'display_name': 'default',
-        'file_name': 'test_model.pickle',
-        'tokens': {"d'", '=A,', "^c'", '=e', '=d', '=g', '=f', '=a', '=c', '=b', '_G', '_E', '_D', '_C', '_B', '_A', '2<', '2>', '=E', '=D', '_B,', '=F', '=A', '4', '=C', '=B', '_g', '8', '_e', '_d', '_c', '<', '_a', '(9', '|2', 'D', '|1', '(2', '(3', '|:', '(7', '(4', '(5', ':|', 'M:3/4', '3/2', '3/4', "=f'", '2', 'd', '_E,', 'B,', 'f', '|', '^A,', "b'", "_e'", 'M:9/8', 'E,', '</s>', '3', '7', '^F,', '=G,', 'C', 'G', "e'", "_d'", "^f'", '[', 'c', '_A,', 'g', '^G,', '=F,', 'K:Cmin', 'K:Cmix', "=c'", 'C,', '<s>', '^D', '=G', 'M:12/8', '6', '=E,', 'K:Cmaj', '>', 'B', 'F', "c'", '^c', 'e', '5/2', 'b', '16', "=e'", '_b', 'z', 'F,', '/2>', '/2<', "f'", 'M:6/8', '4>', 'M:4/4', 'A,', 'M:2/4', '=C,', '5', '9', 'M:3/2', 'K:Cdor', 'A', 'E', "a'", '(6', '^A', '^C', ']', '^F', '^G', 'a', "g'", 'D,', '/4', '^C,', '^d', '7/2', '=B,', 'G,', '/8', '^a', '12', '/3', '/2', '^f', '^g'},
-    },
-    ]
+from composer import MODEL_PATH, FOLKRNN_INSTANCE_CACHE_COUNT
+from folk_rnn import Folk_RNN
+
+@functools.lru_cache(maxsize=FOLKRNN_INSTANCE_CACHE_COUNT)
+def folk_rnn_cached(rnn_model_name):
+    model_path = os.path.join(MODEL_PATH, rnn_model_name)
+    with open(model_path, "rb") as f:
+        job_spec = pickle.load(f)
+    return Folk_RNN(
+        job_spec['token2idx'],
+        job_spec['param_values'], 
+        job_spec['num_layers'], 
+        )
+
+@functools.lru_cache(maxsize=1)
+def models():
+    models = []
+    for filename in os.listdir(MODEL_PATH):
+        try:
+            with open(os.path.join(MODEL_PATH, filename), "rb") as f:
+                job_spec = pickle.load(f)
+            model = {}
+            model['tokens'] = set(job_spec['token2idx'].keys())
+            model['display_name'] = filename.replace('_', ' ').replace('.pickle', '')
+            model['file_name'] = filename
+            models.append(model)
+        except:
+            pass
+    return models
 
 def choices():
-    return ((x['file_name'], x['display_name']) for x in models)
+    return ((x['file_name'], x['display_name']) for x in models())
 
 def validate_tokens(tokens, model_file_name=None):
-    model = models[0]
+    model = models()[0]
     if model_file_name is not None:
         for candidate in models:
             if candidate['file_name'] == model_file_name:
                 model = candidate
-    return all(x in model['tokens'] for x in tokens)
+    return set(tokens).issubset(model['tokens'])

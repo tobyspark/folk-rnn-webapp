@@ -1,12 +1,9 @@
-from datetime import datetime
 import os
-import pickle
 import subprocess
-import functools
+from datetime import datetime
 
-from folk_rnn import Folk_RNN
-
-from composer import ABC2ABC_PATH, MODEL_PATH, TUNE_PATH, FOLKRNN_INSTANCE_CACHE_COUNT
+from composer.rnn_models import folk_rnn_cached
+from composer import ABC2ABC_PATH, TUNE_PATH
 from composer.models import RNNTune
 
 ABC2ABC_COMMAND = [
@@ -17,16 +14,7 @@ ABC2ABC_COMMAND = [
             '-n', '4' # -n 4 for newline every four bars
             ]
             
-@functools.lru_cache(maxsize=FOLKRNN_INSTANCE_CACHE_COUNT)
-def folk_rnn_cached(rnn_model_name):
-    model_path = os.path.join(MODEL_PATH, rnn_model_name)
-    with open(model_path, "rb") as f:
-        job_spec = pickle.load(f)
-    return Folk_RNN(
-        job_spec['token2idx'],
-        job_spec['param_values'], 
-        job_spec['num_layers'], 
-        )
+
 
 def folk_rnn_task(message):
     tune = RNNTune.objects.get(id=message['id'])
