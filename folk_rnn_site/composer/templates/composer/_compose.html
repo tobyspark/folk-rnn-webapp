@@ -32,6 +32,17 @@
                 </div>
                 <legend></legend>
                 <input id="compose_button" type="submit" value="Compose..." class="pure-button pure-button-primary pure-input-1">
+                <script type="text/javascript">
+                    var fieldTokens = document.getElementById("id_prime_tokens");
+                    fieldTokens.addEventListener("input", function() {
+                        var userTokens = fieldTokens.value.split(' ');
+                        if (rnnValidateTokens(userTokens, 'xxx')) {
+                            this.setCustomValidity('');
+                        } else {
+                            this.setCustomValidity('Enter valid ABC, tokens separated by spaces');
+                        }
+                    });
+                </script>
             </form>
         </div>
     </div>

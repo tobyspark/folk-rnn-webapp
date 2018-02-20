@@ -21,3 +21,10 @@ try:
     os.makedirs(TUNE_PATH)
 except OSError:
     pass
+
+# import here as rnn_models imports above constants
+from .rnn_models import validate_tokens_generate_javascript
+static_path = os.path.join(os.path.dirname(__file__), 'static')
+with open(os.path.join(static_path, 'validate_tokens.js'), 'w') as f:
+    f.write(validate_tokens_generate_javascript())
+    
