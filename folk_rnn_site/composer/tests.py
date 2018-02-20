@@ -117,18 +117,33 @@ class TunePageTest(ComposerTestCase):
     def test_tune_page_shows_tune(self):
         self.post_tune()
         folk_rnn_task_start_mock()
-        folk_rnn_task_end_mock()
+        tune = folk_rnn_task_end_mock()
         
         response = self.client.get('/tune/1')
         self.assertTemplateUsed(response, 'composer/tune.html')
         #print(response.content)
         self.assertContains(response,mint_abc()) # django widget inserts a newline; a django workaround to an html workaround beyond the scope of this project
-        self.assertContains(response,'<li>RNN model: test_model.pickle')
-        self.assertContains(response,'<li>RNN seed: 123')
-        self.assertContains(response,'<li>RNN temperature: 0.1')
-        self.assertContains(response,'<li>Prime tokens: M:4/4 K:Cmaj a b c</li>')
-        # self.assertContains(response,'<li>Requested at: {}</li>'.format(format_datetime(tune.requested)), msg_prefix='FIXME: This will falsely fail for single digit day of the month due to Django template / Python RFC formatting mis-match.') # FIXME
-        self.assertContains(response,'<li>Composition took: 0s</li>')
+        self.assertContains(response,'test_model.pickle')
+        self.assertContains(response,'123')
+        self.assertContains(response,'0.1')
+        self.assertContains(response,'M:4/4 K:Cmaj a b c')
+        # Testing date is beyond the remit of datetime.strttime(), e.g. day of the week without leading zero.
+    
+    def test_tune_page_can_save_a_POST_request(self):
+        self.post_tune()
+        folk_rnn_task_start_mock()
+        folk_rnn_task_end_mock()
+        
+        response = self.client.post('/tune/999/archive', {'title':'A new title'})
+        self.assertEqual(response['location'], '/')
+        
+        response = self.client.post('/tune/1/archive', {'title':'A new title'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], '//themachinefolksession.org/tune/1')
+        
+        response = self.client.post('/tune/1/archive', {'title':'A new title'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], '//themachinefolksession.org/tune/1') # Not a new tune
 
 class RNNTuneModelTest(TestCase):
     

@@ -11,15 +11,19 @@
             }
         
             function initEditor() {
-                new ABCJS.Editor("abc", { paper_id: "paper0",
+                new ABCJS.Editor("abc", { paper_id: "notation",
                     generate_midi: true,
                     midi_id:"midi",
                     midi_download_id: "midi-download",
                     generate_warnings: true,
                     warnings_id:"warnings",
                     midi_options: {
-                        generateDownload: true
+                        generateDownload: true,
+                        downloadLabel:"Download MIDI"
                     },
+                    paddingleft:0,
+                    paddingright:0,
+                    responsive:"resize",
                     render_options: {
                         listener: { highlight: selectionCallback }
                     }
