@@ -1,12 +1,9 @@
-from datetime import datetime
 import os
-import pickle
 import subprocess
-import functools
+from datetime import datetime
 
-from folk_rnn import Folk_RNN
-
-from composer import ABC2ABC_PATH, MODEL_PATH, TUNE_PATH, FOLKRNN_INSTANCE_CACHE_COUNT
+from composer.rnn_models import folk_rnn_cached
+from composer import ABC2ABC_PATH, TUNE_PATH
 from composer.models import RNNTune
 
 ABC2ABC_COMMAND = [
@@ -17,16 +14,7 @@ ABC2ABC_COMMAND = [
             '-n', '4' # -n 4 for newline every four bars
             ]
             
-@functools.lru_cache(maxsize=FOLKRNN_INSTANCE_CACHE_COUNT)
-def folk_rnn_cached(rnn_model_name):
-    model_path = os.path.join(MODEL_PATH, rnn_model_name)
-    with open(model_path, "rb") as f:
-        job_spec = pickle.load(f)
-    return Folk_RNN(
-        job_spec['token2idx'],
-        job_spec['param_values'], 
-        job_spec['num_layers'], 
-        )
+
 
 def folk_rnn_task(message):
     tune = RNNTune.objects.get(id=message['id'])
@@ -38,15 +26,19 @@ def folk_rnn_task(message):
     folk_rnn.seed_tune(tune.prime_tokens if len(tune.prime_tokens) > 0 else None)
     tune_tokens = folk_rnn.generate_tune(random_number_generator_seed=tune.seed, temperature=tune.temp)
     
-    tune_path_raw = os.path.join(TUNE_PATH, 'test_tune_{}_raw'.format(tune.id))
+    tune_path_raw = os.path.join(TUNE_PATH, '{model}_{id}_raw'.format(
+                                    model=tune.rnn_model_name.replace('.pickle', ''), 
+                                    id=tune.id))
     with open(tune_path_raw, 'w') as f:
         f.write(' '.join(tune_tokens))
     
+    m = tune_tokens.pop(0) if tune_tokens[0][0:2] == 'M:' else 'M:none'
+    k = tune_tokens.pop(0) if tune_tokens[0][0:2] == 'K:' else 'K:none'   
     abc = 'X:{id}\nT:Folk RNN Candidate Tune No{id}\n{m}\n{k}\n{t}\n'.format(
                                                     id=tune.id, 
-                                                    m=tune_tokens[0], 
-                                                    k=tune_tokens[1], 
-                                                    t=''.join(tune_tokens[2:]),
+                                                    m=m, 
+                                                    k=k, 
+                                                    t=''.join(tune_tokens),
                                                     )
 
     try:
@@ -62,7 +54,9 @@ def folk_rnn_task(message):
         print('ABC2ABC failed in folk_rnn_task for id:{}'.format(tune.id))
         return
     
-    tune_path = os.path.join(TUNE_PATH, 'test_tune_{}'.format(tune.id))
+    tune_path = os.path.join(TUNE_PATH, '{model}_{id}'.format(
+                                    model=tune.rnn_model_name.replace('.pickle', ''),
+                                    id=tune.id))
     with open(tune_path, 'w') as f:
         f.write(abc)
 
