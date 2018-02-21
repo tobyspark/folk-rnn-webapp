@@ -26,7 +26,9 @@ def folk_rnn_task(message):
     folk_rnn.seed_tune(tune.prime_tokens if len(tune.prime_tokens) > 0 else None)
     tune_tokens = folk_rnn.generate_tune(random_number_generator_seed=tune.seed, temperature=tune.temp)
     
-    tune_path_raw = os.path.join(TUNE_PATH, 'test_tune_{}_raw'.format(tune.id))
+    tune_path_raw = os.path.join(TUNE_PATH, '{model}_{id}_raw'.format(
+                                    model=tune.rnn_model_name.replace('.pickle', ''), 
+                                    id=tune.id))
     with open(tune_path_raw, 'w') as f:
         f.write(' '.join(tune_tokens))
     
@@ -52,7 +54,9 @@ def folk_rnn_task(message):
         print('ABC2ABC failed in folk_rnn_task for id:{}'.format(tune.id))
         return
     
-    tune_path = os.path.join(TUNE_PATH, 'test_tune_{}'.format(tune.id))
+    tune_path = os.path.join(TUNE_PATH, '{model}_{id}'.format(
+                                    model=tune.rnn_model_name.replace('.pickle', ''),
+                                    id=tune.id))
     with open(tune_path, 'w') as f:
         f.write(abc)
 
