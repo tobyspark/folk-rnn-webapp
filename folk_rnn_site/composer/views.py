@@ -65,6 +65,7 @@ def tune_page(request, tune_id=None):
         'rnn_duration': (tune.rnn_finished - tune.rnn_started).total_seconds(),
         'tune_rows': tune.abc.count('\n'),
         'compose_form': ComposeForm(),
+        'machine_folk_tune_count': Tune.objects.count()
         })
 
 def archive_tune(request, tune_id=None):
