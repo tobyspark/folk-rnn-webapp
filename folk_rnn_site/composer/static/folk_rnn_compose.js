@@ -21,20 +21,27 @@ function rnnUpdateKeyMeter() {
     }
     for (const m of rnnModels[fieldModel.value]['header_m_tokens']) {
         fieldMeter.appendChild(new Option(m.slice(2), m));
+        if (m == 'M:4/4') {
+            fieldMeter.lastChild.selected = true;
+        }
     }
-    // if (!fieldMeter.hasChildNodes()) {
-    //     fieldMeter.appendChild(new Option('none', 'M:none'));
-    // }
+
     
     while (fieldKey.lastChild) {
         fieldKey.removeChild(fieldKey.lastChild);
     }
     for (const k of rnnModels[fieldModel.value]['header_k_tokens']) {
-        fieldKey.appendChild(new Option(k.slice(2), k));
+        key_map = {
+            'K:Cmaj': 'C Major',		
+            'K:Cmin': 'C Minor',		
+            'K:Cdor': 'C Dorian',		
+            'K:Cmix': 'C Mixolydian',
+        }
+        fieldKey.appendChild(new Option(key_map[k], k));
+        if (k == 'K:Cmaj') {
+            fieldKey.lastChild.selected = true;
+        }
     }
-    // if (!fieldKey.hasChildNodes()) {
-    //     fieldKey.appendChild(new Option('none', 'K:none'));
-    // }
 }
 
 function rnnValidateTokens(userTokens, modelFileName) {
