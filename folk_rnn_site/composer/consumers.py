@@ -30,11 +30,13 @@ def folk_rnn_task(message):
     with open(tune_path_raw, 'w') as f:
         f.write(' '.join(tune_tokens))
     
+    m = tune_tokens.pop(0) if tune_tokens[0][0:2] == 'M:' else 'M:none'
+    k = tune_tokens.pop(0) if tune_tokens[0][0:2] == 'K:' else 'K:none'   
     abc = 'X:{id}\nT:Folk RNN Candidate Tune No{id}\n{m}\n{k}\n{t}\n'.format(
                                                     id=tune.id, 
-                                                    m=tune_tokens[0], 
-                                                    k=tune_tokens[1], 
-                                                    t=''.join(tune_tokens[2:]),
+                                                    m=m, 
+                                                    k=k, 
+                                                    t=''.join(tune_tokens),
                                                     )
 
     try:
