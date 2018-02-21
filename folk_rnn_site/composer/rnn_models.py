@@ -20,7 +20,7 @@ def folk_rnn_cached(rnn_model_name):
 
 @functools.lru_cache(maxsize=1)
 def models():
-    models = {}
+    models = OrderedDict()
     for filename in sorted(os.listdir(MODEL_PATH)):
         try:
             with open(os.path.join(MODEL_PATH, filename), "rb") as f:
