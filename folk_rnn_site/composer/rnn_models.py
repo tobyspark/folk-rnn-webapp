@@ -19,7 +19,7 @@ def folk_rnn_cached(rnn_model_name):
 
 @functools.lru_cache(maxsize=1)
 def models():
-    models = []
+    models = {}
     for filename in os.listdir(MODEL_PATH):
         try:
             with open(os.path.join(MODEL_PATH, filename), "rb") as f:
@@ -27,9 +27,9 @@ def models():
             model = {}
             model['tokens'] = set(job_spec['token2idx'].keys())
             model['display_name'] = filename.replace('_', ' ').replace('.pickle', '')
-            model['file_name'] = filename
-            models.append(model)
+            models[filename] = model
         except:
+            print('Error parsing {}'.format(filename))
             pass
     return models
 
