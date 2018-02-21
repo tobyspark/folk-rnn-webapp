@@ -15,10 +15,11 @@ def home_page(request):
             tune.rnn_model_name = form.cleaned_data['model']
             tune.seed = form.cleaned_data['seed']
             tune.temp = form.cleaned_data['temp']
-            tune.prime_tokens = '{} {}'.format(
-                                form.cleaned_data['meter'],
-                                form.cleaned_data['key'], 
-                                )
+            tune.prime_tokens = ''
+            if form.cleaned_data['meter']:
+                tune.prime_tokens += form.cleaned_data['meter']
+            if form.cleaned_data['key']:
+                tune.prime_tokens += ' {}'.format(form.cleaned_data['key'])
             if form.cleaned_data['prime_tokens']:
                 tune.prime_tokens += ' {}'.format(form.cleaned_data['prime_tokens'])
             tune.save()
@@ -64,6 +65,7 @@ def tune_page(request, tune_id=None):
         'rnn_duration': (tune.rnn_finished - tune.rnn_started).total_seconds(),
         'tune_rows': tune.abc.count('\n'),
         'compose_form': ComposeForm(),
+        'machine_folk_tune_count': Tune.objects.count()
         })
 
 def archive_tune(request, tune_id=None):
