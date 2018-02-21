@@ -2,6 +2,7 @@ import os
 import pickle
 import functools
 import json
+from collections import OrderedDict
 
 from composer import MODEL_PATH, FOLKRNN_INSTANCE_CACHE_COUNT
 from folk_rnn import Folk_RNN
@@ -20,15 +21,15 @@ def folk_rnn_cached(rnn_model_name):
 @functools.lru_cache(maxsize=1)
 def models():
     models = {}
-    for filename in os.listdir(MODEL_PATH):
+    for filename in sorted(os.listdir(MODEL_PATH)):
         try:
             with open(os.path.join(MODEL_PATH, filename), "rb") as f:
                 job_spec = pickle.load(f)
             model = {}
             model['tokens'] = set(job_spec['token2idx'].keys())
             model['display_name'] = filename.replace('_', ' ').replace('.pickle', '')
-            model['header_m_tokens'] = {x for x in model['tokens'] if x.startswith('M:')}
-            model['header_k_tokens'] = {x for x in model['tokens'] if x.startswith('K:')}
+            model['header_m_tokens'] = sorted({x for x in model['tokens'] if x.startswith('M:')}, key=lambda x: int(x[2:].split('/')[0]))
+            model['header_k_tokens'] = sorted({x for x in model['tokens'] if x.startswith('K:')})
             models[filename] = model
         except:
             print('Error parsing {}'.format(filename))
