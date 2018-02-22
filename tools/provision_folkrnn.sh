@@ -33,10 +33,10 @@ chown vagrant:vagrant /folk_rnn_static
 apt-get install --yes nginx
 pip3 install "django<1.12"
 pip3 install "django-hosts"
-pip3 install "channels"
+pip3 install "channels~=2.0"
 pip3 install "django-widget-tweaks"
 apt-get install --yes redis-server
-pip3 install "asgi_redis"
+pip3 install "channels_redis"
 apt-get install --yes abcmidi
 
 # folk_rnn setup
@@ -61,11 +61,9 @@ cat ./tools/systemd/daphne.service \
 | sed 's,kSOCKET,/folk_rnn_tmp/folk_rnn.org.socket,g' \
 > /etc/systemd/system/daphne.service
 
-cp ./tools/systemd/worker-all@.service /etc/systemd/system/worker-all@.service
-cp ./tools/systemd/worker-http@.service /etc/systemd/system/worker-http@.service
+cp ./tools/systemd/worker-folkrnn@.service /etc/systemd/system/worker-folkrnn@.service
 
 systemctl enable nginx
 systemctl enable daphne
 systemctl enable redis-server
-systemctl enable worker-http\@{1..1} # Worker numbers should scale with CPU cores.
-systemctl enable worker-all\@{1..1}
+systemctl enable worker-folkrnn\@{1..1} # Worker numbers should scale with CPU cores.

@@ -1,5 +1,6 @@
 from django.shortcuts import redirect, render
-from channels import Channel
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 from django_hosts.resolvers import reverse
 
 from composer.models import RNNTune
@@ -23,7 +24,12 @@ def home_page(request):
             if form.cleaned_data['prime_tokens']:
                 tune.prime_tokens += ' {}'.format(form.cleaned_data['prime_tokens'])
             tune.save()
-            Channel('folk_rnn').send({'id': tune.id})
+            
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.send)('folk_rnn', {
+                                                    'type': 'folkrnn.generate', 
+                                                    'id': tune.id
+                                                    })
             return redirect('/tune/{}'.format(tune.id))
     else:
         form = ComposeForm()
