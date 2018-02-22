@@ -2,6 +2,7 @@ import os
 import subprocess
 from datetime import datetime
 from channels.consumer import SyncConsumer
+from channels.generic.websocket import JsonWebsocketConsumer
 
 from composer.rnn_models import folk_rnn_cached
 from composer import ABC2ABC_PATH, TUNE_PATH
@@ -64,4 +65,15 @@ class FolkRNNConsumer(SyncConsumer):
         tune.abc = abc
         tune.rnn_finished = datetime.now()
         tune.save()
-    
+
+class ComposerConsumer(JsonWebsocketConsumer):
+
+    def connect(self):
+        self.accept()
+        
+    def receive_json(self, content):
+        print('WEBSOCKET JSON: {}'.format(content))
+        self.send_json({'key': 'value'})
+        
+    def disconnect(self, close_code):
+        pass
