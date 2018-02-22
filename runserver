@@ -22,7 +22,10 @@ echo "* Running the webapp using Django's test server"
 sudo ufw allow 8000/tcp
 
 # Note 0.0.0.0 is necessary for access from outside the VM
+python3 /folk_rnn_webapp/folk_rnn_site/manage.py runworker folk_rnn &
 python3 /folk_rnn_webapp/folk_rnn_site/manage.py runserver 0.0.0.0:8000
+
+trap 'kill $(jobs -p)' EXIT
 
 else
 
@@ -49,13 +52,11 @@ fi
 sudo systemctl restart nginx
 sudo systemctl restart daphne
 sudo systemctl restart redis-server
-sudo systemctl restart worker-http@{1..1} # Worker numbers should scale with CPU cores.
-sudo systemctl restart worker-all@{1..1}
+sudo systemctl restart worker-folkrnn@{1..1} # Worker numbers should scale with CPU cores.
 
 sudo systemctl status nginx
 sudo systemctl status daphne
 sudo systemctl status redis-server
-sudo systemctl status worker-http@1
-sudo systemctl status worker-all@1
+sudo systemctl status worker-folkrnn@1
 
 fi

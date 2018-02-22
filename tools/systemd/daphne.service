@@ -8,7 +8,7 @@ User = vagrant
 WorkingDirectory = /folk_rnn_webapp/folk_rnn_site
 EnvironmentFile = /folk_rnn_webapp/.env
 
-ExecStart = /usr/local/bin/daphne --unix-socket kSOCKET folk_rnn_site.asgi:channel_layer
+ExecStart = /usr/local/bin/daphne --unix-socket kSOCKET folk_rnn_site.asgi:application
 
 [Install]
 WantedBy = multi-user.target
