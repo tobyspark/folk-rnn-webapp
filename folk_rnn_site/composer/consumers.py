@@ -25,9 +25,21 @@ class FolkRNNConsumer(SyncConsumer):
         tune.rnn_started = datetime.now()
         tune.save()
         
+        def send_token(token):
+            async_to_sync(self.channel_layer.group_send)(
+                                    'tune_{}'.format(tune.id),
+                                    {
+                                        'type': 'send_token',
+                                        'token': token,
+                                    })
+        
         folk_rnn = folk_rnn_cached(tune.rnn_model_name)
         folk_rnn.seed_tune(tune.prime_tokens if len(tune.prime_tokens) > 0 else None)
-        tune_tokens = folk_rnn.generate_tune(random_number_generator_seed=tune.seed, temperature=tune.temp)
+        tune_tokens = folk_rnn.generate_tune(
+                                    random_number_generator_seed=tune.seed, 
+                                    temperature=tune.temp,
+                                    on_token_callback=send_token
+                                    )
         
         tune_path_raw = os.path.join(TUNE_PATH, '{model}_{id}_raw'.format(
                                         model=tune.rnn_model_name.replace('.pickle', ''), 
@@ -70,8 +82,8 @@ class FolkRNNConsumer(SyncConsumer):
         async_to_sync(self.channel_layer.group_send)(
                                 'tune_{}'.format(tune.id),
                                 {
-                                    'type': 'send_tokens',
-                                    'tokens': abc,
+                                    'type': 'send_token',
+                                    'token': 'folkrnn_generate_completed',
                                 })
 
 class ComposerConsumer(JsonWebsocketConsumer):
@@ -80,11 +92,11 @@ class ComposerConsumer(JsonWebsocketConsumer):
         self.accept()
         self.tune_id = None
     
-    def send_tokens(self, message):
-        print('send_tokens: {}'.format(message))
+    def send_token(self, message):
+        print('send_token: {}'.format(message))
         self.send_json({
-                    'command': 'add_tokens',
-                    'tokens': message['tokens']
+                    'command': 'add_token',
+                    'token': message['token']
                     })
         
     def receive_json(self, content):
