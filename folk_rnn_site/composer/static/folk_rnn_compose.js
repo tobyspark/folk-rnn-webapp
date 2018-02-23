@@ -77,21 +77,22 @@ function rnnWebsocketReceive(action, stream) {
     if( typeof rnnWebsocketReceive.bars == 'undefined' ) {
         rnnWebsocketReceive.bars = 0;
     }
-    if (action["command"] == "add_token") {
-        if (action["token"] == "folkrnn_generate_completed") {
+    if (action["command"] == "generation_status") {
+        if (action["status"] == "complete") {
             window.location.reload()
-        } else {
-            if (el_abc.innerHTML == "Waiting for folk-rnn...") {
-                el_abc.innerHTML = "X:\nT:\nM:\nK:\n"
-            }
-            if (action["token"] == "|") {
-                rnnWebsocketReceive.bars += 1;
-                if (rnnWebsocketReceive.bars > 3) {
-                    rnnWebsocketReceive.bars = 0;
-                    el_abc.innerHTML += '\n';
-                }
-            }
-            el_abc.innerHTML += action["token"]
         }
+    }
+    if (action["command"] == "add_token") {
+        if (el_abc.innerHTML == "Waiting for folk-rnn...") {
+            el_abc.innerHTML = ""
+        }
+        if (action["token"] == "|") {
+            rnnWebsocketReceive.bars += 1;
+            if (rnnWebsocketReceive.bars > 3) {
+                rnnWebsocketReceive.bars = 0;
+                el_abc.innerHTML += '\n';
+            }
+        }
+        el_abc.innerHTML += action["token"]
     }
 }
