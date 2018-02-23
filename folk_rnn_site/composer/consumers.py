@@ -3,6 +3,7 @@ import subprocess
 from datetime import datetime
 from channels.consumer import SyncConsumer
 from channels.generic.websocket import JsonWebsocketConsumer
+from asgiref.sync import async_to_sync
 
 from composer.rnn_models import folk_rnn_cached
 from composer import ABC2ABC_PATH, TUNE_PATH
@@ -65,15 +66,40 @@ class FolkRNNConsumer(SyncConsumer):
         tune.abc = abc
         tune.rnn_finished = datetime.now()
         tune.save()
+        
+        print('group_send {}'.format(tune.id))
+        async_to_sync(self.channel_layer.group_send)(
+                                'tune_{}'.format(tune.id),
+                                {
+                                    'type': 'send_tokens',
+                                    'content': abc,
+                                })
 
 class ComposerConsumer(JsonWebsocketConsumer):
 
     def connect(self):
         self.accept()
+        self.tune_id = None
+    
+    def send_tokens(self, tokens):
+        print('send_tokens: {}'.format(tokens))
+        self.send_json({
+                    'command': 'add_tokens',
+                    'tokens': tokens
+                    })
         
     def receive_json(self, content):
-        print('WEBSOCKET JSON: {}'.format(content))
-        self.send_json({'key': 'value'})
+        print('receive_json: {}'.format(content))
+        if content['command'] == 'register_for_tune':
+            self.tune_id = content['tune_id']
+            async_to_sync(self.channel_layer.group_add)(
+                                        'tune_{}'.format(self.tune_id), 
+                                        self.channel_name
+                                        )
+        
         
     def disconnect(self, close_code):
-        pass
+        async_to_sync(self.channel_layer.group_discard)(
+                                        'tune_{}'.format(self.tune_id), 
+                                        self.channel_name
+                                        )
