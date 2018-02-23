@@ -54,3 +54,45 @@ function rnnValidateTokens(userTokens, modelFileName) {
     }
     return true;
 }
+
+function rnnWebsocketConnect(tune_id) {
+    const ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+    const ws_path = ws_scheme + '://' + window.location.host;
+    
+    const webSocketBridge = new channels.WebSocketBridge();
+    webSocketBridge.connect(ws_path);
+    webSocketBridge.listen(rnnWebsocketReceive);
+    
+    webSocketBridge.socket.addEventListener('open', function() {
+        console.log("Connected to WebSocket");
+        webSocketBridge.send({
+                    command: "register_for_tune", 
+                    tune_id: tune_id
+                    });
+    })
+}
+
+function rnnWebsocketReceive(action, stream) {
+    const el_abc = document.getElementById("abc");
+    if( typeof rnnWebsocketReceive.bars == 'undefined' ) {
+        rnnWebsocketReceive.bars = 0;
+    }
+    if (action["command"] == "generation_status") {
+        if (action["status"] == "complete") {
+            window.location.reload()
+        }
+    }
+    if (action["command"] == "add_token") {
+        if (el_abc.innerHTML == "Waiting for folk-rnn...") {
+            el_abc.innerHTML = ""
+        }
+        if (action["token"] == "|") {
+            rnnWebsocketReceive.bars += 1;
+            if (rnnWebsocketReceive.bars > 3) {
+                rnnWebsocketReceive.bars = 0;
+                el_abc.innerHTML += '\n';
+            }
+        }
+        el_abc.innerHTML += action["token"]
+    }
+}
