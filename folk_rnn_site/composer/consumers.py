@@ -67,12 +67,11 @@ class FolkRNNConsumer(SyncConsumer):
         tune.rnn_finished = datetime.now()
         tune.save()
         
-        print('group_send {}'.format(tune.id))
         async_to_sync(self.channel_layer.group_send)(
                                 'tune_{}'.format(tune.id),
                                 {
                                     'type': 'send_tokens',
-                                    'content': abc,
+                                    'tokens': abc,
                                 })
 
 class ComposerConsumer(JsonWebsocketConsumer):
@@ -81,11 +80,11 @@ class ComposerConsumer(JsonWebsocketConsumer):
         self.accept()
         self.tune_id = None
     
-    def send_tokens(self, tokens):
-        print('send_tokens: {}'.format(tokens))
+    def send_tokens(self, message):
+        print('send_tokens: {}'.format(message))
         self.send_json({
                     'command': 'add_tokens',
-                    'tokens': tokens
+                    'tokens': message['tokens']
                     })
         
     def receive_json(self, content):
