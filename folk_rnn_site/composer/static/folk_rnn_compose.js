@@ -74,8 +74,24 @@ function rnnWebsocketConnect(tune_id) {
 
 function rnnWebsocketReceive(action, stream) {
     const el_abc = document.getElementById("abc");
-    if (action['command'] == 'add_tokens') {
-        console.log('add_tokens: ', action['tokens'])
-        el_abc.innerHTML += action['tokens']
+    if( typeof rnnWebsocketReceive.bars == 'undefined' ) {
+        rnnWebsocketReceive.bars = 0;
+    }
+    if (action["command"] == "add_token") {
+        if (action["token"] == "folkrnn_generate_completed") {
+            window.location.reload()
+        } else {
+            if (el_abc.innerHTML == "Waiting for folk-rnn...") {
+                el_abc.innerHTML = "X:\nT:\nM:\nK:\n"
+            }
+            if (action["token"] == "|") {
+                rnnWebsocketReceive.bars += 1;
+                if (rnnWebsocketReceive.bars > 3) {
+                    rnnWebsocketReceive.bars = 0;
+                    el_abc.innerHTML += '\n';
+                }
+            }
+            el_abc.innerHTML += action["token"]
+        }
     }
 }
