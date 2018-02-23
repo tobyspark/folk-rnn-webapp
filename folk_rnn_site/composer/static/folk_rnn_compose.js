@@ -55,15 +55,13 @@ function rnnValidateTokens(userTokens, modelFileName) {
     return true;
 }
 
-function rnnConnectWebsocket(tune_id) {
+function rnnWebsocketConnect(tune_id) {
     const ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
     const ws_path = ws_scheme + '://' + window.location.host;
     
     const webSocketBridge = new channels.WebSocketBridge();
     webSocketBridge.connect(ws_path);
-    webSocketBridge.listen(function(action, stream) {
-      console.log(action, stream);
-    });
+    webSocketBridge.listen(rnnWebsocketReceive);
     
     webSocketBridge.socket.addEventListener('open', function() {
         console.log("Connected to WebSocket");
@@ -72,4 +70,12 @@ function rnnConnectWebsocket(tune_id) {
                     tune_id: tune_id
                     });
     })
+}
+
+function rnnWebsocketReceive(action, stream) {
+    const el_abc = document.getElementById("abc");
+    if (action['command'] == 'add_tokens') {
+        console.log('add_tokens: ', action['tokens'])
+        el_abc.innerHTML += action['tokens']
+    }
 }
