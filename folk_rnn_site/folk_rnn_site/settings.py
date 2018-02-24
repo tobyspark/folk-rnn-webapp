@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'widget_tweaks',
     'django_hosts',
     'channels',
     'composer',
@@ -64,11 +65,10 @@ MIDDLEWARE = [
 
 CHANNEL_LAYERS = {
     'default': {
-        'BACKEND': 'asgi_redis.RedisChannelLayer',
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            'hosts': ['redis://localhost:6379'],
+            'hosts': [('localhost', 6379)],
         },
-        'ROUTING': 'folk_rnn_site.routing.channel_routing',
     },
 }
 
@@ -93,7 +93,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'folk_rnn_site.wsgi.application'
-
+ASGI_APPLICATION = "folk_rnn_site.routing.application"
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases

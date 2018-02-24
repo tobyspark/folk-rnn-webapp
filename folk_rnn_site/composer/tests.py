@@ -10,7 +10,7 @@ from composer.consumers import folk_rnn_task
 from composer.models import RNNTune
 
 # Input, output as per https://github.com/tobyspark/folk-rnn/commit/381184a2d6659a47520cedd6d4dfa7bb1c5189f7
-folkrnn_in = {'rnn_model_name': 'test_model.pickle', 'seed': 42, 'temp': 1, 'prime_tokens': ''}
+folkrnn_in = {'rnn_model_name': 'with_repeats.pickle', 'seed': 42, 'temp': 1, 'prime_tokens': ''}
 folkrnn_out_raw = '''M:4/4 K:Cdor c 3 d c 2 B G | G F F 2 G B c d | c 3 d c B G A | B G G F G 2 f e | d 2 c d c B G A | B G F G B F G F | G B c d c d e f | g b f d e 2 e f | d B B 2 B 2 d c | B G G 2 B G F B | d B B 2 c d e f | g 2 f d g f d c | d g g 2 f d B c | d B B 2 B G B c | d f d c B 2 d B | c B B G F B G B | d 2 c d d 2 f d | g e c d e 2 f g | f d d B c 2 d B | d c c B G B B c | d 2 c d d 2 f d | c d c B c 2 d f | g b b 2 g a b d' | c' d' b g f d d f |'''
 folkrnn_out = '''X:1
 T:Folk RNN Candidate Tune No1
@@ -32,10 +32,10 @@ class FolkRNNTaskTest(TestCase):
         
         folk_rnn_task({'id': 1})
         
-        with open(TUNE_PATH + '/test_tune_1_raw') as f:
+        with open(TUNE_PATH + '/with_repeats_1_raw') as f:
             self.assertEqual(f.read(), folkrnn_out_raw)
             
-        with open(TUNE_PATH + '/test_tune_1') as f:
+        with open(TUNE_PATH + '/with_repeats_1') as f:
             self.assertEqual(f.read(), folkrnn_out)
 
         tune = RNNTune.objects.first()
@@ -62,7 +62,7 @@ def folk_rnn_task_end_mock():
 class ComposerTestCase(TestCase):
     
     def post_tune(self, seed=123, temp=0.1, prime_tokens='a b c'):
-        return self.client.post('/', data={'model': 'test_model.pickle', 'seed': seed, 'temp': temp, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': prime_tokens})
+        return self.client.post('/', data={'model': 'with_repeats.pickle', 'seed': seed, 'temp': temp, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': prime_tokens})
     
 class HomePageTest(ComposerTestCase):
     
@@ -117,18 +117,33 @@ class TunePageTest(ComposerTestCase):
     def test_tune_page_shows_tune(self):
         self.post_tune()
         folk_rnn_task_start_mock()
-        folk_rnn_task_end_mock()
+        tune = folk_rnn_task_end_mock()
         
         response = self.client.get('/tune/1')
         self.assertTemplateUsed(response, 'composer/tune.html')
         #print(response.content)
         self.assertContains(response,mint_abc()) # django widget inserts a newline; a django workaround to an html workaround beyond the scope of this project
-        self.assertContains(response,'<li>RNN model: test_model.pickle')
-        self.assertContains(response,'<li>RNN seed: 123')
-        self.assertContains(response,'<li>RNN temperature: 0.1')
-        self.assertContains(response,'<li>Prime tokens: M:4/4 K:Cmaj a b c</li>')
-        # self.assertContains(response,'<li>Requested at: {}</li>'.format(format_datetime(tune.requested)), msg_prefix='FIXME: This will falsely fail for single digit day of the month due to Django template / Python RFC formatting mis-match.') # FIXME
-        self.assertContains(response,'<li>Composition took: 0s</li>')
+        self.assertContains(response,'with_repeats.pickle')
+        self.assertContains(response,'123')
+        self.assertContains(response,'0.1')
+        self.assertContains(response,'M:4/4 K:Cmaj a b c')
+        # Testing date is beyond the remit of datetime.strttime(), e.g. day of the week without leading zero.
+    
+    def test_tune_page_can_save_a_POST_request(self):
+        self.post_tune()
+        folk_rnn_task_start_mock()
+        folk_rnn_task_end_mock()
+        
+        response = self.client.post('/tune/999/archive', {'title':'A new title'})
+        self.assertEqual(response['location'], '/')
+        
+        response = self.client.post('/tune/1/archive', {'title':'A new title'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], '//themachinefolksession.org/tune/1')
+        
+        response = self.client.post('/tune/1/archive', {'title':'A new title'})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response['location'], '//themachinefolksession.org/tune/1') # Not a new tune
 
 class RNNTuneModelTest(TestCase):
     

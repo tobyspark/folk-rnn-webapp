@@ -62,7 +62,7 @@ class ABCTuneModelTest(TestCase):
 class ABCJSTest(TestCase):
 
     def test_abcjs_available(self):
-        self.assertIsNotNone(finders.find('abcjs_editor_midi_3.1.4-min.js'))
+        self.assertIsNotNone(finders.find('abcjs_midi_3.3.2-min.js'))
         self.assertIsNotNone(finders.find('abcjs-midi.css'))
 
     def test_soundfonts_available(self):
