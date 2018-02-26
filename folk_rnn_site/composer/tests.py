@@ -10,7 +10,7 @@ from composer.consumers import folk_rnn_task
 from composer.models import RNNTune
 
 # Input, output as per https://github.com/tobyspark/folk-rnn/commit/381184a2d6659a47520cedd6d4dfa7bb1c5189f7
-folkrnn_in = {'rnn_model_name': 'with_repeats.pickle', 'seed': 42, 'temp': 1, 'prime_tokens': ''}
+folkrnn_in = {'rnn_model_name': 'with_repeats.pickle', 'seed': 42, 'temp': 1, 'meter': '', 'key': '', 'start_abc': ''}
 folkrnn_out_raw = '''M:4/4 K:Cdor c 3 d c 2 B G | G F F 2 G B c d | c 3 d c B G A | B G G F G 2 f e | d 2 c d c B G A | B G F G B F G F | G B c d c d e f | g b f d e 2 e f | d B B 2 B 2 d c | B G G 2 B G F B | d B B 2 c d e f | g 2 f d g f d c | d g g 2 f d B c | d B B 2 B G B c | d f d c B 2 d B | c B B G F B G B | d 2 c d d 2 f d | g e c d e 2 f g | f d d B c 2 d B | d c c B G B B c | d 2 c d d 2 f d | c d c B c 2 d f | g b b 2 g a b d' | c' d' b g f d d f |'''
 folkrnn_out = '''X:1
 T:Folk RNN Candidate Tune No1
@@ -106,13 +106,6 @@ class TunePageTest(ComposerTestCase):
         self.post_tune()
         response = self.client.get('/tune/1')
         self.assertTemplateUsed(response, 'composer/tune-in-process.html')
-        self.assertContains(response, 'Composition with prime tokens "M:4/4 K:Cmaj a b c" is waiting for folk_rnn task')
-        
-        folk_rnn_task_start_mock()
-        
-        response = self.client.get('/tune/1')
-        self.assertTemplateUsed(response, 'composer/tune-in-process.html')
-        self.assertContains(response, 'Composition with prime tokens "M:4/4 K:Cmaj a b c" in process...')
 
     def test_tune_page_shows_tune(self):
         self.post_tune()
@@ -149,11 +142,11 @@ class RNNTuneModelTest(TestCase):
     
     def test_saving_and_retrieving_tunes(self):
         first_tune = RNNTune()
-        first_tune.prime_tokens = 'ABC'
+        first_tune.start_abc = 'ABC'
         first_tune.save()
         
         second_tune = RNNTune()
-        second_tune.prime_tokens = 'DEF'
+        second_tune.start_abc = 'DEF'
         second_tune.save()
         
         saved_tunes = RNNTune.objects.all()
@@ -180,3 +173,15 @@ class RNNTuneModelTest(TestCase):
         self.assertAlmostEqual(tune.rnn_started, tune.rnn_finished, delta=timedelta(seconds=0.1))
         self.assertEqual(tune.abc, mint_abc())
         
+    def test_property_prime_tokens(self):
+        tune = RNNTune()
+        self.assertEqual(tune.prime_tokens, '')
+        
+        tune = RNNTune(meter='', key='', start_abc='a b c')
+        self.assertEqual(tune.prime_tokens, 'a b c')
+
+        tune = RNNTune(meter='M:4/4', key='', start_abc='a b c')
+        self.assertEqual(tune.prime_tokens, 'M:4/4 a b c')
+        
+        tune = RNNTune(meter='M:4/4', key='K:Cmaj', start_abc='a b c')
+        self.assertEqual(tune.prime_tokens, 'M:4/4 K:Cmaj a b c')     
