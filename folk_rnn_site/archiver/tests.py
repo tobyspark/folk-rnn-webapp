@@ -3,8 +3,7 @@ from django.utils.timezone import now
 from datetime import timedelta
 from tempfile import SpooledTemporaryFile
 
-from folk_rnn_site.tests import ABC_TITLE, ABC_BODY, mint_abc
-from composer.tests import folkrnn_out
+from folk_rnn_site.tests import ABC_TITLE, ABC_BODY, mint_abc, FOLKRNN_OUT
 from composer.models import RNNTune
 
 from archiver.models import Tune, Setting, Comment
