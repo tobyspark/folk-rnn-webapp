@@ -43,18 +43,8 @@ def tune_page(request, tune_id=None):
 
     # Handle rnn-in-process
 
-    if not tune.rnn_started:
-        return render(request, 'composer/tune-in-process.html', {
-            'prime_tokens': tune.prime_tokens,
-            'rnn_has_started': False,
-            'candidate_id': tune_id_int,
-            'compose_form': ComposeForm(),
-            })
-
     if not tune.rnn_finished:
         return render(request, 'composer/tune-in-process.html', {
-            'prime_tokens': tune.prime_tokens,
-            'rnn_has_started': True,
             'candidate_id': tune_id_int,
             'compose_form': ComposeForm(),
             })
