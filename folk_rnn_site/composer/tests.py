@@ -1,6 +1,4 @@
 from django.test import TestCase 
-import pytest # Channels consumer tests, requires tests to be run with `pytest`
-from channels.testing import ApplicationCommunicator
 from django.utils.timezone import now
 from datetime import timedelta
 from time import sleep
@@ -10,50 +8,6 @@ from folk_rnn_site.tests import ABC_TITLE, ABC_BODY, mint_abc
 from composer import TUNE_PATH
 from composer.consumers import FolkRNNConsumer
 from composer.models import RNNTune
-
-# Input, output as per https://github.com/tobyspark/folk-rnn/commit/381184a2d6659a47520cedd6d4dfa7bb1c5189f7
-folkrnn_in = {'rnn_model_name': 'with_repeats.pickle', 'seed': 42, 'temp': 1, 'meter': '', 'key': '', 'start_abc': ''}
-folkrnn_out_raw = '''M:4/4 K:Cdor c 3 d c 2 B G | G F F 2 G B c d | c 3 d c B G A | B G G F G 2 f e | d 2 c d c B G A | B G F G B F G F | G B c d c d e f | g b f d e 2 e f | d B B 2 B 2 d c | B G G 2 B G F B | d B B 2 c d e f | g 2 f d g f d c | d g g 2 f d B c | d B B 2 B G B c | d f d c B 2 d B | c B B G F B G B | d 2 c d d 2 f d | g e c d e 2 f g | f d d B c 2 d B | d c c B G B B c | d 2 c d d 2 f d | c d c B c 2 d f | g b b 2 g a b d' | c' d' b g f d d f |'''
-folkrnn_out = '''X:1
-T:Folk RNN Candidate Tune No1
-M:4/4
-K:Cdor
-c3d c2BG|GFF2 GBcd|c3d cBGA|BGGF G2fe|
-d2cd cBGA|BGFG BFGF|GBcd cdef|gbfd e2ef|
-dBB2 B2dc|BGG2 BGFB|dBB2 cdef|g2fd gfdc|
-dgg2 fdBc|dBB2 BGBc|dfdc B2dB|cBBG FBGB|
-d2cd d2fd|gecd e2fg|fddB c2dB|dccB GBBc|
-d2cd d2fd|cdcB c2df|gbb2 gabd'|c'd'bg fddf|
-'''
-
-@pytest.mark.django_db(transaction=True)  
-@pytest.mark.asyncio
-async def test_folkrnn_consumer():
-    RNNTune.objects.create(**folkrnn_in)
-    assert RNNTune.objects.count() == 1
-
-    scope = {"type": "channel", 'channel': 'folk_rnn'}
-    communicator = ApplicationCommunicator(FolkRNNConsumer, scope)
-    
-    await communicator.send_input({
-        'type': 'folkrnn.generate', 
-        'id': 1,
-    })
-    await communicator.wait(timeout=3)
-      
-    with open(TUNE_PATH + '/with_repeats_1_raw') as f:
-        assert f.read() == folkrnn_out_raw
-        
-    with open(TUNE_PATH + '/with_repeats_1') as f:
-        assert f.read() == folkrnn_out
-
-    tune = RNNTune.objects.first()
-    assert tune.rnn_started is not None
-    assert tune.rnn_started is not None
-    assert tune.rnn_started < tune.rnn_finished
-    assert tune.rnn_finished - tune.rnn_started < timedelta(seconds=5)
-    assert tune.abc == folkrnn_out
-        
 
 def folk_rnn_task_start_mock():
     tune = RNNTune.objects.first()
@@ -97,7 +51,10 @@ class HomePageTest(ComposerTestCase):
         self.assertEqual(RNNTune.objects.count(), 0)          
     
     def test_compose_page_redirects_after_POST(self):
+        print(list(RNNTune.objects.all()))
         response = self.post_tune()
+        print(list(RNNTune.objects.all()))
+        print(RNNTune.objects.first().id)
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['location'], '/tune/1')
         
