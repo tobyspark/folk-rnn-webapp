@@ -8,10 +8,13 @@ fieldModel.addEventListener("change", rnnUpdateKeyMeter);
 
 fieldTokens.addEventListener("input", function() {
     var userTokens = fieldTokens.value.split(' ');
-    if (rnnValidateTokens(userTokens, fieldModel.value)) {
+    var invalidTokens = rnnInvalidTokens(userTokens, fieldModel.value)
+    if (invalidTokens.length == 0 ) {
         this.setCustomValidity('');
+    } else if (invalidTokens.length == 1 ) {
+        this.setCustomValidity('Invalid token: ' + invalidTokens[0]);
     } else {
-        this.setCustomValidity('Enter valid ABC, tokens separated by spaces');
+        this.setCustomValidity('Invalid tokens: ' + invalidTokens.join(', '));
     }
 });
 
@@ -44,15 +47,16 @@ function rnnUpdateKeyMeter() {
     }
 }
 
-function rnnValidateTokens(userTokens, modelFileName) {
+function rnnInvalidTokens(userTokens, modelFileName) {
     const modelTokens = rnnModels[modelFileName]['tokens'];
+    var invalidTokens = []
     for (const token of userTokens) {
         if (token=='') continue
         if (modelTokens.indexOf(token) == -1) {
-            return false;
+            invalidTokens.push(token);
         }
     }
-    return true;
+    return invalidTokens;
 }
 
 function rnnWebsocketConnect(tune_id) {

@@ -2,6 +2,7 @@ import os
 import subprocess
 from datetime import datetime
 from channels.consumer import SyncConsumer
+from channels.exceptions import StopConsumer
 from channels.generic.websocket import JsonWebsocketConsumer
 from asgiref.sync import async_to_sync
 
@@ -33,21 +34,24 @@ class FolkRNNConsumer(SyncConsumer):
         # Machinery to build ABC incrementally, notifying consumers of abc updates.
         abc = 'X:{id}\nT:Folk RNN Candidate Tune No{id}\n'.format(id=tune.id)
         token_count = 0
+        deferred_tokens = []
         def on_token(token):
-            nonlocal token_count, abc
+            nonlocal token_count, abc, deferred_tokens
             token_count += 1
             if token_count == 1:
                 if token[0:2] != 'M:':
                     abc += 'M:none\n'
+                    deferred_tokens += token
                 else:
                     abc += token + '\n'
             elif token_count == 2:
                 if token[0:2] != 'K:':
                     abc += 'K:none\n'
+                    deferred_tokens += token
                 else:
                     abc += token + '\n'
             else:
-                abc += token
+                abc += ' '.join(deferred_tokens) + token
             async_to_sync(self.channel_layer.group_send)(
                                     'tune_{}'.format(tune.id),
                                     {
@@ -104,6 +108,8 @@ class FolkRNNConsumer(SyncConsumer):
                                     'type': 'generation_status',
                                     'status': 'complete',
                                 })
+                                
+        raise StopConsumer
 
 class ComposerConsumer(JsonWebsocketConsumer):
 
