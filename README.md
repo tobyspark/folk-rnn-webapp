@@ -63,7 +63,7 @@ Note: if the specification for the VM changes, e.g. what's in the `Vagrantfile`,
 vagrant up
 vagrant ssh
 cd /folk_rnn_webapp/folk_rnn_site/
-python3 manage.py test
+pytest
 ```
 
 ### Procedure – Production, i.e. remote, Linode
