@@ -16,13 +16,9 @@ def home_page(request):
             tune.rnn_model_name = form.cleaned_data['model']
             tune.seed = form.cleaned_data['seed']
             tune.temp = form.cleaned_data['temp']
-            tune.prime_tokens = ''
-            if form.cleaned_data['meter']:
-                tune.prime_tokens += form.cleaned_data['meter']
-            if form.cleaned_data['key']:
-                tune.prime_tokens += ' {}'.format(form.cleaned_data['key'])
-            if form.cleaned_data['prime_tokens']:
-                tune.prime_tokens += ' {}'.format(form.cleaned_data['prime_tokens'])
+            tune.meter = form.cleaned_data['meter']
+            tune.key = form.cleaned_data['key']
+            tune.start_abc = form.cleaned_data['prime_tokens']
             tune.save()
             
             channel_layer = get_channel_layer()
@@ -47,18 +43,8 @@ def tune_page(request, tune_id=None):
 
     # Handle rnn-in-process
 
-    if not tune.rnn_started:
-        return render(request, 'composer/tune-in-process.html', {
-            'prime_tokens': tune.prime_tokens,
-            'rnn_has_started': False,
-            'candidate_id': tune_id_int,
-            'compose_form': ComposeForm(),
-            })
-
     if not tune.rnn_finished:
         return render(request, 'composer/tune-in-process.html', {
-            'prime_tokens': tune.prime_tokens,
-            'rnn_has_started': True,
             'candidate_id': tune_id_int,
             'compose_form': ComposeForm(),
             })

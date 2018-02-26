@@ -3,8 +3,7 @@ from django.utils.timezone import now
 from datetime import timedelta
 from tempfile import SpooledTemporaryFile
 
-from folk_rnn_site.tests import ABC_TITLE, ABC_BODY, mint_abc
-from composer.tests import folkrnn_out
+from folk_rnn_site.tests import ABC_TITLE, ABC_BODY, mint_abc, FOLKRNN_OUT
 from composer.models import RNNTune
 
 from archiver.models import Tune, Setting, Comment
@@ -13,7 +12,7 @@ from archiver.dataset import setting_dataset, dataset_as_csv
 @override_settings(DEFAULT_HOST = 'archiver')
 class ArchiverTestCase(TestCase):
     def setUp(self):
-        rnn_tune = RNNTune.objects.create(rnn_model_name='test_model.pickle', temp=0.1, seed=123, prime_tokens='M:4/4 K:Cmaj a b c')
+        rnn_tune = RNNTune.objects.create(rnn_model_name='test_model.pickle', temp=0.1, seed=123, meter='M:4/4', key='K:Cmaj', start_abc='a b c')
         Tune.objects.create(abc_rnn=mint_abc(), rnn_tune=rnn_tune)
 
     def post_edit(self, tune=mint_abc(body=ABC_BODY*2)):

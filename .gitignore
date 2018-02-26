@@ -8,5 +8,6 @@ db.sqlite3
 folk_rnn_site/dump.rdb
 __pycache__
 *.pyc
+.pytest_cache
 
 .DS_Store
