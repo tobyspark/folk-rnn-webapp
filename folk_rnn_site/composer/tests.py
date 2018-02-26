@@ -1,4 +1,6 @@
-from django.test import TestCase
+from django.test import TestCase 
+import pytest # Channels consumer tests, requires tests to be run with `pytest`
+from channels.testing import ApplicationCommunicator
 from django.utils.timezone import now
 from datetime import timedelta
 from time import sleep
@@ -6,7 +8,7 @@ from time import sleep
 from folk_rnn_site.tests import ABC_TITLE, ABC_BODY, mint_abc
 
 from composer import TUNE_PATH
-from composer.consumers import folk_rnn_task
+from composer.consumers import FolkRNNConsumer
 from composer.models import RNNTune
 
 # Input, output as per https://github.com/tobyspark/folk-rnn/commit/381184a2d6659a47520cedd6d4dfa7bb1c5189f7
@@ -24,26 +26,33 @@ d2cd d2fd|gecd e2fg|fddB c2dB|dccB GBBc|
 d2cd d2fd|cdcB c2df|gbb2 gabd'|c'd'bg fddf|
 '''
 
-class FolkRNNTaskTest(TestCase):
-    
-    def test_folk_rnn_task(self):
-        RNNTune.objects.create(**folkrnn_in)
-        self.assertEqual(RNNTune.objects.count(), 1)
-        
-        folk_rnn_task({'id': 1})
-        
-        with open(TUNE_PATH + '/with_repeats_1_raw') as f:
-            self.assertEqual(f.read(), folkrnn_out_raw)
-            
-        with open(TUNE_PATH + '/with_repeats_1') as f:
-            self.assertEqual(f.read(), folkrnn_out)
+@pytest.mark.django_db(transaction=True)  
+@pytest.mark.asyncio
+async def test_folkrnn_consumer():
+    RNNTune.objects.create(**folkrnn_in)
+    assert RNNTune.objects.count() == 1
 
-        tune = RNNTune.objects.first()
-        self.assertIsNotNone(tune.rnn_started)
-        self.assertIsNotNone(tune.rnn_started)
-        self.assertTrue(tune.rnn_started < tune.rnn_finished)
-        self.assertAlmostEqual(tune.rnn_started, tune.rnn_finished, delta=timedelta(seconds=5))
-        self.assertEqual(tune.abc, folkrnn_out)
+    scope = {"type": "channel", 'channel': 'folk_rnn'}
+    communicator = ApplicationCommunicator(FolkRNNConsumer, scope)
+    
+    await communicator.send_input({
+        'type': 'folkrnn.generate', 
+        'id': 1,
+    })
+    await communicator.wait(timeout=3)
+      
+    with open(TUNE_PATH + '/with_repeats_1_raw') as f:
+        assert f.read() == folkrnn_out_raw
+        
+    with open(TUNE_PATH + '/with_repeats_1') as f:
+        assert f.read() == folkrnn_out
+
+    tune = RNNTune.objects.first()
+    assert tune.rnn_started is not None
+    assert tune.rnn_started is not None
+    assert tune.rnn_started < tune.rnn_finished
+    assert tune.rnn_finished - tune.rnn_started < timedelta(seconds=5)
+    assert tune.abc == folkrnn_out
         
 
 def folk_rnn_task_start_mock():
