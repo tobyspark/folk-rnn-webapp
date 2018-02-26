@@ -16,8 +16,9 @@ def home_page(request):
             tune.rnn_model_name = form.cleaned_data['model']
             tune.seed = form.cleaned_data['seed']
             tune.temp = form.cleaned_data['temp']
-            prime_token_items = [form.cleaned_data['meter'], form.cleaned_data['key'], form.cleaned_data['prime_tokens']]
-            tune.prime_tokens = ' '.join([x for x in prime_token_items if x])
+            tune.meter = form.cleaned_data['meter']
+            tune.key = form.cleaned_data['key']
+            tune.start_abc = form.cleaned_data['prime_tokens']
             tune.save()
             
             channel_layer = get_channel_layer()
