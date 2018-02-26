@@ -33,10 +33,11 @@ chown vagrant:vagrant /folk_rnn_static
 apt-get install --yes nginx
 pip3 install "django<1.12"
 pip3 install "django-hosts"
-pip3 install "channels~=2.0"
 pip3 install "django-widget-tweaks"
-apt-get install --yes redis-server
+pip3 install "channels~=2.0"
 pip3 install "channels_redis"
+pip3 install "pytest-django" "pytest-asyncio"
+apt-get install --yes redis-server
 apt-get install --yes abcmidi
 
 # folk_rnn setup
