@@ -7,16 +7,28 @@ window.onLoad = rnnUpdateKeyMeter();
 fieldModel.addEventListener("change", rnnUpdateKeyMeter);
 
 fieldTokens.addEventListener("input", function() {
-    //var userTokens = fieldTokens.value.split(' ');
+    const abc = fieldTokens.value
+    const abcParsed = rnnParseABC(abc)
+    this.setCustomValidity('');
     
-    // This silently ignores invalid input, so field will always validate
-    var userTokens = rnnTokensWithString(fieldTokens.value)
-    var invalidTokens = rnnInvalidTokens(userTokens, fieldModel.value)
-    if (invalidTokens.length == 0 ) {
-        this.setCustomValidity('');
-    } else if (invalidTokens.length == 1 ) {
+    if (abcParsed['invalidIndexes'].length > 0 ) {
+        let markedUpABC = ""
+        let pos = 0
+        for (const invalidIndex of abcParsed['invalidIndexes']) {
+            markedUpABC += abc.slice(pos, invalidIndex)
+            markedUpABC += ' >'
+            markedUpABC += abc.slice(invalidIndex, invalidIndex+1)
+            markedUpABC += '< '
+            pos = invalidIndex+1
+        }
+        markedUpABC += abc.slice(pos)
+        this.setCustomValidity('Invalid: ' + markedUpABC);
+    } 
+    
+    const invalidTokens = rnnInvalidTokens(abcParsed['tokens'], fieldModel.value)
+    if (invalidTokens.length == 1 ) {
         this.setCustomValidity('Invalid token: ' + invalidTokens[0]);
-    } else {
+    } else if (invalidTokens.length > 1 ) {
         this.setCustomValidity('Invalid tokens: ' + invalidTokens.join(', '));
     }
 });

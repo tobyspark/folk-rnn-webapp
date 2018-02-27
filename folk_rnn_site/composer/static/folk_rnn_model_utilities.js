@@ -10,14 +10,12 @@ function rnnInvalidTokens(userTokens, modelFileName) {
     return invalidTokens;
 }
 
-function rnnTokensWithString(abc) {
+function rnnParseABC(abc) {
     // Javascript port of Bob Sturm's original python script that was used to generate the training dataset.
+    // Extened to return invalid ABC
     // Good for config5-wrepeats-20160112
     
-    abc = abc.replace(' ', '')
-    abc = abc.replace('\n', '')
-    abc = abc.replace('\r', '')
-    
+    const ignoreSet = new Set([' ', '\n', '\r'])
     const noteset = new Set(['a','b','c','d','e','f','g','z','x','A','B','C','D','E','F','G'])
     const octset = new Set([',','\''])
     const accset = new Set(['=','_','^'])
@@ -25,13 +23,20 @@ function rnnTokensWithString(abc) {
     const numbset = new Set(['1','2','3','4','5','6','7','8','9'])
     const modset = new Set(['/'])
     const contset = new Set(['>','<'])
+    
     let result = []
+    let invalidIndexes = []
     
     let w=""
     let flag_expectingnote=0
     let flag_innote=0
     let flag_indur=0
-    for (const c of abc) {
+    for (let i = 0; i < abc.length; i++) {
+        const c = abc[i]
+        
+        if (ignoreSet.has(c)) {
+            continue
+        }
         if (new Set('|','[',']').has(c)) {
             if (flag_innote || flag_indur) {
                 result.push(w)
@@ -111,11 +116,13 @@ function rnnTokensWithString(abc) {
             }
             flag_innote=0
             flag_indur=1
+        } else {
+            invalidIndexes.push(i)
         }
     }
     
     // append final part
     result.push(w)
     
-    return result
+    return {'tokens': result, 'invalidIndexes': invalidIndexes}
 }
