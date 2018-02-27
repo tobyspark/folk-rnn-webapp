@@ -7,7 +7,10 @@ window.onLoad = rnnUpdateKeyMeter();
 fieldModel.addEventListener("change", rnnUpdateKeyMeter);
 
 fieldTokens.addEventListener("input", function() {
-    var userTokens = fieldTokens.value.split(' ');
+    //var userTokens = fieldTokens.value.split(' ');
+    
+    // This silently ignores invalid input, so field will always validate
+    var userTokens = rnnTokensWithString(fieldTokens.value)
     var invalidTokens = rnnInvalidTokens(userTokens, fieldModel.value)
     if (invalidTokens.length == 0 ) {
         this.setCustomValidity('');
@@ -45,18 +48,6 @@ function rnnUpdateKeyMeter() {
             fieldKey.lastChild.selected = true;
         }
     }
-}
-
-function rnnInvalidTokens(userTokens, modelFileName) {
-    const modelTokens = rnnModels[modelFileName]['tokens'];
-    var invalidTokens = []
-    for (const token of userTokens) {
-        if (token=='') continue
-        if (modelTokens.indexOf(token) == -1) {
-            invalidTokens.push(token);
-        }
-    }
-    return invalidTokens;
 }
 
 function rnnWebsocketConnect(tune_id) {
