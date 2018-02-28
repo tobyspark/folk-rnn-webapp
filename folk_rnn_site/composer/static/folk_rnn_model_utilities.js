@@ -1,9 +1,13 @@
 /* jshint esversion: 6, strict: true, undef: true, unused: true, varstmt: true */
-/* globals rnnModels*/
+/* globals folkrnn */
 
-function rnnInvalidTokens(userTokens, modelFileName) {
+if (typeof folkrnn == 'undefined') {
+    folkrnn = {};
+}
+
+folkrnn.invalidTokens = function(userTokens, modelFileName) {
     "use strict";
-    const modelTokens = rnnModels[modelFileName].tokens;
+    const modelTokens = folkrnn.models[modelFileName].tokens;
     let invalidTokens = [];
     for (const token of userTokens) {
         if (token==='') 
@@ -12,9 +16,9 @@ function rnnInvalidTokens(userTokens, modelFileName) {
             invalidTokens.push(token);
     }
     return invalidTokens;
-}
+};
 
-function rnnParseABC(abc) {
+folkrnn.parseABC = function(abc) {
     "use strict";
     // Javascript port of Bob Sturm's original python script that was used to generate the training dataset.
     // Extended to return invalid ABC
@@ -128,4 +132,4 @@ function rnnParseABC(abc) {
     result.push(w);
 
     return {'tokens': result, 'invalidIndexes': invalidIndexes};
-}
+};
