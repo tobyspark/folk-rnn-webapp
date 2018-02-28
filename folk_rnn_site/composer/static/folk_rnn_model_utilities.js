@@ -12,7 +12,7 @@ function rnnInvalidTokens(userTokens, modelFileName) {
 
 function rnnParseABC(abc) {
     // Javascript port of Bob Sturm's original python script that was used to generate the training dataset.
-    // Extened to return invalid ABC
+    // Extended to return invalid ABC
     // Good for config5-wrepeats-20160112
     
     const ignoreSet = new Set([' ', '\n', '\r'])
