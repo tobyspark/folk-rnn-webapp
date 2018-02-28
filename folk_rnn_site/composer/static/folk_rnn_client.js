@@ -50,9 +50,9 @@ folkrnn.initABCJS = function() {
             downloadLabel:"Download MIDI"
         },
         render_options: {
-            // paddingleft:0,
-            // paddingright:0,
-            // responsive: "resize",
+            paddingleft:0,
+            paddingright:0,
+            responsive: "resize",
             listener: { 
                 highlight: folkrnn.abcjsSelectionCallback,
                 modelChanged:  folkrnn.abcjsModelChangedCallback
