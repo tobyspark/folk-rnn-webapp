@@ -1,0 +1,38 @@
+{% load humanize %}
+{% load hosts %}
+{% load widget_tweaks %}
+<div id="tune">
+    <h1 class="content-subhead">Your generated tune</h1>
+    <section class="post">
+        <div id="composition">
+            <textarea id="abc" readonly class="pure-u-1" rows="{{ tune_rows }}">{{ tune.abc }}</textarea>
+        </div>
+        <div id="composition_metadata">
+            <p>The RNN properties were <span class="post-category">{{ tune.rnn_model_name }}</span> with seed and temperature <span class="post-category">{{ tune.seed }}</span>, <span span class="post-category">{{ tune.temp }}</span>.</p>
+            <p>The prime tokens were <span class="post-category">{{ tune.prime_tokens }}</span>.</p>
+            <p>Generated on <span class="post-category">{{ tune.requested|date:"DATETIME_FORMAT" }}</span>.</p>
+        </div>
+        <div id="abcjs_divs">
+            <h3 class="content-subhead">Hear it</h3>
+            <div id="midi" class="pure-u-17-24"><!-- should be pure-u-3-4 --></div>
+            <div id="midi-download" class="pure-u-1-4"></div>
+            <h3 class="content-subhead">See it</h3>
+            <div id="warnings"></div>
+            <div id="notation"></div>
+            <!-- <div id="selection"></div> -->
+        </div>
+        <div id=export>
+            <h3 class="content-subhead">Save it</h3>
+            <form method="POST" action="{% url 'archive_tune' tune_id=tune.id %}" class="pure-form"> <!-- FIXME: Can host_url work? Using url only works here because ROOT_URLCONF = 'composer.urls' -->
+                {% csrf_token %}
+                <div class="pure-u-17-24"> <!-- should be pure-u-3-4 -->
+                    {% render_field archive_form.title class+="pure-input-1" %}
+                </div>
+                <div class="pure-u-1-4">
+                    <input id="archive_button" type="submit" value="Archive" class="pure-button pure-button-primary pure-input-1">
+                </div>
+            </form>
+            <p class="post-description"><a href="http://themachinefolksession.org">The Machine Folk Session</a> hosts {{ machine_folk_tune_count }} machine originated folk tunes, from folk-rnn and elsewhere, and hand-crafted settings of these tunes. Give your tune here a title, hit 'Archive', and go tweak! It will take you the machine folk session site.</p>
+        </div>
+    </section>
+</div>
