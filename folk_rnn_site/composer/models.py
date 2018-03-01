@@ -8,6 +8,18 @@ class RNNTune(ABCModel):
         prime_token_items = (self.meter, self.key, self.start_abc)
         return ' '.join(x for x in prime_token_items if x)
     
+    def plain_dict(self):
+        return {
+            'rnn_model_name': self.rnn_model_name,
+            'seed': self.seed,
+            'temp': self.temp,
+            'prime_tokens': self.prime_tokens,
+            'requested': self.requested.isoformat(),
+            'rnn_started': self.rnn_started.isoformat(),
+            'rnn_finished': self.rnn_finished.isoformat(),
+            'abc': self.abc,
+        }
+    
     rnn_model_name = models.CharField(max_length=64, default='')
     seed = models.IntegerField(default=42)
     temp = models.FloatField(default=1.0)

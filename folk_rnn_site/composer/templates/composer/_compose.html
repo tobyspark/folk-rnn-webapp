@@ -4,7 +4,7 @@
         <!-- <h2 class="brand-tagline">Compose</h2> -->
         <div id="compose_ui">
             Compose folk music using a recurrent neural network
-            <form method="POST" action="/" class="pure-form pure-g">
+            <form class="pure-form pure-g">
                 {% load widget_tweaks %}
                 {% csrf_token %}
                 <legend><!-- RNN Properties --></legend>
@@ -31,12 +31,8 @@
                     {% render_field compose_form.prime_tokens class+="pure-input-1" rows="3" placeholder="Enter start of tune in ABC notation" %}
                 </div>
                 <legend></legend>
-                <input id="compose_button" type="submit" value="Compose..." class="pure-button pure-button-primary pure-input-1">
+                <input id="compose_button" type="button" value="Compose..." class="pure-button pure-button-primary pure-input-1">
             </form>
         </div>
     </div>
-    <script src="/static/folk_rnn_models.js" type="text/javascript"></script>
-    <script src="/static/folk_rnn_model_utilities.js" type="text/javascript"></script>
-    <script src="/static/folk_rnn_client.js" type="text/javascript"></script>
-    <script type="text/javascript">window.addEventListener("load", folkrnn.initialise, false);</script>
 </div>

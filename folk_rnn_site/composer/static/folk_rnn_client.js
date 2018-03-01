@@ -1,5 +1,5 @@
 /* jshint esversion: 6, strict: true, undef: true, unused: true, varstmt: true */
-/* globals folkrnn, channels, ABCJS */
+/* globals folkrnn, ABCJS */
 
 if (typeof folkrnn == 'undefined')
     folkrnn = {};
@@ -7,9 +7,12 @@ if (typeof folkrnn == 'undefined')
 folkrnn.initialise = function() {
     "use strict";
     folkrnn.fieldModel = document.getElementById("id_model");
+    folkrnn.fieldTemp = document.getElementById("id_temp");
+    folkrnn.fieldSeed = document.getElementById("id_seed");
     folkrnn.fieldKey = document.getElementById("id_key");
     folkrnn.fieldMeter = document.getElementById("id_meter");
     folkrnn.fieldTokens = document.getElementById("id_prime_tokens");
+    folkrnn.composeButton = document.getElementById("compose_button");
     
     folkrnn.updateKeyMeter();
     
@@ -17,12 +20,68 @@ folkrnn.initialise = function() {
     
     folkrnn.fieldTokens.addEventListener("input", folkrnn.validateStartABC);
     
-    folkrnn.fieldTokens.addEventListener("change", function() {
-        this.value = folkrnn.parseABC(this.value).tokens.join(' ');
-        console.log(this.value);
-    });
+    folkrnn.composeButton.addEventListener("click", folkrnn.generateRequest);
     
     folkrnn.initABCJS();
+    
+    folkrnn.websocketConnect();
+};
+
+folkrnn.tuneManager = {
+    'tune_ids': [],
+    'add_tune': function (tune_id) {
+        "use strict";
+        folkrnn.tuneManager.tune_ids.unshift(tune_id);
+        
+        // Temp while we're single-tune only
+        while (folkrnn.tuneManager.tune_ids.length > 1)
+            folkrnn.tuneManager.remove_tune(folkrnn.tuneManager.tune_ids[folkrnn.tuneManager.tune_ids.length-1])
+        
+        folkrnn.websocketSend({
+                    command: "register_for_tune", 
+                    tune_id: tune_id
+                    });
+        // Add to DOM...
+        const el_tune = document.getElementById("tune");
+        const el_abc = document.getElementById("abc");
+        el_abc.innerHTML = "Waiting for folk-rnn..."
+    },
+    'remove_tune': function (tune_id) {
+        "use strict";
+        const index = folkrnn.tuneManager.tune_ids.indexOf(tune_id);
+        if (index > -1)
+            folkrnn.tuneManager.tune_ids.splice(index, 1);
+        folkrnn.websocketSend({
+                    command: "unregister_for_tune", 
+                    tune_id: tune_id
+                    });
+        // Remove from DOM...
+    }
+};
+
+folkrnn.generateRequest = function () {
+    "use strict";
+    let valid = true;
+    valid = valid && folkrnn.fieldModel.reportValidity();
+    valid = valid && folkrnn.fieldTemp.reportValidity();
+    valid = valid && folkrnn.fieldSeed.reportValidity();
+    valid = valid && folkrnn.fieldKey.reportValidity();
+    valid = valid && folkrnn.fieldMeter.reportValidity();
+    valid = valid && folkrnn.fieldTokens.reportValidity();
+    if (valid) {
+        const formData = {};
+        formData.model = folkrnn.fieldModel.value;
+        formData.temp = folkrnn.fieldTemp.value;
+        formData.seed = folkrnn.fieldSeed.value;
+        formData.key = folkrnn.fieldKey.value;
+        formData.meter = folkrnn.fieldMeter.value;
+        formData.startABC = folkrnn.fieldTokens.value;
+        
+        folkrnn.websocketSend({
+                    'command': 'compose',
+                    'data': formData,
+        });
+    }
 };
 
 folkrnn.abcjsModelChangedCallback = function (abcelem) {
@@ -56,7 +115,7 @@ folkrnn.initABCJS = function() {
             listener: { 
                 highlight: folkrnn.abcjsSelectionCallback,
                 modelChanged:  folkrnn.abcjsModelChangedCallback
-                }
+            }
         }
     });
 };
@@ -120,46 +179,3 @@ folkrnn.updateKeyMeter = function() {
     }
 };
 
-folkrnn.websocketConnect = function(tune_id) {
-    "use strict";
-    const ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-    const ws_path = ws_scheme + '://' + window.location.host;
-
-    const webSocketBridge = new channels.WebSocketBridge();
-    webSocketBridge.connect(ws_path);
-    webSocketBridge.listen(folkrnn.websocketReceive);
-
-    webSocketBridge.socket.addEventListener('open', function() {
-        console.log("Connected to WebSocket");
-        webSocketBridge.send({
-                    command: "register_for_tune", 
-                    tune_id: tune_id
-                    });
-    });
-};
-
-folkrnn.websocketReceive = function(action, stream) {
-    "use strict";
-    const el_abc = document.getElementById("abc");
-    if ('bars' in folkrnn.websocketReceive === false) {
-        folkrnn.websocketReceive.bars = 0;
-    }
-    if (action.command == "generation_status") {
-        if (action.status == "complete") {
-            window.location.reload();
-        }
-    }
-    if (action.command == "add_token") {
-        if (el_abc.innerHTML == "Waiting for folk-rnn...") {
-            el_abc.innerHTML = "";
-        }
-        if (action.token == "|") {
-            folkrnn.websocketReceive.bars += 1;
-            if (folkrnn.websocketReceive.bars > 3) {
-                folkrnn.websocketReceive.bars = 0;
-                el_abc.innerHTML += '\n';
-            }
-        }
-        el_abc.innerHTML += action.token;
-    }
-};
