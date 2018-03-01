@@ -25,22 +25,11 @@ def tune_page(request, tune_id=None):
     except (TypeError, RNNTune.DoesNotExist):
         return redirect('/')
 
-    # Handle rnn-in-process
-
-    if not tune.rnn_finished:
-        return render(request, 'composer/tune-in-process.html', {
-            'candidate_id': tune_id_int,
-            'compose_form': ComposeForm(),
-            })
-            
-    # Display generated tune
-
     return render(request, 'composer/tune.html', {
-        'tune': tune,
-        'archive_form': ArchiveForm({'folkrnn_id': tune_id_int, 'title': tune.title}),
-        'rnn_duration': (tune.rnn_finished - tune.rnn_started).total_seconds(),
-        'tune_rows': tune.abc.count('\n'),
         'compose_form': ComposeForm(),
+        'tune': tune,
+        'tune_rows': tune.abc.count('\n'),
+        'archive_form': ArchiveForm({'folkrnn_id': tune_id_int, 'title': tune.title}),
         'machine_folk_tune_count': Tune.objects.count()
         })
 
