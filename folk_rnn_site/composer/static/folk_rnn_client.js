@@ -11,14 +11,14 @@ folkrnn.initialise = function() {
     folkrnn.fieldSeed = document.getElementById("id_seed");
     folkrnn.fieldKey = document.getElementById("id_key");
     folkrnn.fieldMeter = document.getElementById("id_meter");
-    folkrnn.fieldTokens = document.getElementById("id_prime_tokens");
+    folkrnn.fieldStartABC = document.getElementById("id_start_abc");
     folkrnn.composeButton = document.getElementById("compose_button");
     
     folkrnn.updateKeyMeter();
     
     folkrnn.fieldModel.addEventListener("change", folkrnn.updateKeyMeter);
     
-    folkrnn.fieldTokens.addEventListener("input", folkrnn.validateStartABC);
+    folkrnn.fieldStartABC.addEventListener("input", folkrnn.validateStartABC);
     
     folkrnn.composeButton.addEventListener("click", folkrnn.generateRequest);
     
@@ -67,7 +67,7 @@ folkrnn.generateRequest = function () {
     valid = valid && folkrnn.fieldSeed.reportValidity();
     valid = valid && folkrnn.fieldKey.reportValidity();
     valid = valid && folkrnn.fieldMeter.reportValidity();
-    valid = valid && folkrnn.fieldTokens.reportValidity();
+    valid = valid && folkrnn.fieldStartABC.reportValidity();
     if (valid) {
         const formData = {};
         formData.model = folkrnn.fieldModel.value;
@@ -75,7 +75,7 @@ folkrnn.generateRequest = function () {
         formData.seed = folkrnn.fieldSeed.value;
         formData.key = folkrnn.fieldKey.value;
         formData.meter = folkrnn.fieldMeter.value;
-        formData.startABC = folkrnn.fieldTokens.value;
+        formData.start_abc = folkrnn.parseABC(folkrnn.fieldStartABC.value).tokens.join(' ');
         
         folkrnn.websocketSend({
                     'command': 'compose',
@@ -122,7 +122,7 @@ folkrnn.initABCJS = function() {
 
 folkrnn.validateStartABC = function() {
     "use strict";
-    const abc = folkrnn.fieldTokens.value;
+    const abc = folkrnn.fieldStartABC.value;
     const abcParsed = folkrnn.parseABC(abc);
 
     this.setCustomValidity('');

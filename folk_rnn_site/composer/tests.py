@@ -25,7 +25,7 @@ def folk_rnn_task_end_mock():
 class ComposerTestCase(TestCase):
     
     def post_tune(self, seed=123, temp=0.1, prime_tokens='a b c'):
-        return self.client.post('/', data={'model': 'with_repeats.pickle', 'seed': seed, 'temp': temp, 'meter':'M:4/4', 'key': 'K:Cmaj', 'prime_tokens': prime_tokens})
+        return self.client.post('/', data={'model': 'with_repeats.pickle', 'seed': seed, 'temp': temp, 'meter':'M:4/4', 'key': 'K:Cmaj', 'start_abc': prime_tokens})
     
 class HomePageTest(ComposerTestCase):
     

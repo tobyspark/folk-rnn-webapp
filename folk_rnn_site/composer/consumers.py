@@ -164,7 +164,7 @@ class ComposerConsumer(JsonWebsocketConsumer):
                 tune.temp = form.cleaned_data['temp']
                 tune.meter = form.cleaned_data['meter']
                 tune.key = form.cleaned_data['key']
-                tune.start_abc = form.cleaned_data['prime_tokens']
+                tune.start_abc = form.cleaned_data['start_abc']
                 tune.save()
                 
                 async_to_sync(self.channel_layer.send)('folk_rnn', {
