@@ -5,6 +5,7 @@ from tempfile import SpooledTemporaryFile
 
 from folk_rnn_site.tests import ABC_TITLE, ABC_BODY, mint_abc, FOLKRNN_OUT
 from composer.models import RNNTune
+from composer import FOLKRNN_TUNE_TITLE
 
 from archiver.models import Tune, Setting, Comment
 from archiver.dataset import setting_dataset, dataset_as_csv
@@ -77,7 +78,7 @@ class TunePageTest(ArchiverTestCase):
         self.assertEqual(Setting.objects.count(), 1)
 
     def test_tune_page_does_not_accept_setting_with_default_title(self):
-        self.post_setting(tune=mint_abc(title='Folk RNN Candidate Tune'))
+        self.post_setting(tune=mint_abc(title=FOLKRNN_TUNE_TITLE))
         self.assertEqual(Setting.objects.count(), 0)
 
     def test_tune_page_does_not_accept_setting_with_rnn_abc_body(self):

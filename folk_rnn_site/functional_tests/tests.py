@@ -13,7 +13,7 @@ from composer.models import RNNTune
 from archiver.models import Tune
 
 RNN_TUNE_TEXT = '''X:1
-T:Folk RNN Candidate Tune No1
+T:Folk RNN Tune №1
 M:4/4
 K:Cmaj
 GccBGBdf|edcdecdB|cBBGAFGA|_BGGFGFEF|GccBGBdf|edcBGBdf|edcBGA_BG|FDAFDCB,B,:||:efgagfec|BAGEFDB,D|efgagfec|BGFDDCCf|efgagfec|BAGEDFFB|cBcdefge|fdBddcBd:|

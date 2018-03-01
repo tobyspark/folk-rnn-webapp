@@ -5,7 +5,7 @@ if (typeof folkrnn == 'undefined')
     folkrnn = {};
     
 folkrnn.emptyTune = {
-    'abc': 'Waiting for generation task...',
+    'abc': 'Waiting for folk-rnn...',
     'rnn_model_name': '',
     'seed': '',
     'temp': '',

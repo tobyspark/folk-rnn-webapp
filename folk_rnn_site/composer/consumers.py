@@ -8,7 +8,7 @@ from asgiref.sync import async_to_sync
 import json
 
 from composer.rnn_models import folk_rnn_cached
-from composer import ABC2ABC_PATH, TUNE_PATH
+from composer import ABC2ABC_PATH, TUNE_PATH, FOLKRNN_TUNE_TITLE
 from composer.models import RNNTune
 from composer.forms import ComposeForm
 
@@ -42,7 +42,7 @@ class FolkRNNConsumer(SyncConsumer):
                                 })
         
         # Machinery to build ABC incrementally, notifying consumers of abc updates.
-        abc = 'X:{id}\nT:Folk RNN Candidate Tune No{id}\n'.format(id=tune.id)
+        abc = 'X:{id}\nT:{title}{id}\n'.format(title=FOLKRNN_TUNE_TITLE, id=tune.id)
         token_count = 0
         deferred_tokens = []
         def on_token(token):
