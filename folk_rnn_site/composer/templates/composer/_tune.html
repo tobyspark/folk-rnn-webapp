@@ -24,7 +24,7 @@
         </div>
         <div id=export>
             <h3 class="content-subhead">Save it</h3>
-            <form method="POST" action="{% url 'archive_tune' tune_id=tune.id %}" class="pure-form"> <!-- FIXME: Can host_url work? Using url only works here because ROOT_URLCONF = 'composer.urls' -->
+            <form id="archive_form" method="POST" action="{% url 'archive_tune' tune_id=tune.id %}" class="pure-form"> <!-- FIXME: Can host_url work? Using url only works here because ROOT_URLCONF = 'composer.urls' -->
                 {% csrf_token %}
                 <div class="pure-u-17-24"> <!-- should be pure-u-3-4 -->
                     {% render_field archive_form.title class+="pure-input-1" %}
