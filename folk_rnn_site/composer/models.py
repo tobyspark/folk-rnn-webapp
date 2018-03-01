@@ -18,6 +18,8 @@ class RNNTune(ABCModel):
             'rnn_started': self.rnn_started.isoformat() if self.rnn_started else None,
             'rnn_finished': self.rnn_finished.isoformat() if self.rnn_finished else None,
             'abc': self.abc,
+            'title': self.title if self.abc else "",
+            'id': self.id,
         }
     
     rnn_model_name = models.CharField(max_length=64, default='')

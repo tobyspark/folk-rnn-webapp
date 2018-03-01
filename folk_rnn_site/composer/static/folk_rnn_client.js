@@ -168,7 +168,6 @@ folkrnn.updateKeyMeter = function() {
         }
     }
 
-
     while (folkrnn.fieldKey.lastChild) {
         folkrnn.fieldKey.removeChild(folkrnn.fieldKey.lastChild);
     }
@@ -194,6 +193,8 @@ folkrnn.updateTuneDiv = function(tune) {
     const el_prime_tokens = document.getElementById("prime_tokens");
     const el_requested = document.getElementById("requested");
     const el_generated = document.getElementById("generated");
+    const el_archive_form = document.getElementById("archive_form");
+    const el_archive_title = document.getElementById("id_title");
     
     el_abc.innerHTML = tune.abc;
     el_abc.setAttribute('rows', tune.abc.split(/\r\n|\r|\n/).length - 1);
@@ -207,9 +208,15 @@ folkrnn.updateTuneDiv = function(tune) {
         el_generated.innerHTML = new Date(tune.rnn_finished).toLocaleString();
         el_requested.parentNode.setAttribute('style', 'display: none');
         el_generated.parentNode.removeAttribute('style');
+        
+        el_archive_title.value = tune.title;
+        el_archive_form.setAttribute('action', tune.archive_url);
+        el_archive_form.removeAttribute('style');
     } else {
         el_requested.innerHTML = new Date(tune.requested).toLocaleString();
         el_requested.parentNode.removeAttribute('style');
         el_generated.parentNode.setAttribute('style', 'display: none');
+        
+        el_archive_form.setAttribute('style', 'display: none');
     }
 }

@@ -1,11 +1,12 @@
 import os
 import subprocess
+import json
 from datetime import datetime
 from channels.consumer import SyncConsumer
 from channels.exceptions import StopConsumer
 from channels.generic.websocket import JsonWebsocketConsumer
 from asgiref.sync import async_to_sync
-import json
+from django_hosts.resolvers import reverse
 
 from composer.rnn_models import folk_rnn_cached
 from composer import ABC2ABC_PATH, TUNE_PATH, FOLKRNN_TUNE_TITLE
@@ -113,12 +114,14 @@ class FolkRNNConsumer(SyncConsumer):
         tune.save()
         
         # Notify consumers generation has finished
+        tune_export = tune.plain_dict()
+        tune_export['archive_url'] = reverse('tune', host='archiver', kwargs={'tune_id': tune.id})
         async_to_sync(self.channel_layer.group_send)(
                                 'tune_{}'.format(tune.id),
                                 {
                                     'type': 'generation_status',
                                     'status': 'finish',
-                                    'tune': tune.plain_dict(),
+                                    'tune': tune_export,
                                 })
                                 
         raise StopConsumer
