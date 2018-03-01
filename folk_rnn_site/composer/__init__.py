@@ -12,6 +12,8 @@ STORE_PATH = '/var/opt/folk_rnn_task'
 MODEL_PATH = os.path.join(STORE_PATH, 'models')
 TUNE_PATH = os.path.join(STORE_PATH, 'tunes')
 
+FOLKRNN_TUNE_TITLE = 'Folk RNN Tune №'
+
 try:
     os.makedirs(MODEL_PATH)
 except OSError:
