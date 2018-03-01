@@ -14,6 +14,9 @@ folkrnn.initialise = function() {
     folkrnn.fieldStartABC = document.getElementById("id_start_abc");
     folkrnn.composeButton = document.getElementById("compose_button");
     
+    folkrnn.div_about = document.getElementById("header");
+    folkrnn.div_tune = document.getElementById("tune");
+    
     folkrnn.updateKeyMeter();
     
     folkrnn.fieldModel.addEventListener("change", folkrnn.updateKeyMeter);
@@ -22,7 +25,7 @@ folkrnn.initialise = function() {
     
     folkrnn.composeButton.addEventListener("click", folkrnn.generateRequest);
     
-    folkrnn.initABCJS();
+    folkrnn.div_tune.setAttribute('style', 'display: none');
     
     folkrnn.websocketConnect();
 };
@@ -41,7 +44,9 @@ folkrnn.tuneManager = {
                     command: "register_for_tune", 
                     tune_id: tune_id
                     });
-        // Add to DOM...
+        
+        folkrnn.div_about.setAttribute('style', 'display: none');
+        folkrnn.div_tune.removeAttribute('style');
     },
     'remove_tune': function (tune_id) {
         "use strict";
@@ -55,6 +60,11 @@ folkrnn.tuneManager = {
         // Remove from DOM...
         folkrnn.updateTuneDiv(folkrnn.emptyTune);
         folkrnn.clearABCJS()
+        
+        if (folkrnn.tuneManager.tune_ids.length == 0) {
+            folkrnn.div_tune.setAttribute('style', 'display: none');
+            folkrnn.div_about.removeAttribute('style');
+        } 
     }
 };
 
