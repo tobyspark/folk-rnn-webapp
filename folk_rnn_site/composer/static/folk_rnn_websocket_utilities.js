@@ -43,18 +43,21 @@ folkrnn.websocketReceive = function(action, stream) {
         folkrnn.websocketReceive.bars = 0;
     }
     if (action.command == "add_tune") {
-        folkrnn.tuneManager.add_tune(action.tune_id)
+        folkrnn.tuneManager.add_tune(action.tune_id);
     }
     if (action.command == "generation_status") {
-        if (action.status == "complete") {
-            el_abc.innerHTML = action.tune.abc
-            el_abc.setAttribute('rows', action.tune.abc.split(/\r\n|\r|\n/).length)
-            // TODO: Fill out metadata
+        if (action.status == "start") {
+            folkrnn.updateTuneDiv(action.tune)
+        }
+        
+        if (action.status == "finish") {
+            folkrnn.updateTuneDiv(action.tune)
+            
             // TODO: Trigger ABCJS
         }
     }
     if (action.command == "add_token") {
-        if (el_abc.innerHTML == "Waiting for folk-rnn...") {
+        if (el_abc.innerHTML == folkrnn.emptyTune.abc) {
             el_abc.innerHTML = "";
         }
         if (action.token == "|") {
@@ -65,6 +68,6 @@ folkrnn.websocketReceive = function(action, stream) {
             }
         }
         el_abc.innerHTML += action.token;
-        el_abc.setAttribute('rows', el_abc.innerHTML.split(/\r\n|\r|\n/).length)
+        el_abc.setAttribute('rows', el_abc.innerHTML.split(/\r\n|\r|\n/).length);
     }
 };

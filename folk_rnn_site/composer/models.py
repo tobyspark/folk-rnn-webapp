@@ -15,8 +15,8 @@ class RNNTune(ABCModel):
             'temp': self.temp,
             'prime_tokens': self.prime_tokens,
             'requested': self.requested.isoformat(),
-            'rnn_started': self.rnn_started.isoformat(),
-            'rnn_finished': self.rnn_finished.isoformat(),
+            'rnn_started': self.rnn_started.isoformat() if self.rnn_started else None,
+            'rnn_finished': self.rnn_finished.isoformat() if self.rnn_finished else None,
             'abc': self.abc,
         }
     
