@@ -42,7 +42,6 @@ folkrnn.tuneManager = {
                     tune_id: tune_id
                     });
         // Add to DOM...
-        folkrnn.updateTuneDiv(folkrnn.emptyTune)
     },
     'remove_tune': function (tune_id) {
         "use strict";
@@ -54,6 +53,8 @@ folkrnn.tuneManager = {
                     tune_id: tune_id
                     });
         // Remove from DOM...
+        folkrnn.updateTuneDiv(folkrnn.emptyTune);
+        folkrnn.clearABCJS()
     }
 };
 
@@ -117,6 +118,14 @@ folkrnn.initABCJS = function() {
         }
     });
 };
+
+folkrnn.clearABCJS = function() {
+    "use strict";
+    delete folkrnn.abcEditor;
+    document.getElementById("notation").innerHTML="";
+    document.getElementById("midi").innerHTML="";
+    document.getElementById("midi-download").innerHTML="";
+}
 
 folkrnn.validateStartABC = function() {
     "use strict";

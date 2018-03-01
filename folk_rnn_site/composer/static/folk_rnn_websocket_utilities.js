@@ -52,8 +52,7 @@ folkrnn.websocketReceive = function(action, stream) {
         
         if (action.status == "finish") {
             folkrnn.updateTuneDiv(action.tune)
-            
-            // TODO: Trigger ABCJS
+            folkrnn.initABCJS();
         }
     }
     if (action.command == "add_token") {
