@@ -9,7 +9,7 @@ from composer.forms import ComposeForm, ArchiveForm
 from archiver.models import Tune
 
 def home_page(request):
-    last_tune = RNNTune.objects.last()
+    last_tune = RNNTune.objects.filter(rnn_finished__isnull=False).order_by('-id')[0]
     return render(request, 'composer/home.html', {
                                 'compose_form': ComposeForm(),
                                 'tune': last_tune,
