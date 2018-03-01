@@ -14,9 +14,7 @@
         <div id="layout" class="pure-g">
             {% include "composer/_compose.html" %}
             <div class="content pure-u-3-4">
-                {% include "composer/_header.html" %}
                 {% block content %}{% endblock %}
-                {% include "composer/_footer.html" %}
             </div>
         </div>
         {% block bodyend %}{% endblock %}

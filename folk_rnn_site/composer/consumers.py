@@ -5,10 +5,12 @@ from channels.consumer import SyncConsumer
 from channels.exceptions import StopConsumer
 from channels.generic.websocket import JsonWebsocketConsumer
 from asgiref.sync import async_to_sync
+import json
 
 from composer.rnn_models import folk_rnn_cached
 from composer import ABC2ABC_PATH, TUNE_PATH
 from composer.models import RNNTune
+from composer.forms import ComposeForm
 
 ABC2ABC_COMMAND = [
             ABC2ABC_PATH, 
@@ -55,7 +57,8 @@ class FolkRNNConsumer(SyncConsumer):
             async_to_sync(self.channel_layer.group_send)(
                                     'tune_{}'.format(tune.id),
                                     {
-                                        'type': 'update_abc',
+                                        'type': 'generation_status',
+                                        'status': 'new_abc',
                                         'abc': abc,
                                     })
         
@@ -107,6 +110,7 @@ class FolkRNNConsumer(SyncConsumer):
                                 {
                                     'type': 'generation_status',
                                     'status': 'complete',
+                                    'tune': tune.plain_dict(),
                                 })
                                 
         raise StopConsumer
@@ -118,27 +122,23 @@ class ComposerConsumer(JsonWebsocketConsumer):
         self.tune_id = None
         self.abc_sent = ''
     
-    def update_abc(self, message):
-        '''
-        Send unsent tokens to the client, i.e. realtime update of generation.
-        A websocket will typically connect mid-generation, so broadcasting all 
-        the abc internally and then sending only what is new guarantees complete 
-        abc for the client with minimal network overhead or server complexity.
-        '''
-        # Only send unsent tokens. 
-        # 
-        to_send = message['abc'].replace(self.abc_sent, '')
-        self.abc_sent += to_send
-        self.send_json({
-                    'command': 'add_token',
-                    'token': to_send
-                    })
-    
     def generation_status(self, message):
-        self.send_json({
-                    'command': 'generation_status',
-                    'status': message['status']
-                    })
+        if message['status'] in ['complete']:
+            message['command'] = message.pop('type')
+            self.send_json(message)
+        elif message['status'] == 'new_abc':
+            '''
+            Send unsent tokens to the client, i.e. realtime update of generation.
+            A websocket will typically connect mid-generation, so broadcasting all 
+            the abc internally and then sending only what is new guarantees complete 
+            abc for the client with minimal network overhead or server complexity.
+            '''
+            to_send = message['abc'].replace(self.abc_sent, '')
+            self.abc_sent += to_send
+            self.send_json({
+                        'command': 'add_token',
+                        'token': to_send
+                        })
         
     def receive_json(self, content):
         print('receive_json: {}'.format(content))
@@ -148,7 +148,35 @@ class ComposerConsumer(JsonWebsocketConsumer):
                                         'tune_{}'.format(self.tune_id), 
                                         self.channel_name
                                         )
-        
+        if content['command'] == 'unregister_for_tune':
+            self.tune_id = None
+            self.abc_sent = ''
+            async_to_sync(self.channel_layer.group_discard)(
+                                        'tune_{}'.format(content['tune_id']), 
+                                        self.channel_name
+                                        )
+        if content['command'] == 'compose':
+            form = ComposeForm(content['data'])
+            if form.is_valid():
+                tune = RNNTune()
+                tune.rnn_model_name = form.cleaned_data['model']
+                tune.seed = form.cleaned_data['seed']
+                tune.temp = form.cleaned_data['temp']
+                tune.meter = form.cleaned_data['meter']
+                tune.key = form.cleaned_data['key']
+                tune.start_abc = form.cleaned_data['prime_tokens']
+                tune.save()
+                
+                async_to_sync(self.channel_layer.send)('folk_rnn', {
+                                                        'type': 'folkrnn.generate', 
+                                                        'id': tune.id
+                                                        })
+                self.send_json({
+                    'command': 'add_tune',
+                    'tune_id': tune.id
+                    })
+            else:
+                print('receive_json.compose: invalid form data\n{}'.format(compose_form_data))
         
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(
