@@ -176,7 +176,7 @@ class ComposerConsumer(JsonWebsocketConsumer):
                     'tune_id': tune.id
                     })
             else:
-                print('receive_json.compose: invalid form data\n{}'.format(compose_form_data))
+                print('receive_json.compose: invalid form data\n{}'.format(form.errors))
         
     def disconnect(self, close_code):
         async_to_sync(self.channel_layer.group_discard)(
