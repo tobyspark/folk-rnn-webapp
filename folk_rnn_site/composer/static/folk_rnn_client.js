@@ -35,16 +35,14 @@ folkrnn.tuneManager = {
         
         // Temp while we're single-tune only
         while (folkrnn.tuneManager.tune_ids.length > 1)
-            folkrnn.tuneManager.remove_tune(folkrnn.tuneManager.tune_ids[folkrnn.tuneManager.tune_ids.length-1])
+            folkrnn.tuneManager.remove_tune(folkrnn.tuneManager.tune_ids[folkrnn.tuneManager.tune_ids.length-1]);
         
         folkrnn.websocketSend({
                     command: "register_for_tune", 
                     tune_id: tune_id
                     });
         // Add to DOM...
-        const el_tune = document.getElementById("tune");
-        const el_abc = document.getElementById("abc");
-        el_abc.innerHTML = "Waiting for folk-rnn..."
+        folkrnn.updateTuneDiv(folkrnn.emptyTune)
     },
     'remove_tune': function (tune_id) {
         "use strict";
@@ -179,3 +177,30 @@ folkrnn.updateKeyMeter = function() {
     }
 };
 
+folkrnn.updateTuneDiv = function(tune) {
+    const el_abc = document.getElementById("abc");
+    const el_model = document.getElementById("rnn_model_name");
+    const el_seed = document.getElementById("seed");
+    const el_temp = document.getElementById("temp");
+    const el_prime_tokens = document.getElementById("prime_tokens");
+    const el_requested = document.getElementById("requested");
+    const el_generated = document.getElementById("generated");
+    
+    el_abc.innerHTML = tune.abc;
+    el_abc.setAttribute('rows', tune.abc.split(/\r\n|\r|\n/).length - 1);
+    el_model.innerHTML = tune.rnn_model_name;
+    el_seed.innerHTML = tune.seed;
+    el_temp.innerHTML = tune.temp;
+    el_prime_tokens.innerHTML = tune.prime_tokens;
+    el_requested.innerHTML = tune.requested;
+    el_generated.innerHTML = tune.rnn_finished;
+    if (tune.rnn_finished) {
+        el_generated.innerHTML = new Date(tune.rnn_finished).toLocaleString();
+        el_requested.parentNode.setAttribute('style', 'display: none');
+        el_generated.parentNode.removeAttribute('style');
+    } else {
+        el_requested.innerHTML = new Date(tune.requested).toLocaleString();
+        el_requested.parentNode.removeAttribute('style');
+        el_generated.parentNode.setAttribute('style', 'display: none');
+    }
+}

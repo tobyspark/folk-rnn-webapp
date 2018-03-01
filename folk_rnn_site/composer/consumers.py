@@ -33,6 +33,14 @@ class FolkRNNConsumer(SyncConsumer):
         tune.rnn_started = datetime.now()
         tune.save()
         
+        async_to_sync(self.channel_layer.group_send)(
+                                'tune_{}'.format(tune.id),
+                                {
+                                    'type': 'generation_status',
+                                    'status': 'start',
+                                    'tune': tune.plain_dict(),
+                                })
+        
         # Machinery to build ABC incrementally, notifying consumers of abc updates.
         abc = 'X:{id}\nT:Folk RNN Candidate Tune No{id}\n'.format(id=tune.id)
         token_count = 0
@@ -109,7 +117,7 @@ class FolkRNNConsumer(SyncConsumer):
                                 'tune_{}'.format(tune.id),
                                 {
                                     'type': 'generation_status',
-                                    'status': 'complete',
+                                    'status': 'finish',
                                     'tune': tune.plain_dict(),
                                 })
                                 
@@ -123,7 +131,8 @@ class ComposerConsumer(JsonWebsocketConsumer):
         self.abc_sent = ''
     
     def generation_status(self, message):
-        if message['status'] in ['complete']:
+        print('generation_status: {}'.format(message))
+        if message['status'] in ['start', 'finish']:
             message['command'] = message.pop('type')
             self.send_json(message)
         elif message['status'] == 'new_abc':
