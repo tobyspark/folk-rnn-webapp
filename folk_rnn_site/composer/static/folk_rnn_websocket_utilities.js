@@ -38,35 +38,28 @@ folkrnn.websocketSend = function(json) {
 folkrnn.websocketReceive = function(action, stream) {
     "use strict";
     
-    const el_abc = document.getElementById("abc");
-    if ('bars' in folkrnn.websocketReceive === false) {
-        folkrnn.websocketReceive.bars = 0;
-    }
     if (action.command == "add_tune") {
-        folkrnn.tuneManager.add_tune(action.tune_id);
+        folkrnn.tuneManager.addTune(action.tune_id);
     }
     if (action.command == "generation_status") {
         if (action.status == "start") {
-            folkrnn.updateTuneDiv(action.tune)
+            folkrnn.updateTuneDiv(action.tune);
         }
         
         if (action.status == "finish") {
-            folkrnn.updateTuneDiv(action.tune)
-            folkrnn.initABCJS();
+            folkrnn.updateTuneDiv(action.tune);
+            folkrnn.tuneManager.enableABCJS(action.tune.id);
         }
     }
     if (action.command == "add_token") {
-        if (el_abc.innerHTML == folkrnn.emptyTune.abc) {
+        const el_tune = folkrnn.tuneManager.tuneDiv(action.tune_id);
+        const el_abc = el_tune.querySelector('#abc-'+action.tune_id);
+        if (el_abc.innerHTML == folkrnn.emptyTune.abc)
             el_abc.innerHTML = "";
-        }
-        if (action.token == "|") {
-            folkrnn.websocketReceive.bars += 1;
-            if (folkrnn.websocketReceive.bars > 3) {
-                folkrnn.websocketReceive.bars = 0;
-                el_abc.innerHTML += '\n';
-            }
-        }
         el_abc.innerHTML += action.token;
+        if (action.token.includes("|")) 
+            if (el_abc.innerHTML.split("|").length % 5 === 0)
+                el_abc.innerHTML += '\n';
         el_abc.setAttribute('rows', el_abc.innerHTML.split(/\r\n|\r|\n/).length);
     }
 };

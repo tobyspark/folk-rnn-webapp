@@ -31,41 +31,86 @@ folkrnn.initialise = function() {
 };
 
 folkrnn.tuneManager = {
-    'tune_ids': [],
-    'add_tune': function (tune_id) {
+    'tunes': {},
+    'addTune': function (tune_id) {
         "use strict";
-        folkrnn.tuneManager.tune_ids.unshift(tune_id);
+        // Hide about div, now there is a tune
+        folkrnn.div_about.setAttribute('style', 'display: none');
         
-        // Temp while we're single-tune only
-        while (folkrnn.tuneManager.tune_ids.length > 1)
-            folkrnn.tuneManager.remove_tune(folkrnn.tuneManager.tune_ids[folkrnn.tuneManager.tune_ids.length-1]);
+        // Add tune to manager
+        const div_tune_new = folkrnn.div_tune.cloneNode(true);
+        div_tune_new.id = "tune_" + tune_id;
+        div_tune_new.querySelector('#abc').id = 'abc-' + tune_id;
+        div_tune_new.querySelector('#rnn_model_name').id = 'rnn_model_name-' + tune_id;
+        div_tune_new.querySelector('#seed').id = 'seed-' + tune_id;
+        div_tune_new.querySelector('#temp').id = 'temp-' + tune_id;
+        div_tune_new.querySelector('#prime_tokens').id = 'prime_tokens-' + tune_id;
+        div_tune_new.querySelector('#requested').id = 'requested-' + tune_id;
+        div_tune_new.querySelector('#generated').id = 'generated-' + tune_id;
+        div_tune_new.querySelector('#midi').id = 'midi-' + tune_id;
+        div_tune_new.querySelector('#midi-download').id = 'midi-download-' + tune_id;
+        div_tune_new.querySelector('#notation').id = 'notation-' + tune_id;
+        div_tune_new.querySelector('#archive_form').id = 'archive_form-' + tune_id;
+        div_tune_new.querySelector('#id_title').id = 'id_title-' + tune_id;
+        folkrnn.tuneManager.tunes[tune_id] = { 'div': div_tune_new };
         
+        // Place on page
+        folkrnn.div_tune.parentNode.insertBefore(div_tune_new, folkrnn.div_tune);
+        div_tune_new.removeAttribute('style');
+        div_tune_new.scrollIntoView();
+        
+        // Register for updates
         folkrnn.websocketSend({
                     command: "register_for_tune", 
                     tune_id: tune_id
                     });
-        
-        folkrnn.div_about.setAttribute('style', 'display: none');
-        folkrnn.div_tune.removeAttribute('style');
     },
-    'remove_tune': function (tune_id) {
+    'tuneDiv': function (tune_id) {
         "use strict";
-        const index = folkrnn.tuneManager.tune_ids.indexOf(tune_id);
-        if (index > -1)
-            folkrnn.tuneManager.tune_ids.splice(index, 1);
+        return folkrnn.tuneManager.tunes[tune_id].div;
+    },
+    'enableABCJS': function (tune_id) {
+        "use strict";
+        folkrnn.tuneManager.tunes[tune_id].abcjs = new ABCJS.Editor("abc-" + tune_id, { 
+            paper_id: "notation-" + tune_id,
+            generate_midi: true,
+            midi_id:"midi-" + tune_id,
+            midi_download_id: "midi-download-" + tune_id,
+            generate_warnings: true,
+            warnings_id:"warnings",
+            midi_options: {
+                generateDownload: true,
+                downloadLabel:"Download MIDI"
+            },
+            render_options: {
+                paddingleft:0,
+                paddingright:0,
+                responsive: "resize",
+                listener: { 
+                    highlight: folkrnn.abcjsSelectionCallback,
+                    modelChanged:  folkrnn.abcjsModelChangedCallback
+                }
+            }
+        });
+    },
+    'removeTune': function (tune_id) {
+        "use strict";
+        // Unregister for updates
         folkrnn.websocketSend({
                     command: "unregister_for_tune", 
                     tune_id: tune_id
                     });
-        // Remove from DOM...
-        folkrnn.updateTuneDiv(folkrnn.emptyTune);
-        folkrnn.clearABCJS()
         
-        if (folkrnn.tuneManager.tune_ids.length == 0) {
+        // Remove from page
+        folkrnn.div_tune.parentNode.removeChild(folkrnn.tuneManager.tunes[tune_id].div);
+        delete folkrnn.tuneManager.tunes[tune_id];
+        
+        // Reveal about div, if there are no tunes
+        if (folkrnn.tuneManager.tunes.length === 0) {
             folkrnn.div_tune.setAttribute('style', 'display: none');
             folkrnn.div_about.removeAttribute('style');
         } 
-    }
+    },
 };
 
 folkrnn.generateRequest = function () {
@@ -104,38 +149,6 @@ folkrnn.abcjsSelectionCallback = function (abcelem) {
     console.log('abcjsSelectionCallback');
     console.log(abcelem);
 };
-
-folkrnn.initABCJS = function() {
-    "use strict";
-    folkrnn.abcEditor = new ABCJS.Editor("abc", { paper_id: "notation",
-        generate_midi: true,
-        midi_id:"midi",
-        midi_download_id: "midi-download",
-        generate_warnings: true,
-        warnings_id:"warnings",
-        midi_options: {
-            generateDownload: true,
-            downloadLabel:"Download MIDI"
-        },
-        render_options: {
-            paddingleft:0,
-            paddingright:0,
-            responsive: "resize",
-            listener: { 
-                highlight: folkrnn.abcjsSelectionCallback,
-                modelChanged:  folkrnn.abcjsModelChangedCallback
-            }
-        }
-    });
-};
-
-folkrnn.clearABCJS = function() {
-    "use strict";
-    delete folkrnn.abcEditor;
-    document.getElementById("notation").innerHTML="";
-    document.getElementById("midi").innerHTML="";
-    document.getElementById("midi-download").innerHTML="";
-}
 
 folkrnn.validateStartABC = function() {
     "use strict";
@@ -196,15 +209,16 @@ folkrnn.updateKeyMeter = function() {
 };
 
 folkrnn.updateTuneDiv = function(tune) {
-    const el_abc = document.getElementById("abc");
-    const el_model = document.getElementById("rnn_model_name");
-    const el_seed = document.getElementById("seed");
-    const el_temp = document.getElementById("temp");
-    const el_prime_tokens = document.getElementById("prime_tokens");
-    const el_requested = document.getElementById("requested");
-    const el_generated = document.getElementById("generated");
-    const el_archive_form = document.getElementById("archive_form");
-    const el_archive_title = document.getElementById("id_title");
+    "use strict";
+    const el_abc = document.getElementById("abc-" + tune.id);
+    const el_model = document.getElementById("rnn_model_name-" + tune.id);
+    const el_seed = document.getElementById("seed-" + tune.id);
+    const el_temp = document.getElementById("temp-" + tune.id);
+    const el_prime_tokens = document.getElementById("prime_tokens-" + tune.id);
+    const el_requested = document.getElementById("requested-" + tune.id);
+    const el_generated = document.getElementById("generated-" + tune.id);
+    const el_archive_form = document.getElementById("archive_form-" + tune.id);
+    const el_archive_title = document.getElementById("id_title-" + tune.id);
     
     el_abc.innerHTML = tune.abc;
     el_abc.setAttribute('rows', tune.abc.split(/\r\n|\r|\n/).length - 1);
@@ -229,4 +243,4 @@ folkrnn.updateTuneDiv = function(tune) {
         
         el_archive_form.setAttribute('style', 'display: none');
     }
-}
+};
