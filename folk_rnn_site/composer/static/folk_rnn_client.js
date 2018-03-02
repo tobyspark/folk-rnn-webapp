@@ -52,6 +52,9 @@ folkrnn.tuneManager = {
         div_tune_new.querySelector('#notation').id = 'notation-' + tune_id;
         div_tune_new.querySelector('#archive_form').id = 'archive_form-' + tune_id;
         div_tune_new.querySelector('#id_title').id = 'id_title-' + tune_id;
+        div_tune_new.querySelector('#remove_button').addEventListener("click", function () {
+            folkrnn.tuneManager.removeTune(tune_id);
+        });
         folkrnn.tuneManager.tunes[tune_id] = { 'div': div_tune_new };
         
         // Place on page
@@ -106,8 +109,7 @@ folkrnn.tuneManager = {
         delete folkrnn.tuneManager.tunes[tune_id];
         
         // Reveal about div, if there are no tunes
-        if (folkrnn.tuneManager.tunes.length === 0) {
-            folkrnn.div_tune.setAttribute('style', 'display: none');
+        if (Object.keys(folkrnn.tuneManager.tunes).length === 0) {
             folkrnn.div_about.removeAttribute('style');
         } 
     },
