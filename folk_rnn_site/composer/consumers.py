@@ -67,6 +67,7 @@ class FolkRNNConsumer(SyncConsumer):
                                     {
                                         'type': 'generation_status',
                                         'status': 'new_abc',
+                                        'tune_id': tune.id,
                                         'abc': abc,
                                     })
         
@@ -127,8 +128,8 @@ class ComposerConsumer(JsonWebsocketConsumer):
 
     def connect(self):
         self.accept()
-        self.tune_id = None
-        self.abc_sent = ''
+        if not hasattr(self, 'abc_sent'):
+            self.abc_sent = {}
     
     def generation_status(self, message):
         print('generation_status: {}'.format(message))
@@ -142,24 +143,24 @@ class ComposerConsumer(JsonWebsocketConsumer):
             the abc internally and then sending only what is new guarantees complete 
             abc for the client with minimal network overhead or server complexity.
             '''
-            to_send = message['abc'].replace(self.abc_sent, '')
-            self.abc_sent += to_send
+            to_send = message['abc'].replace(self.abc_sent[message['tune_id']], '')
+            self.abc_sent[message['tune_id']] += to_send
             self.send_json({
                         'command': 'add_token',
-                        'token': to_send
+                        'token': to_send,
+                        'tune_id': message['tune_id']
                         })
         
     def receive_json(self, content):
         print('receive_json: {}'.format(content))
         if content['command'] == 'register_for_tune':
-            self.tune_id = content['tune_id']
+            self.abc_sent[content['tune_id']] = ''
             async_to_sync(self.channel_layer.group_add)(
-                                        'tune_{}'.format(self.tune_id), 
+                                        'tune_{}'.format(content['tune_id']), 
                                         self.channel_name
                                         )
         if content['command'] == 'unregister_for_tune':
-            self.tune_id = None
-            self.abc_sent = ''
+            del self.abc_sent[content['tune_id']]
             async_to_sync(self.channel_layer.group_discard)(
                                         'tune_{}'.format(content['tune_id']), 
                                         self.channel_name
@@ -188,7 +189,8 @@ class ComposerConsumer(JsonWebsocketConsumer):
                 print('receive_json.compose: invalid form data\n{}'.format(form.errors))
         
     def disconnect(self, close_code):
-        async_to_sync(self.channel_layer.group_discard)(
-                                        'tune_{}'.format(self.tune_id), 
-                                        self.channel_name
-                                        )
+        for tune_id in self.abc_sent:
+            async_to_sync(self.channel_layer.group_discard)(
+                                            'tune_{}'.format(tune_id), 
+                                            self.channel_name
+                                            )

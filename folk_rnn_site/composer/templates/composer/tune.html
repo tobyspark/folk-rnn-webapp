@@ -1,5 +1,5 @@
 {% extends "composer/home.html" %}
 
 {% block bodyend %}
-<script type="text/javascript">window.addEventListener("load", function () {folkrnn.tuneManager.add_tune({{ tune.id }}); folkrnn.initABCJS();}, false);</script>
+<script type="text/javascript">window.addEventListener("load", function () {folkrnn.tuneManager.addTune({{ tune.id }}); folkrnn.initABCJS();}, false);</script>
 {% endblock %}
