@@ -37,11 +37,29 @@ pip3 install "django-widget-tweaks"
 pip3 install "channels~=2.0"
 pip3 install "channels_redis"
 pip3 install "pytest-django" "pytest-asyncio"
+pip3 install psycopg2-binary
+apt-get install --yes postgresql
 apt-get install --yes redis-server
 apt-get install --yes abcmidi
 
 # folk_rnn setup
 cd /folk_rnn_webapp
+
+# ...postgres setup
+if ! su - postgres -c 'psql -l' | grep -q folk_rnn; then
+    # Password auth for local users, i.e. unix user: vagrant, db user: folk_rnn
+    su - postgres -c 'sed -i.bak "s/local   all             all                                     peer/local   all             all                                     md5/" /etc/postgresql/9.5/main/pg_hba.conf'
+    sudo service postgresql restart
+    cat << EOF | su - postgres -c psql
+-- Create the database user:
+CREATE USER folk_rnn WITH PASSWORD '${POSTGRES_PASS=dbpass}';
+ALTER ROLE folk_rnn SET client_encoding TO 'utf8';
+ALTER ROLE folk_rnn SET default_transaction_isolation TO 'read committed';
+ALTER ROLE folk_rnn SET timezone TO 'UTC';
+-- Create the database:
+CREATE DATABASE folk_rnn WITH OWNER=folk_rnn TEMPLATE=template0;
+EOF
+fi
 
 # ...nginx setup
 for HOST in $COMPOSER_HOST $ARCHIVER_HOST; do
