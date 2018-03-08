@@ -56,6 +56,7 @@ CREATE USER folk_rnn WITH PASSWORD '${POSTGRES_PASS=dbpass}';
 ALTER ROLE folk_rnn SET client_encoding TO 'utf8';
 ALTER ROLE folk_rnn SET default_transaction_isolation TO 'read committed';
 ALTER ROLE folk_rnn SET timezone TO 'UTC';
+ALTER ROLE folk_rnn CREATEDB;
 -- Create the database:
 CREATE DATABASE folk_rnn WITH OWNER=folk_rnn TEMPLATE=template0;
 EOF
