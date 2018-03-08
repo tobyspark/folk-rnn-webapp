@@ -1,7 +1,7 @@
 import os
 import subprocess
 import json
-from datetime import datetime
+from django.utils.timezone import now
 from channels.consumer import SyncConsumer
 from channels.exceptions import StopConsumer
 from channels.generic.websocket import JsonWebsocketConsumer
@@ -30,7 +30,7 @@ class FolkRNNConsumer(SyncConsumer):
         '''
         tune = RNNTune.objects.get(id=event['id'])
         
-        tune.rnn_started = datetime.now()
+        tune.rnn_started = now()
         tune.save()
         
         async_to_sync(self.channel_layer.group_send)(
@@ -110,7 +110,7 @@ class FolkRNNConsumer(SyncConsumer):
         
         # Save that ABC to the database
         tune.abc = abc
-        tune.rnn_finished = datetime.now()
+        tune.rnn_finished = now()
         tune.save()
         
         # Notify consumers generation has finished
