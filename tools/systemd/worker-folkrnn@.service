@@ -8,7 +8,7 @@ User = vagrant
 WorkingDirectory = /folk_rnn_webapp/folk_rnn_site
 EnvironmentFile = /folk_rnn_webapp/.env
 
-ExecStart = /usr/bin/python3 /folk_rnn_webapp/folk_rnn_site/manage.py runworker folk_rnn
+ExecStart = /usr/local/bin/python3.6 /folk_rnn_webapp/folk_rnn_site/manage.py runworker folk_rnn
 
 [Install]
 WantedBy = multi-user.target

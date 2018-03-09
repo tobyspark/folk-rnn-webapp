@@ -11,7 +11,7 @@ echo "******************************************************"
 
 echo
 echo "* Checking database..."
-python3 /folk_rnn_webapp/folk_rnn_site/manage.py migrate --no-input
+python3.6 /folk_rnn_webapp/folk_rnn_site/manage.py migrate --no-input
 
 if [ ${1:-prod} = "dev" ]; then
 
@@ -22,8 +22,8 @@ echo "* Running the webapp using Django's test server"
 sudo ufw allow 8000/tcp
 
 # Note 0.0.0.0 is necessary for access from outside the VM
-python3 /folk_rnn_webapp/folk_rnn_site/manage.py runworker folk_rnn &
-python3 /folk_rnn_webapp/folk_rnn_site/manage.py runserver 0.0.0.0:8000
+python3.6 /folk_rnn_webapp/folk_rnn_site/manage.py runworker folk_rnn &
+python3.6 /folk_rnn_webapp/folk_rnn_site/manage.py runserver 0.0.0.0:8000
 
 trap 'kill $(jobs -p)' EXIT
 
@@ -39,7 +39,7 @@ fi
 echo
 echo "* Collecting static files"
 
-python3 /folk_rnn_webapp/folk_rnn_site/manage.py collectstatic --no-input
+python3.6 /folk_rnn_webapp/folk_rnn_site/manage.py collectstatic --no-input
 
 echo
 echo "* Running the webapp using NGINX, Daphne and Redis"

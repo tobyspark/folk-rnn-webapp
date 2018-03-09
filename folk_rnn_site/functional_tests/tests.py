@@ -37,7 +37,7 @@ class FolkRNNLiveServerTestCase(ChannelsLiveServerTestCase):
     To test against production servers: 
     ```
     export FOLKRNN_LIVETEST=foo
-    python3 manage.py test functional_tests
+    python3.6 manage.py test functional_tests
     ```
     
     FIXME: This functional test doesn't test production archive server entirely, 
