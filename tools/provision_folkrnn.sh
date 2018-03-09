@@ -9,13 +9,15 @@ set -a; source /folk_rnn_webapp/.env; set +a
 
 ### Python provision
 
-apt-get install --yes build-essential checkinstall
-apt-get install --yes libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev
-wget --quiet https://www.python.org/ftp/python/3.6.4/Python-3.6.4.tar.xz
-tar xvf Python-3.6.4.tar.xz
-cd Python-3.6.4/
-./configure --enable-optimisation
-make altinstall # altinstall doesn't overwrite system python 
+if [ ! -x /usr/local/bin/python3.6 ]; then
+    apt-get install --yes build-essential checkinstall
+    apt-get install --yes libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev
+    wget --quiet https://www.python.org/ftp/python/3.6.4/Python-3.6.4.tar.xz
+    tar xvf Python-3.6.4.tar.xz
+    cd Python-3.6.4
+    ./configure --enable-optimisation
+    make altinstall # altinstall doesn't overwrite system python 
+fi
 
 ### Folk RNN
 
