@@ -36,13 +36,13 @@ class HomePageTest(ArchiverTestCase):
         setting = Setting(tune=tune, abc=mint_abc(body=ABC_BODY + ABC_BODY))
         setting.save()
         for i in range(1,11):
-            comment = Comment(tune=tune, text='{}'.format(i), author='author')
+            comment = Comment(tune=tune, text=f'{i}', author='author')
             comment.save()
 
         response = self.client.get('/')
-        title_html = '<ul><li><a href="/tune/1">{}</a></li></ul>'.format(ABC_TITLE)
-        setting_html = '<ul><li><a href="/tune/1">{}</a></li></ul>'.format(ABC_TITLE) # FIXME: this isn't what should be displayed, but for now...
-        comment_html = '<ul>' + ''.join('<li>{} — author, today, on <a href="/tune/1">{}</a></li>'.format(i, ABC_TITLE) for i in [10,9,8,7,6]) + '</ul>' # Note test for only five, latest first
+        title_html = f'<ul><li><a href="/tune/1">{ABC_TITLE}</a></li></ul>'
+        setting_html = f'<ul><li><a href="/tune/1">{ABC_TITLE}</a></li></ul>' # FIXME: this isn't what should be displayed, but for now...
+        comment_html = '<ul>' + ''.join(f'<li>{i} — author, today, on <a href="/tune/1">{ABC_TITLE}</a></li>' for i in [10,9,8,7,6]) + '</ul>' # Note test for only five, latest first
         self.assertContains(response, title_html, html=True)
         self.assertContains(response, setting_html, html=True)
         self.assertContains(response, comment_html, html=True)

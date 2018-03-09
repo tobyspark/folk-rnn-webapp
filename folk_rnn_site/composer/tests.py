@@ -34,7 +34,7 @@ class ViewsTest(TestCase):
         self.assertEqual(response['location'], '/')
     
     def test_tune_path_with_invalid_id_fails_gracefully(self):
-        response = self.client.get('/tune/{}'.format(RNNTune.objects.count()+1))
+        response = self.client.get(f'/tune/{RNNTune.objects.count()+1}')
         self.assertEqual(response['location'], '/')
 
     def test_tune_page_shows_tune(self):
@@ -42,7 +42,7 @@ class ViewsTest(TestCase):
         folk_rnn_task_start_mock()
         folk_rnn_task_end_mock()
         
-        response = self.client.get('/tune/{}'.format(RNNTune.objects.last().id))
+        response = self.client.get(f'/tune/{RNNTune.objects.last().id}')
         self.assertTemplateUsed(response, 'composer/tune.html')
         #print(response.content)
         self.assertContains(response,mint_abc()) # django widget inserts a newline; a django workaround to an html workaround beyond the scope of this project
@@ -60,12 +60,12 @@ class ViewsTest(TestCase):
         response = self.client.post('/tune/999/archive', {'title':'A new title'})
         self.assertEqual(response['location'], '/')
         
-        response = self.client.post('/tune/{}/archive'.format(RNNTune.objects.last().id), {'title':'A new title'})
+        response = self.client.post(f'/tune/{RNNTune.objects.last().id}/archive', {'title':'A new title'})
         self.assertEqual(response.status_code, 302)
-        archive_url = '//themachinefolksession.org/tune/{}'.format(Tune.objects.last().id)
+        archive_url = f'//themachinefolksession.org/tune/{Tune.objects.last().id}'
         self.assertEqual(response['location'], archive_url)
         
-        response = self.client.post('/tune/{}/archive'.format(RNNTune.objects.last().id), {'title':'A new title'})
+        response = self.client.post(f'/tune/{RNNTune.objects.last().id}/archive', {'title':'A new title'})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['location'], archive_url) # Not a new tune
 
