@@ -3,6 +3,7 @@ import json
 from channels.testing import ApplicationCommunicator, WebsocketCommunicator
 from channels.layers import get_channel_layer
 from datetime import timedelta
+from asyncio import sleep
 
 from composer import TUNE_PATH
 from composer.consumers import FolkRNNConsumer, ComposerConsumer
@@ -21,7 +22,10 @@ async def test_folkrnn_consumer():
         'type': 'folkrnn.generate', 
         'id': tune.id,
     })
-    await communicator.wait(timeout=5)
+    while RNNTune.objects.last().rnn_finished is None:
+        await sleep(0.1)
+    await communicator.send_input({'type': 'stop'})
+    await communicator.wait()
 
     with open(TUNE_PATH + f'/with_repeats_{tune.id}_raw') as f:
         assert f.read() == FOLKRNN_OUT_RAW
@@ -58,7 +62,7 @@ async def test_generation_status():
     # This sleep is critical. The design of the consumer means the add_token command
     # will have all pending abc, but testing output based on the non-deterministic point 
     # of first receiving the group messages muddies the procedural test logic.
-    import asyncio; await asyncio.sleep(3)
+    await sleep(3)
     
     channel_layer = get_channel_layer()
      
