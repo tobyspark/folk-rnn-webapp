@@ -68,11 +68,10 @@ class FolkRNNLiveServerTestCase(ChannelsLiveServerTestCase):
 
     def tune_url(self):
         tune_id = 1
-        # FIXME - Should this be objects.last()?
         if settings.DEFAULT_HOST == 'composer':
-            tune_id = RNNTune.objects.first().id
+            tune_id = RNNTune.objects.last().id
         if settings.DEFAULT_HOST == 'archiver':
-            tune_id = Tune.objects.first().id
+            tune_id = Tune.objects.last().id
         return self.base_url() + '/tune/{}'.format(tune_id)
         
     def assertEqualIgnoringTrailingNewline(self, l, r):
