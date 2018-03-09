@@ -21,7 +21,7 @@ class RNNTune(ABCModel):
         return {
             'rnn_model_name': self.rnn_model_name,
             'seed': self.seed,
-            'temp': self.temp,
+            'temp': float(self.temp),
             'prime_tokens': self.prime_tokens,
             'requested': self.requested.isoformat(),
             'rnn_started': self.rnn_started.isoformat() if self.rnn_started else None,

@@ -183,7 +183,7 @@ class ComposerConsumer(JsonWebsocketConsumer):
                                                         })
                 self.send_json({
                     'command': 'add_tune',
-                    'tune_id': tune.id
+                    'tune': tune.plain_dict()
                     })
             else:
                 print(f'receive_json.compose: invalid form data\n{form.errors}')
