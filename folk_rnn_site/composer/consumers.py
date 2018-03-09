@@ -119,6 +119,9 @@ class FolkRNNConsumer(SyncConsumer):
                                     'tune': tune.plain_dict(),
                                 })
                                 
+        # Don't raise StopConsumer, as while this consumer is alive it will receive generation messages, and if enqueued they will be swallowed on consumer destroy.
+    
+    def stop(self, event):
         raise StopConsumer
 
 class ComposerConsumer(JsonWebsocketConsumer):

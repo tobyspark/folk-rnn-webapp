@@ -23,6 +23,7 @@ sudo ufw allow 8000/tcp
 
 # Note 0.0.0.0 is necessary for access from outside the VM
 python3.6 /folk_rnn_webapp/folk_rnn_site/manage.py runworker folk_rnn &
+python3.6 /folk_rnn_webapp/folk_rnn_site/manage.py runworker folk_rnn &
 python3.6 /folk_rnn_webapp/folk_rnn_site/manage.py runserver 0.0.0.0:8000
 
 trap 'kill $(jobs -p)' EXIT
