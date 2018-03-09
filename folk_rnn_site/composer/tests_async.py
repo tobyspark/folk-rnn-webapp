@@ -23,13 +23,13 @@ async def test_folkrnn_consumer():
     })
     await communicator.wait(timeout=5)
 
-    with open(TUNE_PATH + '/with_repeats_{}_raw'.format(tune.id)) as f:
+    with open(TUNE_PATH + f'/with_repeats_{tune.id}_raw') as f:
         assert f.read() == FOLKRNN_OUT_RAW
 
     correct_out = FOLKRNN_OUT\
-                    .replace('X:1', 'X:{}'.format(tune.id))\
-                    .replace('№1', '№{}'.format(tune.id))
-    with open(TUNE_PATH + '/with_repeats_{}'.format(tune.id)) as f:
+                    .replace('X:1', f'X:{tune.id}')\
+                    .replace('№1', f'№{tune.id}')
+    with open(TUNE_PATH + f'/with_repeats_{tune.id}') as f:
         assert f.read() == correct_out
 
     tune = RNNTune.objects.last()

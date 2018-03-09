@@ -32,7 +32,7 @@ def models():
             model['header_k_tokens'] = sorted({x for x in model['tokens'] if x.startswith('K:')})
             models[filename] = model
         except:
-            print('Error parsing {}'.format(filename))
+            print(f'Error parsing {filename}')
             pass
     return models
 

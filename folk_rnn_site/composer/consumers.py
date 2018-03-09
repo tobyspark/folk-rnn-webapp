@@ -34,7 +34,7 @@ class FolkRNNConsumer(SyncConsumer):
         tune.save()
         
         async_to_sync(self.channel_layer.group_send)(
-                                'tune_{}'.format(tune.id),
+                                f'tune_{tune.id}',
                                 {
                                     'type': 'generation_status',
                                     'status': 'start',
@@ -42,7 +42,7 @@ class FolkRNNConsumer(SyncConsumer):
                                 })
         
         # Machinery to build ABC incrementally, notifying consumers of abc updates.
-        abc = 'X:{id}\nT:{title}{id}\n'.format(title=FOLKRNN_TUNE_TITLE, id=tune.id)
+        abc = f'X:{tune.id}\nT:{FOLKRNN_TUNE_TITLE}{tune.id}\n'
         token_count = 0
         deferred_tokens = []
         def on_token(token):
@@ -63,7 +63,7 @@ class FolkRNNConsumer(SyncConsumer):
             else:
                 abc += ' '.join(deferred_tokens) + token
             async_to_sync(self.channel_layer.group_send)(
-                                    'tune_{}'.format(tune.id),
+                                    f'tune_{tune.id}',
                                     {
                                         'type': 'generation_status',
                                         'status': 'new_abc',
@@ -81,9 +81,8 @@ class FolkRNNConsumer(SyncConsumer):
                                     )
         
         # Save out raw folk-rnn output
-        tune_path_raw = os.path.join(TUNE_PATH, '{model}_{id}_raw'.format(
-                                        model=tune.rnn_model_name.replace('.pickle', ''), 
-                                        id=tune.id))
+        model_name = tune.rnn_model_name.replace('.pickle', '')
+        tune_path_raw = os.path.join(TUNE_PATH, f'{model_name}_{tune.id}_raw')
         with open(tune_path_raw, 'w') as f:
             f.write(' '.join(tune_tokens))
         
@@ -98,13 +97,11 @@ class FolkRNNConsumer(SyncConsumer):
             abc = result.stdout.decode()
         except:
             # do something, probably marking in DB
-            print('ABC2ABC failed in folk_rnn_task for id:{}'.format(tune.id))
+            print(f'ABC2ABC failed in folk_rnn_task for id:{tune.id}')
             return
         
         # Save the formatted, incrementally built ABC
-        tune_path = os.path.join(TUNE_PATH, '{model}_{id}'.format(
-                                        model=tune.rnn_model_name.replace('.pickle', ''),
-                                        id=tune.id))
+        tune_path = os.path.join(TUNE_PATH, f'{model_name}_{tune.id}')
         with open(tune_path, 'w') as f:
             f.write(abc)
         
@@ -115,7 +112,7 @@ class FolkRNNConsumer(SyncConsumer):
         
         # Notify consumers generation has finished
         async_to_sync(self.channel_layer.group_send)(
-                                'tune_{}'.format(tune.id),
+                                f'tune_{tune.id}',
                                 {
                                     'type': 'generation_status',
                                     'status': 'finish',
@@ -132,7 +129,7 @@ class ComposerConsumer(JsonWebsocketConsumer):
             self.abc_sent = {}
     
     def generation_status(self, message):
-        print('generation_status: {}'.format(message))
+        print(f'generation_status: {message}')
         if message['status'] in ['start', 'finish']:
             message['command'] = message.pop('type')
             self.send_json(message)
@@ -152,17 +149,17 @@ class ComposerConsumer(JsonWebsocketConsumer):
                         })
         
     def receive_json(self, content):
-        print('receive_json: {}'.format(content))
+        print(f'receive_json: {content}')
         if content['command'] == 'register_for_tune':
             self.abc_sent[content['tune_id']] = ''
             async_to_sync(self.channel_layer.group_add)(
-                                        'tune_{}'.format(content['tune_id']), 
+                                        f"tune_{content['tune_id']}", 
                                         self.channel_name
                                         )
         if content['command'] == 'unregister_for_tune':
             del self.abc_sent[content['tune_id']]
             async_to_sync(self.channel_layer.group_discard)(
-                                        'tune_{}'.format(content['tune_id']), 
+                                        f"tune_{content['tune_id']}", 
                                         self.channel_name
                                         )
         if content['command'] == 'compose':
@@ -186,11 +183,11 @@ class ComposerConsumer(JsonWebsocketConsumer):
                     'tune_id': tune.id
                     })
             else:
-                print('receive_json.compose: invalid form data\n{}'.format(form.errors))
+                print(f'receive_json.compose: invalid form data\n{form.errors}')
         
     def disconnect(self, close_code):
         for tune_id in self.abc_sent:
             async_to_sync(self.channel_layer.group_discard)(
-                                            'tune_{}'.format(tune_id), 
+                                            f'tune_{tune_id}', 
                                             self.channel_name
                                             )
