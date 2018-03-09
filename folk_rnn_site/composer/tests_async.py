@@ -9,38 +9,35 @@ from composer.consumers import FolkRNNConsumer, ComposerConsumer
 from composer.models import RNNTune
 from folk_rnn_site.tests import FOLKRNN_IN, FOLKRNN_OUT, FOLKRNN_OUT_RAW
 
-# FIXME: THERE IS SOMETHING WRONG WITH THE SETUP OF THESE TESTS. 
-# THEY ARE NOT ISOLATED FROM EACH OTHER.
-# e.g. needing to use count_before = RNNTune.objects.count()
-# e.g. line 70 needs a big timeout, and then gives you the ABC from the actual generation task!
-
 @pytest.mark.django_db(transaction=True)  
 @pytest.mark.asyncio
 async def test_folkrnn_consumer():
-    RNNTune.objects.create(**FOLKRNN_IN)
-    assert RNNTune.objects.count() == 1
+    tune = RNNTune.objects.create(**FOLKRNN_IN)
 
-    scope = {"type": "channel", 'channel': 'folk_rnn'}
+    scope = {'type': 'channel', 'channel': 'folk_rnn'}
     communicator = ApplicationCommunicator(FolkRNNConsumer, scope)
 
     await communicator.send_input({
         'type': 'folkrnn.generate', 
-        'id': 1,
+        'id': tune.id,
     })
     await communicator.wait(timeout=5)
 
-    with open(TUNE_PATH + '/with_repeats_1_raw') as f:
+    with open(TUNE_PATH + '/with_repeats_{}_raw'.format(tune.id)) as f:
         assert f.read() == FOLKRNN_OUT_RAW
 
-    with open(TUNE_PATH + '/with_repeats_1') as f:
-        assert f.read() == FOLKRNN_OUT
+    correct_out = FOLKRNN_OUT\
+                    .replace('X:1', 'X:{}'.format(tune.id))\
+                    .replace('№1', '№{}'.format(tune.id))
+    with open(TUNE_PATH + '/with_repeats_{}'.format(tune.id)) as f:
+        assert f.read() == correct_out
 
     tune = RNNTune.objects.last()
     assert tune.rnn_started is not None
     assert tune.rnn_started is not None
     assert tune.rnn_started < tune.rnn_finished
     assert tune.rnn_finished - tune.rnn_started < timedelta(seconds=5)
-    assert tune.abc == FOLKRNN_OUT
+    assert tune.abc == correct_out
 
 @pytest.mark.xfail    
 @pytest.mark.django_db(transaction=True)     
@@ -119,8 +116,8 @@ async def test_generation_status():
     }
     
     await communicator.disconnect()
-
-@pytest.mark.django_db(transaction=True)    
+    
+@pytest.mark.django_db()    
 @pytest.mark.asyncio
 async def test_receive_json_compose_valid():
     communicator = WebsocketCommunicator(ComposerConsumer, '/')
@@ -152,7 +149,7 @@ async def test_receive_json_compose_valid():
     assert tune.prime_tokens == 'M:4/4 K:Cmaj a b c'
     await communicator.disconnect()
     
-@pytest.mark.django_db(transaction=True)    
+@pytest.mark.django_db()    
 @pytest.mark.asyncio
 async def test_receive_json_compose_invalid():
     communicator = WebsocketCommunicator(ComposerConsumer, '/')
