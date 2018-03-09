@@ -132,7 +132,6 @@ class ComposerConsumer(JsonWebsocketConsumer):
             self.abc_sent = {}
     
     def generation_status(self, message):
-        print(f'generation_status: {message}')
         if message['status'] in ['start', 'finish']:
             message['command'] = message.pop('type')
             self.send_json(message)
@@ -152,7 +151,7 @@ class ComposerConsumer(JsonWebsocketConsumer):
                         })
         
     def receive_json(self, content):
-        print(f'receive_json: {content}')
+        print(f'{id(self)} – receive_json: {content}')
         if content['command'] == 'register_for_tune':
             self.abc_sent[content['tune_id']] = ''
             async_to_sync(self.channel_layer.group_add)(
