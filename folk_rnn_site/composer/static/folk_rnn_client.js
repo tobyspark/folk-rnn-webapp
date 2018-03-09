@@ -244,5 +244,9 @@ folkrnn.updateTuneDiv = function(tune) {
         el_generated.parentNode.setAttribute('style', 'display: none');
         
         el_archive_form.setAttribute('style', 'display: none');
+        
+        if (!tune.rnn_started) {
+            el_abc.innerHTML = folkrnn.waitingABC;
+        }
     }
 };

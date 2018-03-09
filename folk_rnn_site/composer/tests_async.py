@@ -145,10 +145,9 @@ async def test_receive_json_compose_valid():
     response = await communicator.receive_from()
     
     tune = RNNTune.objects.last()
-    assert json.loads(response) == {
-        'command': 'add_tune',
-        'tune_id': tune.id
-    }
+    response_data = json.loads(response)
+    assert response_data['command'] == 'add_tune'
+    assert response_data['tune']['id'] == tune.id
     assert tune.rnn_model_name == 'with_repeats.pickle'
     assert tune.temp == 0.1
     assert tune.seed == 123

@@ -39,7 +39,8 @@ folkrnn.websocketReceive = function(action, stream) {
     "use strict";
     
     if (action.command == "add_tune") {
-        folkrnn.tuneManager.addTune(action.tune_id);
+        folkrnn.tuneManager.addTune(action.tune.id);
+        folkrnn.updateTuneDiv(action.tune);
     }
     if (action.command == "generation_status") {
         if (action.status == "start") {
@@ -54,7 +55,7 @@ folkrnn.websocketReceive = function(action, stream) {
     if (action.command == "add_token") {
         const el_tune = folkrnn.tuneManager.tuneDiv(action.tune_id);
         const el_abc = el_tune.querySelector('#abc-'+action.tune_id);
-        if (el_abc.innerHTML == folkrnn.emptyTune.abc)
+        if (el_abc.innerHTML == folkrnn.waitingABC)
             el_abc.innerHTML = "";
         el_abc.innerHTML += action.token;
         if (action.token.includes("|")) 
