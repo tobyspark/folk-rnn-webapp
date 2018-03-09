@@ -39,17 +39,12 @@ async def test_folkrnn_consumer():
     assert tune.rnn_finished - tune.rnn_started < timedelta(seconds=5)
     assert tune.abc == correct_out
 
-@pytest.mark.xfail    
-@pytest.mark.django_db(transaction=True)     
 @pytest.mark.asyncio
 async def test_generation_status():
-
     communicator = WebsocketCommunicator(ComposerConsumer, '/')
     connected, subprotocol = await communicator.connect()
     assert connected
     
-    channel_layer = get_channel_layer()
-
     # Register. This should add the consumer to the tune groups
     await communicator.send_to(json.dumps({
         'command': 'register_for_tune',
@@ -60,6 +55,13 @@ async def test_generation_status():
         'tune_id': 2,
         }))
     
+    # This sleep is critical. The design of the consumer means the add_token command
+    # will have all pending abc, but testing output based on the non-deterministic point 
+    # of first receiving the group messages muddies the procedural test logic.
+    import asyncio; await asyncio.sleep(3)
+    
+    channel_layer = get_channel_layer()
+     
     # Send the consumer complete ABC via tune group. 
     # Check it gets back incremental ABC.
     # And do this for two tunes, to check isolation.
@@ -69,7 +71,7 @@ async def test_generation_status():
         'abc': 'a b c',
         'tune_id': 1,
         })
-    response = await communicator.receive_from(timeout=5)
+    response = await communicator.receive_from()
     assert json.loads(response) == {
         'command': 'add_token',
         'token': 'a b c',
@@ -88,7 +90,7 @@ async def test_generation_status():
         'token': 'A B C',
         'tune_id': 2,
     }
-
+    
     await channel_layer.group_send('tune_1', {
         'type': 'generation_status',
         'status': 'new_abc',
@@ -98,7 +100,7 @@ async def test_generation_status():
     response = await communicator.receive_from()
     assert json.loads(response) == {
         'command': 'add_token',
-        'token': 'd e f',
+        'token': ' d e f',
         'tune_id': 1,
     }
     
@@ -111,7 +113,7 @@ async def test_generation_status():
     response = await communicator.receive_from()
     assert json.loads(response) == {
         'command': 'add_token',
-        'token': 'D E F',
+        'token': ' D E F',
         'tune_id': 2,
     }
     
