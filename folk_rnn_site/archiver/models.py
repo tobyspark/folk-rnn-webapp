@@ -2,6 +2,7 @@ from django.db import models
 
 from folk_rnn_site.models import ABCModel, conform_abc, body_regex, USERNAME_MAX_LENGTH
 from composer.models import RNNTune
+from composer import FOLKRNN_TUNE_TITLE
 
 class Tune(ABCModel):
     rnn_tune = models.ForeignKey(RNNTune)
@@ -39,7 +40,7 @@ class SettingManager(models.Manager):
             if setting.body == tune.body:
                 raise ValueError('Existing setting abc')
         # Check it has a new, unique title
-        if tune.title.startswith('Folk RNN Candidate Tune'):
+        if tune.title.startswith(FOLKRNN_TUNE_TITLE):
             raise ValueError('Default tune title')
         if any(x.title == tune.title for x in Tune.objects.exclude(id=tune.id)):
             raise ValueError('Existing tune title.')

@@ -15,7 +15,7 @@ class ComposeForm(forms.Form):
     seed = forms.IntegerField(label='RNN Seed:', min_value=0, max_value=2**15, initial=lambda : randint(0, 2**15))
     meter = ChoiceFieldNoValidation(label='Meter:', choices=())
     key = ChoiceFieldNoValidation(label='Key:', choices=())
-    prime_tokens = forms.CharField(label='Prime tokens:', 
+    start_abc = forms.CharField(label='Prime tokens:', 
                            widget=forms.Textarea(),
                            error_messages={'invalid': 'Invalid ABC notation as per the RNN model'},
                            required=False)
@@ -24,10 +24,10 @@ class ComposeForm(forms.Form):
     def clean(self):
         super(ComposeForm, self).clean()
         
-        if self.cleaned_data['prime_tokens']:
-            tokens = self.cleaned_data['prime_tokens'].split(' ')
+        if self.cleaned_data['start_abc']:
+            tokens = self.cleaned_data['start_abc'].split(' ')
             if not validate_tokens(tokens, model_file_name=self.cleaned_data['model']):
-                self.add_error('prime_tokens', ValidationError('Invalid ABC as per RNN model', code='invalid'))
+                self.add_error('start_abc', ValidationError('Invalid ABC as per RNN model', code='invalid'))
         
         if 'meter' in self.data:
             if validate_meter(self.data['meter'], model_file_name=self.cleaned_data['model']):

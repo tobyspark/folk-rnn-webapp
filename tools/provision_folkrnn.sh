@@ -9,14 +9,21 @@ set -a; source /folk_rnn_webapp/.env; set +a
 
 ### Python provision
 
-apt-get install --yes python3-pip
-pip3 install --upgrade pip
+if [ ! -x /usr/local/bin/python3.6 ]; then
+    apt-get install --yes build-essential checkinstall
+    apt-get install --yes libreadline-gplv2-dev libncursesw5-dev libssl-dev libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev
+    wget --quiet https://www.python.org/ftp/python/3.6.4/Python-3.6.4.tar.xz
+    tar xvf Python-3.6.4.tar.xz
+    cd Python-3.6.4
+    ./configure --enable-optimisation
+    make altinstall # altinstall doesn't overwrite system python 
+fi
 
 ### Folk RNN
 
 # folk_rnn package
 cd /folk_rnn
-pip3 install -e .
+pip3.6 install -e .
 
 # folk_rnn models
 if [ ! -d /var/opt/folk_rnn_task ]; then
@@ -31,17 +38,36 @@ chown vagrant:vagrant /folk_rnn_static
 
 # folk_rnn webapp packages
 apt-get install --yes nginx
-pip3 install "django<1.12"
-pip3 install "django-hosts"
-pip3 install "django-widget-tweaks"
-pip3 install "channels~=2.0"
-pip3 install "channels_redis"
-pip3 install "pytest-django" "pytest-asyncio"
+pip3.6 install "django<1.12"
+pip3.6 install "django-hosts"
+pip3.6 install "django-widget-tweaks"
+pip3.6 install "channels~=2.0"
+pip3.6 install "channels_redis"
+pip3.6 install "pytest-django" "pytest-asyncio"
+pip3.6 install psycopg2-binary
+apt-get install --yes postgresql
 apt-get install --yes redis-server
 apt-get install --yes abcmidi
 
 # folk_rnn setup
 cd /folk_rnn_webapp
+
+# ...postgres setup
+if ! su - postgres -c 'psql -l' | grep -q folk_rnn; then
+    # Password auth for local users, i.e. unix user: vagrant, db user: folk_rnn
+    su - postgres -c 'sed -i.bak "s/local   all             all                                     peer/local   all             all                                     md5/" /etc/postgresql/9.5/main/pg_hba.conf'
+    sudo service postgresql restart
+    cat << EOF | su - postgres -c psql
+-- Create the database user:
+CREATE USER folk_rnn WITH PASSWORD '${POSTGRES_PASS=dbpass}';
+ALTER ROLE folk_rnn SET client_encoding TO 'utf8';
+ALTER ROLE folk_rnn SET default_transaction_isolation TO 'read committed';
+ALTER ROLE folk_rnn SET timezone TO 'UTC';
+ALTER ROLE folk_rnn CREATEDB;
+-- Create the database:
+CREATE DATABASE folk_rnn WITH OWNER=folk_rnn TEMPLATE=template0;
+EOF
+fi
 
 # ...nginx setup
 for HOST in $COMPOSER_HOST $ARCHIVER_HOST; do

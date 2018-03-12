@@ -7,7 +7,7 @@ echo *** Check Folk RNN Test Rig
 echo ***
 
 # Selenium for Python
-pip3 install "selenium<4"
+pip3.6 install "selenium<4"
 
 # Chrome and Selenium ChromeDriver (to be used headless)
 if [ ! -f /usr/local/bin/chromedriver ]; then

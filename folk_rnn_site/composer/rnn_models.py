@@ -32,7 +32,7 @@ def models():
             model['header_k_tokens'] = sorted({x for x in model['tokens'] if x.startswith('K:')})
             models[filename] = model
         except:
-            print('Error parsing {}'.format(filename))
+            print(f'Error parsing {filename}')
             pass
     return models
 
@@ -51,7 +51,13 @@ def validate_tokens(tokens, model_file_name):
     return set(tokens).issubset(models()[model_file_name]['tokens'])
 
 def validate_meter(token, model_file_name):
-    return token in models()[model_file_name]['header_m_tokens']#.union({'M:none'})
+    tokens = models()[model_file_name]['header_m_tokens']
+    if token == '' and len(tokens) == 0:
+        return True
+    return token in tokens
 
 def validate_key(token, model_file_name):
-    return token in models()[model_file_name]['header_k_tokens']#.union({'K:none'})
+    tokens = models()[model_file_name]['header_k_tokens']
+    if token == '' and len(tokens) == 0:
+        return True
+    return token in tokens
