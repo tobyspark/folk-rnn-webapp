@@ -9,29 +9,13 @@ from composer.forms import ComposeForm, ArchiveForm
 from archiver.models import Tune
 
 def home_page(request):
-    if request.method == 'POST':
-        form = ComposeForm(request.POST)
-        if form.is_valid():
-            tune = RNNTune()
-            tune.rnn_model_name = form.cleaned_data['model']
-            tune.seed = form.cleaned_data['seed']
-            tune.temp = form.cleaned_data['temp']
-            tune.meter = form.cleaned_data['meter']
-            tune.key = form.cleaned_data['key']
-            tune.start_abc = form.cleaned_data['prime_tokens']
-            tune.save()
-            
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.send)('folk_rnn', {
-                                                    'type': 'folkrnn.generate', 
-                                                    'id': tune.id
-                                                    })
-            return redirect('/tune/{}'.format(tune.id))
-    else:
-        form = ComposeForm()
-    
     return render(request, 'composer/home.html', {
-                                'compose_form': form,
+                                'compose_form': ComposeForm(),
+                                'tune': None,
+                                'tune_rows': 1,
+                                'tune_hidden': True,
+                                'archive_form': ArchiveForm(),
+                                'machine_folk_tune_count': Tune.objects.count(),
                                 })
 
 def tune_page(request, tune_id=None):
@@ -41,22 +25,11 @@ def tune_page(request, tune_id=None):
     except (TypeError, RNNTune.DoesNotExist):
         return redirect('/')
 
-    # Handle rnn-in-process
-
-    if not tune.rnn_finished:
-        return render(request, 'composer/tune-in-process.html', {
-            'candidate_id': tune_id_int,
-            'compose_form': ComposeForm(),
-            })
-            
-    # Display generated tune
-
     return render(request, 'composer/tune.html', {
-        'tune': tune,
-        'archive_form': ArchiveForm({'folkrnn_id': tune_id_int, 'title': tune.title}),
-        'rnn_duration': (tune.rnn_finished - tune.rnn_started).total_seconds(),
-        'tune_rows': tune.abc.count('\n'),
         'compose_form': ComposeForm(),
+        'tune': tune,
+        'tune_rows': tune.abc.count('\n'),
+        'archive_form': ArchiveForm({'folkrnn_id': tune_id_int, 'title': tune.title}),
         'machine_folk_tune_count': Tune.objects.count()
         })
 
