@@ -2,6 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from random import randint
 
+from composer import FOLKRNN_MAX_SEED
 from composer.rnn_models import choices as rnn_choices
 from composer.rnn_models import validate_tokens, validate_meter, validate_key
 
@@ -12,7 +13,7 @@ class ChoiceFieldNoValidation(forms.ChoiceField):
 class ComposeForm(forms.Form):
     model = forms.ChoiceField(choices=rnn_choices())
     temp = forms.DecimalField(min_value=0.01, max_value=10, decimal_places=2, initial=1)
-    seed = forms.IntegerField(min_value=0, max_value=2**15, initial=lambda : randint(0, 2**15))
+    seed = forms.IntegerField(min_value=0, max_value=FOLKRNN_MAX_SEED, initial=lambda : randint(0, FOLKRNN_MAX_SEED))
     meter = ChoiceFieldNoValidation(choices=())
     key = ChoiceFieldNoValidation(choices=())
     start_abc = forms.CharField(widget=forms.Textarea(),

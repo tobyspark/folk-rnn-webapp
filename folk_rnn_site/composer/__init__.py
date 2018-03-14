@@ -1,5 +1,7 @@
 import os
 
+FOLKRNN_MAX_SEED = 1000000
+
 # conforming abc
 
 ABC2ABC_PATH = '/usr/bin/abc2abc'
