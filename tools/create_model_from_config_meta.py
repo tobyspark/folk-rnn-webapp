@@ -7,9 +7,9 @@ import importlib
 import pickle
 
 metadata_paths = [
-        ('/folk_rnn/metadata/config5-wrepeats-20160112-222521.pkl', 'with_repeats'),
-        ('/folk_rnn/metadata/config5-worepeats-20160311-134539.pkl', 'without_repeats'),
-        ('/folk_rnn/metadata/config5_resume-allabcworepeats_parsed_Tallis_trimmed1000-20171228-191847_epoch39.pkl', 'without_repeats_tallis'),
+        ('/folk_rnn/metadata/config5-wrepeats-20160112-222521.pkl', 'thesession_with_repeats', 'thesession.org (w/ :| |:)'),
+        ('/folk_rnn/metadata/config5-worepeats-20160311-134539.pkl', 'thesession_without_repeats', 'thesession.org (w/o :| |:)'),
+        # ('/folk_rnn/metadata/config5_resume-allabcworepeats_parsed_Tallis_trimmed1000-20171228-191847_epoch39.pkl', 'without_repeats_tallis'),
         ]
 
 config_module = 'configurations.config5'
@@ -21,17 +21,18 @@ try:
 except:
     pass
 
-for metadata_path, model_name in metadata_paths: 
+for metadata_path, model_filename, model_displayname in metadata_paths: 
     with open(metadata_path, 'rb') as f:
         metadata = pickle.load(f, encoding='latin1') # latin1 maps 0-255 to unicode 0-255
         
     model = {
+        'name': model_displayname,
         'token2idx': metadata['token2idx'],
         'param_values': metadata['param_values'], 
         'num_layers': config.num_layers, 
         'metadata_path': metadata_path,
     }
     
-    path = os.path.join(model_dir, model_name + '.pickle')
+    path = os.path.join(model_dir, model_filename + '.pickle')
     with open(path, 'wb') as f:
         pickle.dump(model, f)
