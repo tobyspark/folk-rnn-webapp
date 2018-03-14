@@ -10,25 +10,28 @@
                 <legend><!-- RNN Properties --></legend>
                 <div class="pure-u-1">
                     <label for="{{ compose_form.model.id_for_label }}">Model</label>
-                    {% render_field compose_form.model class+="pure-input-1" %}
+                    {% render_field compose_form.model class+="pure-input-1" title="Select a network" %}
                 </div>
                 <div class="pure-u-1-2">
                     <label for="{{ compose_form.temp.id_for_label }}">Temperature</label>
-                    {% render_field compose_form.temp class+="pure-input-1" %}
+                    {% render_field compose_form.temp class+="pure-input-1" title="A number between 0.1 and 10 saying how adventurous the generation will be. Ex: 1.0 is normal. 2.0 is more wild. 0.5 is more cautious." %}
                 </div>
                 <div class="pure-u-1-2">
                     <label for="{{ compose_form.seed.id_for_label }}">Seed</label>
-                    {% render_field compose_form.seed class+="pure-input-1" %}
+                    {% render_field compose_form.seed class+="pure-input-1" title="The random number generator seed. Change this number to generate a different tune with the same settings." %}
                 </div>
                 <legend><!-- Tune Properties --></legend>
                 <div class="pure-u-1-2">
-                    {% render_field compose_form.meter class+="pure-input-1" %}
+                    <label for="{{ compose_form.meter.id_for_label }}">Meter</label>
+                    {% render_field compose_form.meter class+="pure-input-1" title="Choose a meter for the tune" %}
                 </div>
                 <div class="pure-u-1-2">
-                    {% render_field compose_form.key class+="pure-input-1" %}
+                    <label for="{{ compose_form.key.id_for_label }}">Mode</label>
+                    {% render_field compose_form.key class+="pure-input-1" title="Choose a mode for the tune" %}
                 </div>
                 <div class="pure-u-1">
-                    {% render_field compose_form.start_abc class+="pure-input-1" rows="3" placeholder="Enter start of tune in ABC notation" %}
+                <label for="{{ compose_form.start_abc.id_for_label }}">Initial ABC</label>
+                    {% render_field compose_form.start_abc class+="pure-input-1" rows="3" placeholder="Enter start of tune in ABC notation" title="Example: |: (3 D E F" %}
                 </div>
                 <legend></legend>
                 <input id="compose_button" type="button" value="Compose..." class="pure-button pure-button-primary pure-input-1">
