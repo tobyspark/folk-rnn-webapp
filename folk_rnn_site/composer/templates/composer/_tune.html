@@ -8,7 +8,7 @@
             <textarea id="abc" readonly class="pure-u-1" rows="{{ tune_rows }}">{{ tune.abc }}</textarea>
         </div>
         <div id="composition_metadata">
-            <p>The RNN properties were <span id="rnn_model_name" class="post-category">{{ tune.rnn_model_name }}</span> with seed <span id="seed" class="post-category">{{ tune.seed }}</span> and temperature <span id="temp" class="post-category">{{ tune.temp }}</span>.</p>
+            <p>The RNN properties were <span id="rnn_model_name" class="post-category">{{ tune.rnn_model_name|cut:".pickle" }}</span> with seed <span id="seed" class="post-category">{{ tune.seed }}</span> and temperature <span id="temp" class="post-category">{{ tune.temp }}</span>.</p>
             <p>The prime tokens were <span id="prime_tokens" class="post-category">{{ prime_tokens }}</span>.</p>
             <p>Requested on <span id="requested" class="post-category">{{ tune.requested|date:"DATETIME_FORMAT" }}</span>.</p>
             <p>Generated on <span id="generated" class="post-category">{{ tune.rnn_finished|date:"DATETIME_FORMAT" }}</span>.</p>
