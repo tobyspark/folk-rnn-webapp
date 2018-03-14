@@ -10,15 +10,14 @@ class ChoiceFieldNoValidation(forms.ChoiceField):
         pass
 
 class ComposeForm(forms.Form):
-    model = forms.ChoiceField(label='RNN Model:', choices=rnn_choices())
-    temp = forms.DecimalField(label='RNN Temperature:', min_value=0.01, max_value=10, decimal_places=2, initial=1)
-    seed = forms.IntegerField(label='RNN Seed:', min_value=0, max_value=2**15, initial=lambda : randint(0, 2**15))
-    meter = ChoiceFieldNoValidation(label='Meter:', choices=())
-    key = ChoiceFieldNoValidation(label='Key:', choices=())
-    start_abc = forms.CharField(label='Prime tokens:', 
-                           widget=forms.Textarea(),
-                           error_messages={'invalid': 'Invalid ABC notation as per the RNN model'},
-                           required=False)
+    model = forms.ChoiceField(choices=rnn_choices())
+    temp = forms.DecimalField(min_value=0.01, max_value=10, decimal_places=2, initial=1)
+    seed = forms.IntegerField(min_value=0, max_value=2**15, initial=lambda : randint(0, 2**15))
+    meter = ChoiceFieldNoValidation(choices=())
+    key = ChoiceFieldNoValidation(choices=())
+    start_abc = forms.CharField(widget=forms.Textarea(),
+                               error_messages={'invalid': 'Invalid ABC notation as per the RNN model'},
+                               required=False)
 
     # Validate whole form as validation (might) depend on particular model
     def clean(self):
