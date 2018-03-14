@@ -130,6 +130,38 @@ folkrnn.parseABC = function(abc) {
 
     // append final part
     result.push(w);
+        
+    // Post-process, for e.g. ':||:' needs to be ':|', '|:'.
+    // From Bob –
+    // sed 's/: |/:|/g' | sed 's/| :/|:/g' |
+    // sed 's/|\[\([0-9]\)/|\1/g' | sed 's/| \[\([0-9]\)/|\1/g' |
+    // sed 's/|\[ \([0-9]\)/|\1/g' | sed 's/| \([0-9]\)/|\1/g' |
+    // sed 's/:|:/:| |:/g' | sed 's/:|\([0-9]\)/:| |\1/g' |
+    // sed 's/::/:| |:/g' | sed 's/|\[/| \[/g' | sed 's/\]\[/\] \[/g' |
+    // sed 's/\]|/\] |/g' | sed 's/|:\[/|: \[/g' | sed 's/\]:|/\] :|/g' |
+    // sed 's/:||:/:| |:/g' | sed 's/\[ \([0-9]\)/|\1/g' | sed 's/-|/- |/g' |
+    // sed 's/||/|/g' | sed 's/-:|/- :|/g'
+    let tokensSpaced = result.join(' ');
+    tokensSpaced = tokensSpaced.replace(/: \|/g, ':|'); // sed 's/: |/:|/g'
+    tokensSpaced = tokensSpaced.replace(/\| :/g, '|:'); // sed 's/| :/|:/g'
+    tokensSpaced = tokensSpaced.replace(/\|\[([0-9])/g, '|$1'); // sed 's/|\[\([0-9]\)/|\1/g'
+    tokensSpaced = tokensSpaced.replace(/\| \[([0-9])/g, '|$1'); // sed 's/| \[\([0-9]\)/|\1/g'
+    tokensSpaced = tokensSpaced.replace(/\|\[ ([0-9])/g, '|$1'); // sed 's/|\[ \([0-9]\)/|\1/g'
+    tokensSpaced = tokensSpaced.replace(/\| ([0-9])/g, '|$1'); // sed 's/| \([0-9]\)/|\1/g'
+    tokensSpaced = tokensSpaced.replace(/:\|:/g, ':| |:'); // sed 's/:|:/:| |:/g'
+    tokensSpaced = tokensSpaced.replace(/:\|([0-9])/g, ':| |$1'); // sed 's/:|\([0-9]\)/:| |\1/g'
+    tokensSpaced = tokensSpaced.replace(/::/g, ':| |:'); // sed 's/::/:| |:/g'
+    tokensSpaced = tokensSpaced.replace(/\|\[/g, '| ['); // sed 's/|\[/| \[/g'
+    tokensSpaced = tokensSpaced.replace(/\]\[/g, '] ['); // sed 's/\]\[/\] \[/g'
+    tokensSpaced = tokensSpaced.replace(/\]\|/g, '] |'); // sed 's/\]|/\] |/g'
+    tokensSpaced = tokensSpaced.replace(/\|:\[/g, '|: ['); // sed 's/|:\[/|: \[/g'
+    tokensSpaced = tokensSpaced.replace(/\]:\|/g, '] :|'); // sed 's/\]:|/\] :|/g'
+    tokensSpaced = tokensSpaced.replace(/:\|\|:/g, ':| |:'); // sed 's/:||:/:| |:/g'
+    tokensSpaced = tokensSpaced.replace(/\[ ([0-9])/g, '|$1'); // sed 's/\[ \([0-9]\)/|\1/g'
+    tokensSpaced = tokensSpaced.replace(/-\|/g, '- |'); // sed 's/-|/- |/g'
+    tokensSpaced = tokensSpaced.replace(/\|\|/g, '|'); // sed 's/||/|/g'
+    tokensSpaced = tokensSpaced.replace(/-:\|/g, '- :|'); //sed 's/-:|/- :|/g'    
+    result = tokensSpaced.split(' ');
 
     return {'tokens': result, 'invalidIndexes': invalidIndexes};
 };
