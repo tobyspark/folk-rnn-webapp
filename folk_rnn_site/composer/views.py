@@ -27,8 +27,7 @@ def tune_page(request, tune_id=None):
         'compose_form': ComposeForm(),
         'archive_form': ArchiveForm(),
         'machine_folk_tune_count': Tune.objects.count(),
-        'tune_id': tune_id_int,
-        'tune_json': json.dumps(tune.plain_dict()),
+        'tune_id': tune.id,
         })
 
 def archive_tune(request, tune_id=None):

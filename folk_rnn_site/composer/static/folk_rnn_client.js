@@ -96,17 +96,16 @@ folkrnn.stateManager = {
         folkrnn.fieldStartABC.value = state.start_abc;
         
         // Apply to tuneManager (i.e. sync tunes on page with state)
-        let tune_ids = Object.keys(folkrnn.tuneManager.tunes);
         for (const tune_id of state.tunes) {
-            if (tune_ids.indexOf(tune_id) === -1)
-                folkrnn.tuneManager.addTune(tune_id);
+            folkrnn.tuneManager.addTune(tune_id);
         }
         for (const tune_id of Object.keys(folkrnn.tuneManager.tunes)) {
             if (state.tunes.indexOf(tune_id) === -1)
                 folkrnn.tuneManager.removeTune(tune_id);
         }
         
-        console.log('applyState()\nstate: ' + state);
+        console.log('applyState()');
+        console.log(state);
     },
 };
 
@@ -114,6 +113,11 @@ folkrnn.tuneManager = {
     'tunes': {},
     'addTune': function (tune_id) {
         "use strict";
+        if (tune_id in folkrnn.tuneManager.tunes) {
+            console.log('Attempt to add tune already in tuneManager')
+            return;
+        }
+        
         // Add tune to manager
         const div_tune_new = folkrnn.div_tune.cloneNode(true);
         div_tune_new.id = "tune_" + tune_id;
