@@ -44,14 +44,8 @@ class ViewsTest(TestCase):
         
         response = self.client.get(f'/tune/{RNNTune.objects.last().id}')
         self.assertTemplateUsed(response, 'composer/tune.html')
-        #print(response.content)
-        self.assertContains(response,mint_abc()) # django widget inserts a newline; a django workaround to an html workaround beyond the scope of this project
-        self.assertContains(response,'with_repeats.pickle')
-        self.assertContains(response,'123')
-        self.assertContains(response,'0.1')
-        self.assertContains(response, mint_abc())
-        # Testing date is beyond the remit of datetime.strttime(), e.g. day of the week without leading zero.
-    
+        # Tune div and contents are created dynamically, i.e. no further test here.
+        
     def test_tune_page_can_save_a_POST_request(self):
         folk_rnn_create_tune()
         folk_rnn_task_start_mock()
