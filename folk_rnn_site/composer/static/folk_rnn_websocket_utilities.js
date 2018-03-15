@@ -37,7 +37,6 @@ folkrnn.websocketSend = function(json) {
 
 folkrnn.websocketReceive = function(action, stream) {
     "use strict";
-    
     if (action.command == "add_tune") {
         folkrnn.stateManager.addTune(action.tune.id);
         folkrnn.updateTuneDiv(action.tune);
