@@ -300,7 +300,7 @@ folkrnn.updateTuneDiv = function(tune) {
     
     el_abc.innerHTML = tune.abc;
     el_abc.setAttribute('rows', tune.abc.split(/\r\n|\r|\n/).length - 1);
-    el_model.innerHTML = tune.rnn_model_name;
+    el_model.innerHTML = tune.rnn_model_name.replace('.pickle', '');
     el_seed.innerHTML = tune.seed;
     el_temp.innerHTML = tune.temp;
     el_prime_tokens.innerHTML = tune.prime_tokens;
