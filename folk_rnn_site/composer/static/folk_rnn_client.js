@@ -28,6 +28,21 @@ folkrnn.initialise = function() {
     folkrnn.div_tune.setAttribute('hidden', '');
     
     folkrnn.websocketConnect();
+    
+    const state = window.history.state;
+    if (state) {
+        folkrnn.fieldModel.value = state.model;
+        folkrnn.fieldTemp.value = state.temp;
+        folkrnn.fieldSeed.value = state.seed;
+        folkrnn.fieldKey.value = state.key;
+        folkrnn.fieldMeter.value = state.meter;
+        folkrnn.fieldStartABC.value = state.start_abc;
+        for (const tune_id of state.tunes) {
+            const tune_ids = Object.keys(folkrnn.tuneManager.tunes)
+            if (tune_ids.indexOf(tune_id) === -1)
+                folkrnn.tuneManager.addTune(tune_id);
+        }
+    }
 };
 
 folkrnn.tuneManager = {
