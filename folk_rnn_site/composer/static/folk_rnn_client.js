@@ -67,6 +67,20 @@ folkrnn.tuneManager = {
                     command: "register_for_tune", 
                     tune_id: tune_id
                     });
+        
+        // Update URL
+        const state = {
+            'model': folkrnn.fieldModel.value,
+            'temp': folkrnn.fieldTemp.value,
+            'seed': folkrnn.fieldSeed.value,
+            'key': folkrnn.fieldKey.value,
+            'meter': folkrnn.fieldMeter.value,
+            'start_abc': folkrnn.fieldStartABC.value,
+            'tunes': Object.keys(folkrnn.tuneManager.tunes),
+        };
+        const title = "";
+        const url = "/tune/" + tune_id;
+        window.history.pushState(state, title, url);
     },
     'tuneDiv': function (tune_id) {
         "use strict";
@@ -115,7 +129,22 @@ folkrnn.tuneManager = {
         // Reveal about div, if there are no tunes
         if (Object.keys(folkrnn.tuneManager.tunes).length === 0) {
             folkrnn.div_about.removeAttribute('hidden');
-        } 
+        }
+        
+        // Update URL
+        const state = {
+            'model': folkrnn.fieldModel.value,
+            'temp': folkrnn.fieldTemp.value,
+            'seed': folkrnn.fieldSeed.value,
+            'key': folkrnn.fieldKey.value,
+            'meter': folkrnn.fieldMeter.value,
+            'start_abc': folkrnn.fieldStartABC.value,
+            'tunes': Object.keys(folkrnn.tuneManager.tunes),
+        };
+        const title = "";
+        const tune_ids = Object.keys(folkrnn.tuneManager.tunes);
+        const url = (tune_ids.length === 0) ? "/" : "/tune/" + Math.max(...tune_ids)
+        window.history.pushState(state, title, url);
     },
 };
 
