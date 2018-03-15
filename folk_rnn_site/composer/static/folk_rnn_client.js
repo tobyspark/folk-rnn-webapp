@@ -29,29 +29,91 @@ folkrnn.initialise = function() {
     
     folkrnn.websocketConnect();
     
-    const state = window.history.state;
-    if (state) {
+    folkrnn.stateManager.applyState(window.history.state);
+    window.addEventListener('popState', function(event) {
+        folkrnn.stateManager.applyState(event.state);
+    });
+    window.addEventListener('unload', function(event) {
+      folkrnn.stateManager.updateState(false);
+    });
+};
+
+folkrnn.stateManager = {
+    'addTune': function(tune_id) {
+        "use strict";
+        // Hide about div, now there is a tune
+        folkrnn.div_about.setAttribute('hidden', '');
+        
+        // Add tune to page
+        folkrnn.tuneManager.addTune(tune_id);
+        
+        // Register new URL
+        folkrnn.stateManager.updateState(true);
+    },
+    'removeTune': function(tune_id) {
+        "use strict";
+        // Remove tune from page
+        folkrnn.tuneManager.removeTune(tune_id);
+        
+        // Register new URL
+        folkrnn.stateManager.updateState(true);
+        
+        // Reveal about div, if there are no tunes
+        if (Object.keys(folkrnn.tuneManager.tunes).length === 0) {
+            folkrnn.div_about.removeAttribute('hidden');
+        }
+    },
+    'updateState': function(newState) {
+        "use strict";
+        const state = {
+            'model': folkrnn.fieldModel.value,
+            'temp': folkrnn.fieldTemp.value,
+            'seed': folkrnn.fieldSeed.value,
+            'key': folkrnn.fieldKey.value,
+            'meter': folkrnn.fieldMeter.value,
+            'start_abc': folkrnn.fieldStartABC.value,
+            'tunes': Object.keys(folkrnn.tuneManager.tunes),
+        };
+        const title = "";
+        const tune_ids = Object.keys(folkrnn.tuneManager.tunes);
+        const url = (tune_ids.length === 0) ? "/" : "/tune/" + Math.max(...tune_ids);
+        if (newState)
+            window.history.pushState(state, title, url);
+        else
+            window.history.replaceState(state, title, url);
+        
+        console.log('updateState()\nnewState: ' + newState + '\nstate: ' + state);
+    },
+    'applyState': function(state) {
+        "use strict";
+        if (!state) return;
+        // Apply to composition UI
         folkrnn.fieldModel.value = state.model;
         folkrnn.fieldTemp.value = state.temp;
         folkrnn.fieldSeed.value = state.seed;
         folkrnn.fieldKey.value = state.key;
         folkrnn.fieldMeter.value = state.meter;
         folkrnn.fieldStartABC.value = state.start_abc;
+        
+        // Apply to tuneManager (i.e. sync tunes on page with state)
+        let tune_ids = Object.keys(folkrnn.tuneManager.tunes);
         for (const tune_id of state.tunes) {
-            const tune_ids = Object.keys(folkrnn.tuneManager.tunes)
             if (tune_ids.indexOf(tune_id) === -1)
                 folkrnn.tuneManager.addTune(tune_id);
         }
-    }
+        for (const tune_id of Object.keys(folkrnn.tuneManager.tunes)) {
+            if (state.tunes.indexOf(tune_id) === -1)
+                folkrnn.tuneManager.removeTune(tune_id);
+        }
+        
+        console.log('applyState()\nstate: ' + state);
+    },
 };
 
 folkrnn.tuneManager = {
     'tunes': {},
     'addTune': function (tune_id) {
         "use strict";
-        // Hide about div, now there is a tune
-        folkrnn.div_about.setAttribute('hidden', '');
-        
         // Add tune to manager
         const div_tune_new = folkrnn.div_tune.cloneNode(true);
         div_tune_new.id = "tune_" + tune_id;
@@ -68,7 +130,7 @@ folkrnn.tuneManager = {
         div_tune_new.querySelector('#archive_form').id = 'archive_form-' + tune_id;
         div_tune_new.querySelector('#id_title').id = 'id_title-' + tune_id;
         div_tune_new.querySelector('#remove_button').addEventListener("click", function () {
-            folkrnn.tuneManager.removeTune(tune_id);
+            folkrnn.stateManager.removeTune(tune_id);
         });
         folkrnn.tuneManager.tunes[tune_id] = { 'div': div_tune_new };
         
@@ -82,20 +144,6 @@ folkrnn.tuneManager = {
                     command: "register_for_tune", 
                     tune_id: tune_id
                     });
-        
-        // Update URL
-        const state = {
-            'model': folkrnn.fieldModel.value,
-            'temp': folkrnn.fieldTemp.value,
-            'seed': folkrnn.fieldSeed.value,
-            'key': folkrnn.fieldKey.value,
-            'meter': folkrnn.fieldMeter.value,
-            'start_abc': folkrnn.fieldStartABC.value,
-            'tunes': Object.keys(folkrnn.tuneManager.tunes),
-        };
-        const title = "";
-        const url = "/tune/" + tune_id;
-        window.history.pushState(state, title, url);
     },
     'tuneDiv': function (tune_id) {
         "use strict";
@@ -140,26 +188,6 @@ folkrnn.tuneManager = {
         // Remove from page
         folkrnn.div_tune.parentNode.removeChild(folkrnn.tuneManager.tunes[tune_id].div);
         delete folkrnn.tuneManager.tunes[tune_id];
-        
-        // Reveal about div, if there are no tunes
-        if (Object.keys(folkrnn.tuneManager.tunes).length === 0) {
-            folkrnn.div_about.removeAttribute('hidden');
-        }
-        
-        // Update URL
-        const state = {
-            'model': folkrnn.fieldModel.value,
-            'temp': folkrnn.fieldTemp.value,
-            'seed': folkrnn.fieldSeed.value,
-            'key': folkrnn.fieldKey.value,
-            'meter': folkrnn.fieldMeter.value,
-            'start_abc': folkrnn.fieldStartABC.value,
-            'tunes': Object.keys(folkrnn.tuneManager.tunes),
-        };
-        const title = "";
-        const tune_ids = Object.keys(folkrnn.tuneManager.tunes);
-        const url = (tune_ids.length === 0) ? "/" : "/tune/" + Math.max(...tune_ids)
-        window.history.pushState(state, title, url);
     },
 };
 
