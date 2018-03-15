@@ -45,8 +45,7 @@ folkrnn.websocketReceive = function(action, stream) {
     if (action.command == "generation_status") {
         if (action.status == "start") {
             folkrnn.updateTuneDiv(action.tune);
-        }
-        
+        }   
         if (action.status == "finish") {
             folkrnn.updateTuneDiv(action.tune);
             folkrnn.tuneManager.enableABCJS(action.tune.id);
