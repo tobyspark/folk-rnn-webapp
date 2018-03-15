@@ -27,7 +27,7 @@ def models():
                 job_spec = pickle.load(f)
             model = {}
             model['tokens'] = set(job_spec['token2idx'].keys())
-            model['display_name'] = filename.replace('_', ' ').replace('.pickle', '')
+            model['display_name'] = job_spec['name']
             model['header_m_tokens'] = sorted({x for x in model['tokens'] if x.startswith('M:')}, key=lambda x: int(x[2:].split('/')[0]))
             model['header_k_tokens'] = sorted({x for x in model['tokens'] if x.startswith('K:')})
             models[filename] = model

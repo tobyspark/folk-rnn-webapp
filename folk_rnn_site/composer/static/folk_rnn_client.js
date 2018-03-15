@@ -25,7 +25,7 @@ folkrnn.initialise = function() {
     
     folkrnn.composeButton.addEventListener("click", folkrnn.generateRequest);
     
-    folkrnn.div_tune.setAttribute('style', 'display: none');
+    folkrnn.div_tune.setAttribute('hidden', '');
     
     folkrnn.websocketConnect();
 };
@@ -35,7 +35,7 @@ folkrnn.tuneManager = {
     'addTune': function (tune_id) {
         "use strict";
         // Hide about div, now there is a tune
-        folkrnn.div_about.setAttribute('style', 'display: none');
+        folkrnn.div_about.setAttribute('hidden', '');
         
         // Add tune to manager
         const div_tune_new = folkrnn.div_tune.cloneNode(true);
@@ -59,7 +59,7 @@ folkrnn.tuneManager = {
         
         // Place on page
         folkrnn.div_tune.parentNode.insertBefore(div_tune_new, folkrnn.div_tune);
-        div_tune_new.removeAttribute('style');
+        div_tune_new.removeAttribute('hidden');
         div_tune_new.scrollIntoView();
         
         // Register for updates
@@ -83,7 +83,11 @@ folkrnn.tuneManager = {
             warnings_id:"warnings",
             midi_options: {
                 generateDownload: true,
-                downloadLabel:"Download MIDI"
+                downloadLabel:"Download MIDI",
+                inlineControls: {
+                    tempo: true,
+                },
+                //selectionToggle: true, // not yet implemented according to https://github.com/paulrosen/abcjs/blob/master/docs/api.md
             },
             render_options: {
                 paddingleft:0,
@@ -110,7 +114,7 @@ folkrnn.tuneManager = {
         
         // Reveal about div, if there are no tunes
         if (Object.keys(folkrnn.tuneManager.tunes).length === 0) {
-            folkrnn.div_about.removeAttribute('style');
+            folkrnn.div_about.removeAttribute('hidden');
         } 
     },
 };
@@ -232,18 +236,18 @@ folkrnn.updateTuneDiv = function(tune) {
     el_generated.innerHTML = tune.rnn_finished;
     if (tune.rnn_finished) {
         el_generated.innerHTML = new Date(tune.rnn_finished).toLocaleString();
-        el_requested.parentNode.setAttribute('style', 'display: none');
-        el_generated.parentNode.removeAttribute('style');
+        el_requested.parentNode.setAttribute('hidden', '');
+        el_generated.parentNode.removeAttribute('hidden');
         
         el_archive_title.value = tune.title;
         el_archive_form.setAttribute('action', tune.archive_url);
-        el_archive_form.removeAttribute('style');
+        el_archive_form.removeAttribute('hidden');
     } else {
         el_requested.innerHTML = new Date(tune.requested).toLocaleString();
-        el_requested.parentNode.removeAttribute('style');
-        el_generated.parentNode.setAttribute('style', 'display: none');
+        el_requested.parentNode.removeAttribute('hidden');
+        el_generated.parentNode.setAttribute('hidden', '');
         
-        el_archive_form.setAttribute('style', 'display: none');
+        el_archive_form.setAttribute('hidden', '');
         
         if (!tune.rnn_started) {
             el_abc.innerHTML = folkrnn.waitingABC;

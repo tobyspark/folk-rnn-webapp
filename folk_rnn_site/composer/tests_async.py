@@ -27,13 +27,13 @@ async def test_folkrnn_consumer():
     await communicator.send_input({'type': 'stop'})
     await communicator.wait()
 
-    with open(TUNE_PATH + f'/with_repeats_{tune.id}_raw') as f:
+    with open(TUNE_PATH + f'/thesession_with_repeats_{tune.id}_raw') as f:
         assert f.read() == FOLKRNN_OUT_RAW
 
     correct_out = FOLKRNN_OUT\
                     .replace('X:1', f'X:{tune.id}')\
                     .replace('№1', f'№{tune.id}')
-    with open(TUNE_PATH + f'/with_repeats_{tune.id}') as f:
+    with open(TUNE_PATH + f'/thesession_with_repeats_{tune.id}') as f:
         assert f.read() == correct_out
 
     tune = RNNTune.objects.last()
@@ -133,7 +133,7 @@ async def test_receive_json_compose_valid():
     content = {
         'command': 'compose',
         'data': {
-            'model': 'with_repeats.pickle',
+            'model': 'thesession_with_repeats.pickle',
             'temp': 0.1,
             'seed': 123,
             'meter': 'M:4/4',
@@ -148,7 +148,7 @@ async def test_receive_json_compose_valid():
     response_data = json.loads(response)
     assert response_data['command'] == 'add_tune'
     assert response_data['tune']['id'] == tune.id
-    assert tune.rnn_model_name == 'with_repeats.pickle'
+    assert tune.rnn_model_name == 'thesession_with_repeats.pickle'
     assert tune.temp == 0.1
     assert tune.seed == 123
     assert tune.prime_tokens == 'M:4/4 K:Cmaj a b c'
@@ -166,7 +166,7 @@ async def test_receive_json_compose_invalid():
     content = {
         'command': 'compose',
         'data': {
-            'model': 'with_repeats.pickle',
+            'model': 'thesession_with_repeats.pickle',
             'temp': 0.1,
             'seed': -1,
             'meter': 'M:4/4',
@@ -180,7 +180,7 @@ async def test_receive_json_compose_invalid():
     content = {
         'command': 'compose',
         'data': {
-            'model': 'with_repeats.pickle',
+            'model': 'thesession_with_repeats.pickle',
             'temp': 0.1,
             'seed': -1,
             'meter': 'M:4/4',
@@ -194,7 +194,7 @@ async def test_receive_json_compose_invalid():
     content = {
         'command': 'compose',
         'data': {
-            'model': 'with_repeats.pickle',
+            'model': 'thesession_with_repeats.pickle',
             'temp': 11,
             'seed': 123,
             'meter': 'M:4/4',
