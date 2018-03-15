@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import redirect, render
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -11,9 +12,6 @@ from archiver.models import Tune
 def home_page(request):
     return render(request, 'composer/home.html', {
                                 'compose_form': ComposeForm(),
-                                'tune': None,
-                                'tune_rows': 1,
-                                'tune_hidden': True,
                                 'archive_form': ArchiveForm(),
                                 'machine_folk_tune_count': Tune.objects.count(),
                                 })
@@ -27,10 +25,10 @@ def tune_page(request, tune_id=None):
 
     return render(request, 'composer/tune.html', {
         'compose_form': ComposeForm(),
-        'tune': tune,
-        'tune_rows': tune.abc.count('\n'),
-        'archive_form': ArchiveForm({'folkrnn_id': tune_id_int, 'title': tune.title}),
-        'machine_folk_tune_count': Tune.objects.count()
+        'archive_form': ArchiveForm(),
+        'machine_folk_tune_count': Tune.objects.count(),
+        'tune_id': tune_id_int,
+        'tune_json': json.dumps(tune.plain_dict()),
         })
 
 def archive_tune(request, tune_id=None):
