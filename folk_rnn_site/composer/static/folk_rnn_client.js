@@ -19,9 +19,33 @@ folkrnn.initialise = function() {
     
     folkrnn.updateKeyMeter();
     
-    folkrnn.fieldModel.addEventListener("change", folkrnn.updateKeyMeter);
-    
-    folkrnn.fieldStartABC.addEventListener("input", folkrnn.validateStartABC);
+    folkrnn.fieldModel.addEventListener("change", function() {
+        // Update key, meter options per new model's vocab
+        // Keep selected value if possible
+        const meter = folkrnn.fieldMeter.value;
+        const key = folkrnn.fieldKey.value;
+        folkrnn.updateKeyMeter();
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, meter);
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, key);
+        // Update state i.e. auto-save
+        folkrnn.stateManager.updateState(false);
+    });
+    folkrnn.fieldTemp.addEventListener("change", function() {
+        folkrnn.stateManager.updateState(false);
+    });
+    folkrnn.fieldSeed.addEventListener("change", function() {
+        folkrnn.stateManager.updateState(false);
+    });
+    folkrnn.fieldKey.addEventListener("change", function() {
+        folkrnn.stateManager.updateState(false);
+    });
+    folkrnn.fieldMeter.addEventListener("change", function() {
+        folkrnn.stateManager.updateState(false);
+    }); 
+    folkrnn.fieldStartABC.addEventListener("input", function() {
+        folkrnn.validateStartABC();
+        folkrnn.stateManager.updateState(false);
+    });
     
     folkrnn.composeButton.addEventListener("click", folkrnn.generateRequest);
     
@@ -30,7 +54,7 @@ folkrnn.initialise = function() {
     folkrnn.websocketConnect();
     
     folkrnn.stateManager.applyState(window.history.state);
-    window.addEventListener('popState', function(event) {
+    window.addEventListener('popstate', function(event) {
         folkrnn.stateManager.applyState(event.state);
     });
     window.addEventListener('unload', function(event) {
@@ -81,18 +105,16 @@ folkrnn.stateManager = {
             window.history.pushState(state, title, url);
         else
             window.history.replaceState(state, title, url);
-        
-        console.log('updateState()\nnewState: ' + newState + '\nstate: ' + state);
     },
     'applyState': function(state) {
         "use strict";
         if (!state) return;
         // Apply to composition UI
-        folkrnn.fieldModel.value = state.model;
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldModel, state.model);
         folkrnn.fieldTemp.value = state.temp;
         folkrnn.fieldSeed.value = state.seed;
-        folkrnn.fieldKey.value = state.key;
-        folkrnn.fieldMeter.value = state.meter;
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, state.key);
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, state.meter);
         folkrnn.fieldStartABC.value = state.start_abc;
         
         // Apply to tuneManager (i.e. sync tunes on page with state)
@@ -103,9 +125,6 @@ folkrnn.stateManager = {
             if (state.tunes.indexOf(tune_id) === -1)
                 folkrnn.tuneManager.removeTune(tune_id);
         }
-        
-        console.log('applyState()');
-        console.log(state);
     },
 };
 
@@ -114,7 +133,7 @@ folkrnn.tuneManager = {
     'addTune': function (tune_id) {
         "use strict";
         if (tune_id in folkrnn.tuneManager.tunes) {
-            console.log('Attempt to add tune already in tuneManager')
+            console.log('Attempt to add tune already in tuneManager');
             return;
         }
         
@@ -237,7 +256,7 @@ folkrnn.validateStartABC = function() {
     const abc = folkrnn.fieldStartABC.value;
     const abcParsed = folkrnn.parseABC(abc);
 
-    this.setCustomValidity('');
+    folkrnn.fieldStartABC.setCustomValidity('');
 
     if (abcParsed.invalidIndexes.length > 0 ) {
         let markedUpABC = "";
@@ -250,14 +269,14 @@ folkrnn.validateStartABC = function() {
             pos = invalidIndex+1;
         }
         markedUpABC += abc.slice(pos);
-        this.setCustomValidity('Invalid: ' + markedUpABC);
+        folkrnn.fieldStartABC.setCustomValidity('Invalid: ' + markedUpABC);
     } 
 
     const invalidTokens = folkrnn.invalidTokens(abcParsed.tokens, folkrnn.fieldModel.value);
     if (invalidTokens.length == 1 ) {
-        this.setCustomValidity('Invalid token: ' + invalidTokens[0]);
+        folkrnn.fieldStartABC.setCustomValidity('Invalid token: ' + invalidTokens[0]);
     } else if (invalidTokens.length > 1 ) {
-        this.setCustomValidity('Invalid tokens: ' + invalidTokens.join(', '));
+        folkrnn.fieldStartABC.setCustomValidity('Invalid tokens: ' + invalidTokens.join(', '));
     } 
 };
 
@@ -327,6 +346,17 @@ folkrnn.updateTuneDiv = function(tune) {
         
         if (!tune.rnn_started) {
             el_abc.innerHTML = folkrnn.waitingABC;
+        }
+    }
+};
+
+folkrnn.utilities = {};
+folkrnn.utilities.setSelectByValue = function(element, value) {
+    "use strict";
+    for(let i = 0, j = element.options.length; i < j; ++i) {
+        if(element.options[i].value === value) {
+           element.selectedIndex = i;
+           break;
         }
     }
 };
