@@ -39,7 +39,7 @@ folkrnn.websocketReceive = function(action, stream) {
     "use strict";
     
     if (action.command == "add_tune") {
-        folkrnn.tuneManager.addTune(action.tune.id);
+        folkrnn.stateManager.addTune(action.tune.id);
         folkrnn.updateTuneDiv(action.tune);
     }
     if (action.command == "generation_status") {
