@@ -1,6 +1,7 @@
 import os
 import subprocess
 import json
+import logging
 from django.utils.timezone import now
 from channels.consumer import SyncConsumer
 from channels.exceptions import StopConsumer
@@ -19,7 +20,10 @@ ABC2ABC_COMMAND = [
             '-s', # -s to re-space
             '-n', '4' # -n 4 for newline every four bars
             ]
-            
+
+logger = logging.getLogger(__name__)
+logger_use = logging.getLogger('composer.use')
+
 class FolkRNNConsumer(SyncConsumer):
 
     def folkrnn_generate(self, event):
@@ -97,7 +101,7 @@ class FolkRNNConsumer(SyncConsumer):
             abc = result.stdout.decode()
         except:
             # do something, probably marking in DB
-            print(f'ABC2ABC failed in folk_rnn_task for id:{tune.id}')
+            logger.warning(f'ABC2ABC failed in folk_rnn_task for id:{tune.id}')
             return
         
         # Save the formatted, incrementally built ABC
@@ -127,12 +131,15 @@ class FolkRNNConsumer(SyncConsumer):
 class ComposerConsumer(JsonWebsocketConsumer):
 
     def connect(self):
+        self.log_use("Connect")
         self.accept()
         if not hasattr(self, 'abc_sent'):
             self.abc_sent = {}
     
     def generation_status(self, message):
         if message['status'] in ['start', 'finish']:
+            self.log_use(f"Generate {message['status']} for tune {message['tune']['id']}")
+            
             message['command'] = message.pop('type')
             self.send_json(message)
         elif message['status'] == 'new_abc':
@@ -151,14 +158,15 @@ class ComposerConsumer(JsonWebsocketConsumer):
                         })
         
     def receive_json(self, content):
-        print(f'{id(self)} – receive_json: {content}')
+        logger.debug(f'{id(self)} – receive_json: {content}')
         if content['command'] == 'register_for_tune':
             try:
                 tune = RNNTune.objects.get(id=content['tune_id'])
             except (TypeError, RNNTune.DoesNotExist):
-                print('invalid tune_id')
+                logger.debug('invalid tune_id')
                 return
             
+            self.log_use(f"Show tune {tune.id}")
             self.abc_sent[tune.id] = ''
             async_to_sync(self.channel_layer.group_add)(
                                         f"tune_{tune.id}", 
@@ -171,6 +179,7 @@ class ComposerConsumer(JsonWebsocketConsumer):
                     'tune': tune.plain_dict(),
                 })
         if content['command'] == 'unregister_for_tune':
+            self.log_use(f"Hide tune {content['tune_id']}")
             del self.abc_sent[content['tune_id']]
             async_to_sync(self.channel_layer.group_discard)(
                                         f"tune_{content['tune_id']}", 
@@ -188,6 +197,8 @@ class ComposerConsumer(JsonWebsocketConsumer):
                 tune.start_abc = form.cleaned_data['start_abc']
                 tune.save()
                 
+                self.log_use(f"Compose command. Tune {tune.id} created.")
+                
                 async_to_sync(self.channel_layer.send)('folk_rnn', {
                                                         'type': 'folkrnn.generate', 
                                                         'id': tune.id
@@ -197,11 +208,16 @@ class ComposerConsumer(JsonWebsocketConsumer):
                     'tune': tune.plain_dict(),
                     })
             else:
-                print(f'receive_json.compose: invalid form data\n{form.errors}')
+                self.log_use(f"Compose command data had errors: {form.errors}")
+                logger.info(f'receive_json.compose: invalid form data\n{form.errors}')
         
     def disconnect(self, close_code):
+        self.log_use("Disconnect")
         for tune_id in self.abc_sent:
             async_to_sync(self.channel_layer.group_discard)(
                                             f'tune_{tune_id}', 
                                             self.channel_name
                                             )
+    
+    def log_use(self, message):
+        logger_use.info(message, extra={'consumer_id': self.scope['client']})
