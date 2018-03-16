@@ -19,23 +19,123 @@ folkrnn.initialise = function() {
     
     folkrnn.updateKeyMeter();
     
-    folkrnn.fieldModel.addEventListener("change", folkrnn.updateKeyMeter);
-    
-    folkrnn.fieldStartABC.addEventListener("input", folkrnn.validateStartABC);
+    folkrnn.fieldModel.addEventListener("change", function() {
+        // Update key, meter options per new model's vocab
+        // Keep selected value if possible
+        const meter = folkrnn.fieldMeter.value;
+        const key = folkrnn.fieldKey.value;
+        folkrnn.updateKeyMeter();
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, meter);
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, key);
+        // Update state i.e. auto-save
+        folkrnn.stateManager.updateState(false);
+    });
+    folkrnn.fieldTemp.addEventListener("change", function() {
+        folkrnn.stateManager.updateState(false);
+    });
+    folkrnn.fieldSeed.addEventListener("change", function() {
+        folkrnn.stateManager.updateState(false);
+    });
+    folkrnn.fieldKey.addEventListener("change", function() {
+        folkrnn.stateManager.updateState(false);
+    });
+    folkrnn.fieldMeter.addEventListener("change", function() {
+        folkrnn.stateManager.updateState(false);
+    }); 
+    folkrnn.fieldStartABC.addEventListener("input", function() {
+        folkrnn.validateStartABC();
+        folkrnn.stateManager.updateState(false);
+    });
     
     folkrnn.composeButton.addEventListener("click", folkrnn.generateRequest);
     
     folkrnn.div_tune.setAttribute('hidden', '');
     
     folkrnn.websocketConnect();
+    
+    folkrnn.stateManager.applyState(window.history.state);
+    window.addEventListener('popstate', function(event) {
+        folkrnn.stateManager.applyState(event.state);
+    });
+    window.addEventListener('unload', function(event) {
+      folkrnn.stateManager.updateState(false);
+    });
+};
+
+folkrnn.stateManager = {
+    'addTune': function(tune_id) {
+        "use strict";
+        // Hide about div, now there is a tune
+        folkrnn.div_about.setAttribute('hidden', '');
+        
+        // Add tune to page
+        folkrnn.tuneManager.addTune(tune_id);
+        
+        // Register new URL
+        folkrnn.stateManager.updateState(true);
+    },
+    'removeTune': function(tune_id) {
+        "use strict";
+        // Remove tune from page
+        folkrnn.tuneManager.removeTune(tune_id);
+        
+        // Register new URL
+        folkrnn.stateManager.updateState(true);
+        
+        // Reveal about div, if there are no tunes
+        if (Object.keys(folkrnn.tuneManager.tunes).length === 0) {
+            folkrnn.div_about.removeAttribute('hidden');
+        }
+    },
+    'updateState': function(newState) {
+        "use strict";
+        const state = {
+            'model': folkrnn.fieldModel.value,
+            'temp': folkrnn.fieldTemp.value,
+            'seed': folkrnn.fieldSeed.value,
+            'key': folkrnn.fieldKey.value,
+            'meter': folkrnn.fieldMeter.value,
+            'start_abc': folkrnn.fieldStartABC.value,
+            'tunes': Object.keys(folkrnn.tuneManager.tunes),
+        };
+        const title = "";
+        const tune_ids = Object.keys(folkrnn.tuneManager.tunes);
+        const url = (tune_ids.length === 0) ? "/" : "/tune/" + Math.max(...tune_ids);
+        if (newState)
+            window.history.pushState(state, title, url);
+        else
+            window.history.replaceState(state, title, url);
+    },
+    'applyState': function(state) {
+        "use strict";
+        if (!state) return;
+        // Apply to composition UI
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldModel, state.model);
+        folkrnn.fieldTemp.value = state.temp;
+        folkrnn.fieldSeed.value = state.seed;
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, state.key);
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, state.meter);
+        folkrnn.fieldStartABC.value = state.start_abc;
+        
+        // Apply to tuneManager (i.e. sync tunes on page with state)
+        for (const tune_id of state.tunes) {
+            folkrnn.tuneManager.addTune(tune_id);
+        }
+        for (const tune_id of Object.keys(folkrnn.tuneManager.tunes)) {
+            if (state.tunes.indexOf(tune_id) === -1)
+                folkrnn.tuneManager.removeTune(tune_id);
+        }
+    },
 };
 
 folkrnn.tuneManager = {
     'tunes': {},
     'addTune': function (tune_id) {
         "use strict";
-        // Hide about div, now there is a tune
-        folkrnn.div_about.setAttribute('hidden', '');
+        if (tune_id in folkrnn.tuneManager.tunes) {
+            console.log('Attempt to add tune already in tuneManager');
+            return;
+        }
         
         // Add tune to manager
         const div_tune_new = folkrnn.div_tune.cloneNode(true);
@@ -53,7 +153,7 @@ folkrnn.tuneManager = {
         div_tune_new.querySelector('#archive_form').id = 'archive_form-' + tune_id;
         div_tune_new.querySelector('#id_title').id = 'id_title-' + tune_id;
         div_tune_new.querySelector('#remove_button').addEventListener("click", function () {
-            folkrnn.tuneManager.removeTune(tune_id);
+            folkrnn.stateManager.removeTune(tune_id);
         });
         folkrnn.tuneManager.tunes[tune_id] = { 'div': div_tune_new };
         
@@ -111,11 +211,6 @@ folkrnn.tuneManager = {
         // Remove from page
         folkrnn.div_tune.parentNode.removeChild(folkrnn.tuneManager.tunes[tune_id].div);
         delete folkrnn.tuneManager.tunes[tune_id];
-        
-        // Reveal about div, if there are no tunes
-        if (Object.keys(folkrnn.tuneManager.tunes).length === 0) {
-            folkrnn.div_about.removeAttribute('hidden');
-        } 
     },
 };
 
@@ -161,7 +256,7 @@ folkrnn.validateStartABC = function() {
     const abc = folkrnn.fieldStartABC.value;
     const abcParsed = folkrnn.parseABC(abc);
 
-    this.setCustomValidity('');
+    folkrnn.fieldStartABC.setCustomValidity('');
 
     if (abcParsed.invalidIndexes.length > 0 ) {
         let markedUpABC = "";
@@ -174,14 +269,14 @@ folkrnn.validateStartABC = function() {
             pos = invalidIndex+1;
         }
         markedUpABC += abc.slice(pos);
-        this.setCustomValidity('Invalid: ' + markedUpABC);
+        folkrnn.fieldStartABC.setCustomValidity('Invalid: ' + markedUpABC);
     } 
 
     const invalidTokens = folkrnn.invalidTokens(abcParsed.tokens, folkrnn.fieldModel.value);
     if (invalidTokens.length == 1 ) {
-        this.setCustomValidity('Invalid token: ' + invalidTokens[0]);
+        folkrnn.fieldStartABC.setCustomValidity('Invalid token: ' + invalidTokens[0]);
     } else if (invalidTokens.length > 1 ) {
-        this.setCustomValidity('Invalid tokens: ' + invalidTokens.join(', '));
+        folkrnn.fieldStartABC.setCustomValidity('Invalid tokens: ' + invalidTokens.join(', '));
     } 
 };
 
@@ -228,7 +323,7 @@ folkrnn.updateTuneDiv = function(tune) {
     
     el_abc.innerHTML = tune.abc;
     el_abc.setAttribute('rows', tune.abc.split(/\r\n|\r|\n/).length - 1);
-    el_model.innerHTML = tune.rnn_model_name;
+    el_model.innerHTML = tune.rnn_model_name.replace('.pickle', '');
     el_seed.innerHTML = tune.seed;
     el_temp.innerHTML = tune.temp;
     el_prime_tokens.innerHTML = tune.prime_tokens;
@@ -251,6 +346,17 @@ folkrnn.updateTuneDiv = function(tune) {
         
         if (!tune.rnn_started) {
             el_abc.innerHTML = folkrnn.waitingABC;
+        }
+    }
+};
+
+folkrnn.utilities = {};
+folkrnn.utilities.setSelectByValue = function(element, value) {
+    "use strict";
+    for(let i = 0, j = element.options.length; i < j; ++i) {
+        if(element.options[i].value === value) {
+           element.selectedIndex = i;
+           break;
         }
     }
 };
