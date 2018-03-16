@@ -153,11 +153,23 @@ class ComposerConsumer(JsonWebsocketConsumer):
     def receive_json(self, content):
         print(f'{id(self)} – receive_json: {content}')
         if content['command'] == 'register_for_tune':
-            self.abc_sent[content['tune_id']] = ''
+            try:
+                tune = RNNTune.objects.get(id=content['tune_id'])
+            except (TypeError, RNNTune.DoesNotExist):
+                print('invalid tune_id')
+                return
+            
+            self.abc_sent[tune.id] = ''
             async_to_sync(self.channel_layer.group_add)(
-                                        f"tune_{content['tune_id']}", 
+                                        f"tune_{tune.id}", 
                                         self.channel_name
                                         )
+            if (tune.rnn_finished is not None):
+                self.send_json({
+                    'command': 'generation_status',
+                    'status': 'finish',
+                    'tune': tune.plain_dict(),
+                })
         if content['command'] == 'unregister_for_tune':
             del self.abc_sent[content['tune_id']]
             async_to_sync(self.channel_layer.group_discard)(
@@ -182,7 +194,7 @@ class ComposerConsumer(JsonWebsocketConsumer):
                                                         })
                 self.send_json({
                     'command': 'add_tune',
-                    'tune': tune.plain_dict()
+                    'tune': tune.plain_dict(),
                     })
             else:
                 print(f'receive_json.compose: invalid form data\n{form.errors}')

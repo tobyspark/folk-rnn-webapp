@@ -2,6 +2,7 @@ import pytest # Channels consumer require tests to be run with `pytest`
 import json
 from channels.testing import ApplicationCommunicator, WebsocketCommunicator
 from channels.layers import get_channel_layer
+from channels.db import database_sync_to_async
 from datetime import timedelta
 from asyncio import sleep
 
@@ -43,6 +44,7 @@ async def test_folkrnn_consumer():
     assert tune.rnn_finished - tune.rnn_started < timedelta(seconds=5)
     assert tune.abc == correct_out
 
+@pytest.mark.django_db()
 @pytest.mark.asyncio
 async def test_generation_status():
     communicator = WebsocketCommunicator(ComposerConsumer, '/')
@@ -50,13 +52,15 @@ async def test_generation_status():
     assert connected
     
     # Register. This should add the consumer to the tune groups
+    tune_a = await database_sync_to_async(RNNTune.objects.create)(**FOLKRNN_IN)
+    tune_b = await database_sync_to_async(RNNTune.objects.create)(**FOLKRNN_IN)
     await communicator.send_to(json.dumps({
         'command': 'register_for_tune',
-        'tune_id': 1,
+        'tune_id': tune_a.id,
         }))
     await communicator.send_to(json.dumps({
         'command': 'register_for_tune',
-        'tune_id': 2,
+        'tune_id': tune_b.id,
         }))
     
     # This sleep is critical. The design of the consumer means the add_token command
@@ -73,52 +77,52 @@ async def test_generation_status():
         'type': 'generation_status',
         'status': 'new_abc',
         'abc': 'a b c',
-        'tune_id': 1,
+        'tune_id': tune_a.id,
         })
     response = await communicator.receive_from()
     assert json.loads(response) == {
         'command': 'add_token',
         'token': 'a b c',
-        'tune_id': 1,
+        'tune_id': tune_a.id,
     }
     
     await channel_layer.group_send('tune_2', {
         'type': 'generation_status',
         'status': 'new_abc',
         'abc': 'A B C',
-        'tune_id': 2,
+        'tune_id': tune_b.id,
         })
     response = await communicator.receive_from()
     assert json.loads(response) == {
         'command': 'add_token',
         'token': 'A B C',
-        'tune_id': 2,
+        'tune_id': tune_b.id,
     }
     
     await channel_layer.group_send('tune_1', {
         'type': 'generation_status',
         'status': 'new_abc',
         'abc': 'a b c d e f',
-        'tune_id': 1,
+        'tune_id': tune_a.id,
         })
     response = await communicator.receive_from()
     assert json.loads(response) == {
         'command': 'add_token',
         'token': ' d e f',
-        'tune_id': 1,
+        'tune_id': tune_a.id,
     }
     
     await channel_layer.group_send('tune_2', {
         'type': 'generation_status',
         'status': 'new_abc',
         'abc': 'A B C D E F',
-        'tune_id': 2,
+        'tune_id': tune_b.id,
         })
     response = await communicator.receive_from()
     assert json.loads(response) == {
         'command': 'add_token',
         'token': ' D E F',
-        'tune_id': 2,
+        'tune_id': tune_b.id,
     }
     
     await communicator.disconnect()
