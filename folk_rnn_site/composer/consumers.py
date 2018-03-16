@@ -210,6 +210,15 @@ class ComposerConsumer(JsonWebsocketConsumer):
             else:
                 self.log_use(f"Compose command data had errors: {form.errors}")
                 logger.info(f'receive_json.compose: invalid form data\n{form.errors}')
+        if content['command'] == 'state_notification':
+            # untrusted input
+            to_log = f"URL: {content['url']}. State: {content['state']}"
+            # poor mans check
+            if len(to_log) < 400:
+                self.log_use(to_log)
+            else:
+                self.log_use(to_log[:400])
+                logger.warning('(worryingly)long state_notification')
         
     def disconnect(self, close_code):
         self.log_use("Disconnect")
