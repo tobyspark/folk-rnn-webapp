@@ -48,6 +48,7 @@ async def test_folkrnn_consumer():
 @pytest.mark.asyncio
 async def test_generation_status():
     communicator = WebsocketCommunicator(ComposerConsumer, '/')
+    communicator.scope['client'] = ['composer.tests_aync']
     connected, subprotocol = await communicator.connect()
     assert connected
     
@@ -131,6 +132,7 @@ async def test_generation_status():
 @pytest.mark.asyncio
 async def test_receive_json_compose_valid():
     communicator = WebsocketCommunicator(ComposerConsumer, '/')
+    communicator.scope['client'] = ['composer.tests_aync']
     connected, subprotocol = await communicator.connect()
     assert connected
     
@@ -162,6 +164,7 @@ async def test_receive_json_compose_valid():
 @pytest.mark.asyncio
 async def test_receive_json_compose_invalid():
     communicator = WebsocketCommunicator(ComposerConsumer, '/')
+    communicator.scope['client'] = ['composer.tests_aync']
     connected, subprotocol = await communicator.connect()
     assert connected
     
