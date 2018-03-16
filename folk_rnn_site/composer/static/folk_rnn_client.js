@@ -105,6 +105,11 @@ folkrnn.stateManager = {
             window.history.pushState(state, title, url);
         else
             window.history.replaceState(state, title, url);
+        folkrnn.websocketSend({
+                        command: "state_notification",
+                        state: state,
+                        url: url,
+                    });
     },
     'applyState': function(state) {
         "use strict";
