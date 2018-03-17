@@ -10,7 +10,7 @@ from asgiref.sync import async_to_sync
 
 from composer.rnn_models import folk_rnn_cached
 from composer import ABC2ABC_PATH, TUNE_PATH, FOLKRNN_TUNE_TITLE
-from composer.models import RNNTune
+from composer.models import RNNTune, Session
 from composer.forms import ComposeForm
 
 ABC2ABC_COMMAND = [
@@ -131,10 +131,23 @@ class FolkRNNConsumer(SyncConsumer):
 class ComposerConsumer(JsonWebsocketConsumer):
 
     def connect(self):
-        self.log_use("Connect")
         self.accept()
-        if not hasattr(self, 'abc_sent'):
-            self.abc_sent = {}
+        try:
+            id_int = int(self.scope['path'][1:])
+            self.session = Session.objects.get(id=id_int).id
+        except (ValueError, TypeError, Session.DoesNotExist):
+            self.session = Session.objects.create().id
+            logger.info(f"New session; {self.session}. Path was {self.scope['path']}")
+            self.send_json({
+                        'command': 'set_session',
+                        'session_id': self.session,
+                        })
+        
+        self.log_use("Connect")
+        
+        if hasattr(self, 'abc_sent'):
+            print('Surprise! These are not created on connect!')
+        self.abc_sent = {}
     
     def generation_status(self, message):
         if message['status'] in ['start', 'finish']:
@@ -229,4 +242,4 @@ class ComposerConsumer(JsonWebsocketConsumer):
                                             )
     
     def log_use(self, message):
-        logger_use.info(message, extra={'consumer_id': self.scope['client']})
+        logger_use.info(message, extra={'session': self.session})

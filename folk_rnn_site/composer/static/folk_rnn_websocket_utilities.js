@@ -4,28 +4,35 @@
 if (typeof folkrnn == 'undefined')
     folkrnn = {};
 
-folkrnn.websocketConnect = function() {
-    "use strict";
-    const ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-    const ws_path = ws_scheme + '://' + window.location.host;
-
-    folkrnn.socket = new channels.WebSocketBridge();
-    folkrnn.socket.connect(ws_path);
-    folkrnn.socket.listen(folkrnn.websocketReceive);
-
-    folkrnn.socket.socket.addEventListener('open', function() {
-        console.log("Connected to WebSocket");
-        folkrnn.websocketSend();
-    });
-};
-
 folkrnn.websocketSend = function(json) {
     "use strict";
+    // Connect on-demand
+    // Don't send before connection is ready
+    
+    // Connect if we haven't already
+    if ('socket' in folkrnn === false) {
+        const ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+        const ws_session_path = ('session' in folkrnn) ? '/' + folkrnn.session : "";
+        const ws_path = ws_scheme + '://' + window.location.host + ws_session_path;
+        
+        folkrnn.socket = new channels.WebSocketBridge();
+        folkrnn.socket.connect(ws_path);
+        folkrnn.socket.listen(folkrnn.websocketReceive);
+        
+        // Empty queue once connected
+        folkrnn.socket.socket.addEventListener('open', function() {
+            console.log("Connected to WebSocket");
+            folkrnn.websocketSend();
+        });
+    }
+
+    // Enqueue the message
     if ('queue' in folkrnn.websocketSend === false)
         folkrnn.websocketSend.queue = [];
     if (json)
         folkrnn.websocketSend.queue.push(json);
-
+        
+    // Send the queue of messages if we can
     // CONNECTING	0	The connection is not yet open.
     // OPEN	        1	The connection is open and ready to communicate.
     // CLOSING	    2	The connection is in the process of closing.
@@ -37,6 +44,10 @@ folkrnn.websocketSend = function(json) {
 
 folkrnn.websocketReceive = function(action, stream) {
     "use strict";
+    if (action.command == "set_session") {
+        folkrnn.session = action.session_id;
+        folkrnn.stateManager.updateState(false);
+    }
     if (action.command == "add_tune") {
         folkrnn.stateManager.addTune(action.tune.id);
         folkrnn.updateTuneDiv(action.tune);

@@ -138,7 +138,7 @@ LOGGING = {
             'format': '%(asctime)s - %(levelname)s - %(module)s - %(message)s'
         },
         'use': {
-            'format': '%(asctime)s %(consumer_id)s %(message)s'
+            'format': '%(asctime)s %(session)s %(message)s'
         },
     },
     'handlers': {
