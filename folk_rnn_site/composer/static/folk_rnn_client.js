@@ -98,7 +98,8 @@ folkrnn.stateManager = {
         else
             window.history.replaceState(state, title, url);
         folkrnn.websocketSend({
-                        command: "state_notification",
+                        command: "notification",
+                        type: "state_change",
                         state: state,
                         url: url,
                     });
@@ -199,6 +200,21 @@ folkrnn.tuneManager = {
                     modelChanged:  folkrnn.abcjsModelChangedCallback
                 }
             }
+        });
+        
+        const midi_download_link = document.body.querySelector('#midi-download-' + tune_id + ' > div > a');
+        midi_download_link.addEventListener('click', function() {
+            folkrnn.websocketSend({
+                command: "notification",
+                type: "midi_download",
+            });
+        });
+        const midi_play_button = document.body.querySelector('#midi-' + tune_id + ' > div > button.abcjs-midi-start.abcjs-btn');
+        midi_play_button.addEventListener('click', function() {
+            folkrnn.websocketSend({
+                command: "notification",
+                type: "midi_play",
+            });
         });
     },
     'removeTune': function (tune_id) {
