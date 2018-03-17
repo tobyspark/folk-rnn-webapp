@@ -51,8 +51,6 @@ folkrnn.initialise = function() {
     
     folkrnn.div_tune.setAttribute('hidden', '');
     
-    folkrnn.websocketConnect();
-    
     folkrnn.stateManager.applyState(window.history.state);
     window.addEventListener('popstate', function(event) {
         folkrnn.stateManager.applyState(event.state);
@@ -98,6 +96,7 @@ folkrnn.stateManager = {
             'start_abc': folkrnn.fieldStartABC.value,
             'tunes': Object.keys(folkrnn.tuneManager.tunes),
         };
+        if ('session' in folkrnn) state.session = folkrnn.session;
         const title = "";
         const tune_ids = Object.keys(folkrnn.tuneManager.tunes);
         const url = (tune_ids.length === 0) ? "/" : "/tune/" + Math.max(...tune_ids);
@@ -114,6 +113,10 @@ folkrnn.stateManager = {
     'applyState': function(state) {
         "use strict";
         if (!state) return;
+        
+        // Restore session id
+        if ('session' in state) folkrnn.session = state.session;
+        
         // Apply to composition UI
         folkrnn.utilities.setSelectByValue(folkrnn.fieldModel, state.model);
         folkrnn.fieldTemp.value = state.temp;
