@@ -20,14 +20,7 @@ folkrnn.initialise = function() {
     folkrnn.updateKeyMeter();
     
     folkrnn.fieldModel.addEventListener("change", function() {
-        // Update key, meter options per new model's vocab
-        // Keep selected value if possible
-        const meter = folkrnn.fieldMeter.value;
-        const key = folkrnn.fieldKey.value;
         folkrnn.updateKeyMeter();
-        folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, meter);
-        folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, key);
-        // Update state i.e. auto-save
         folkrnn.stateManager.updateState(false);
     });
     folkrnn.fieldTemp.addEventListener("change", function() {
@@ -290,31 +283,35 @@ folkrnn.validateStartABC = function() {
 
 folkrnn.updateKeyMeter = function() {
     "use strict";
+    // Update key, meter options per new model's vocab
+    
+    // Keep selected value if possible
+    const meter = folkrnn.fieldMeter.value;
+    const key = folkrnn.fieldKey.value;
+
+    // Set Meter options from model
     while (folkrnn.fieldMeter.lastChild) {
         folkrnn.fieldMeter.removeChild(folkrnn.fieldMeter.lastChild);
     }
     for (const m of folkrnn.models[folkrnn.fieldModel.value].header_m_tokens) {
         folkrnn.fieldMeter.appendChild(new Option(m.slice(2), m));
-        if (m == 'M:4/4') {
-            folkrnn.fieldMeter.lastChild.selected = true;
-        }
     }
+    folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, meter, 'M:4/4');
 
+    // Set Key options from model
     while (folkrnn.fieldKey.lastChild) {
         folkrnn.fieldKey.removeChild(folkrnn.fieldKey.lastChild);
     }
+    let key_map = {
+        'K:Cmaj': 'C Major',		
+        'K:Cmin': 'C Minor',		
+        'K:Cdor': 'C Dorian',		
+        'K:Cmix': 'C Mixolydian',
+    };
     for (const k of folkrnn.models[folkrnn.fieldModel.value].header_k_tokens) {
-        let key_map = {
-            'K:Cmaj': 'C Major',		
-            'K:Cmin': 'C Minor',		
-            'K:Cdor': 'C Dorian',		
-            'K:Cmix': 'C Mixolydian',
-        };
         folkrnn.fieldKey.appendChild(new Option(key_map[k], k));
-        if (k == 'K:Cmaj') {
-            folkrnn.fieldKey.lastChild.selected = true;
-        }
     }
+    folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, key, 'K:Cmaj');
 };
 
 folkrnn.updateTuneDiv = function(tune) {
@@ -359,12 +356,18 @@ folkrnn.updateTuneDiv = function(tune) {
 };
 
 folkrnn.utilities = {};
-folkrnn.utilities.setSelectByValue = function(element, value) {
+folkrnn.utilities.setSelectByValue = function(element, value, default_value) {
     "use strict";
     for(let i = 0, j = element.options.length; i < j; ++i) {
         if(element.options[i].value === value) {
            element.selectedIndex = i;
-           break;
+           return;
+        }
+    }
+    for(let i = 0, j = element.options.length; i < j; ++i) {
+        if(element.options[i].value === default_value) {
+           element.selectedIndex = i;
+           return;
         }
     }
 };
