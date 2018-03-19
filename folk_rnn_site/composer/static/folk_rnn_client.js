@@ -20,14 +20,7 @@ folkrnn.initialise = function() {
     folkrnn.updateKeyMeter();
     
     folkrnn.fieldModel.addEventListener("change", function() {
-        // Update key, meter options per new model's vocab
-        // Keep selected value if possible
-        const meter = folkrnn.fieldMeter.value;
-        const key = folkrnn.fieldKey.value;
         folkrnn.updateKeyMeter();
-        folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, meter);
-        folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, key);
-        // Update state i.e. auto-save
         folkrnn.stateManager.updateState(false);
     });
     folkrnn.fieldTemp.addEventListener("change", function() {
@@ -50,8 +43,6 @@ folkrnn.initialise = function() {
     folkrnn.composeButton.addEventListener("click", folkrnn.generateRequest);
     
     folkrnn.div_tune.setAttribute('hidden', '');
-    
-    folkrnn.websocketConnect();
     
     folkrnn.stateManager.applyState(window.history.state);
     window.addEventListener('popstate', function(event) {
@@ -98,6 +89,7 @@ folkrnn.stateManager = {
             'start_abc': folkrnn.fieldStartABC.value,
             'tunes': Object.keys(folkrnn.tuneManager.tunes),
         };
+        if ('session' in folkrnn) state.session = folkrnn.session;
         const title = "";
         const tune_ids = Object.keys(folkrnn.tuneManager.tunes);
         const url = (tune_ids.length === 0) ? "/" : "/tune/" + Math.max(...tune_ids);
@@ -105,10 +97,20 @@ folkrnn.stateManager = {
             window.history.pushState(state, title, url);
         else
             window.history.replaceState(state, title, url);
+        folkrnn.websocketSend({
+                        command: "notification",
+                        type: "state_change",
+                        state: state,
+                        url: url,
+                    });
     },
     'applyState': function(state) {
         "use strict";
         if (!state) return;
+        
+        // Restore session id
+        if ('session' in state) folkrnn.session = state.session;
+        
         // Apply to composition UI
         folkrnn.utilities.setSelectByValue(folkrnn.fieldModel, state.model);
         folkrnn.fieldTemp.value = state.temp;
@@ -199,6 +201,21 @@ folkrnn.tuneManager = {
                 }
             }
         });
+        
+        const midi_download_link = document.body.querySelector('#midi-download-' + tune_id + ' > div > a');
+        midi_download_link.addEventListener('click', function() {
+            folkrnn.websocketSend({
+                command: "notification",
+                type: "midi_download",
+            });
+        });
+        const midi_play_button = document.body.querySelector('#midi-' + tune_id + ' > div > button.abcjs-midi-start.abcjs-btn');
+        midi_play_button.addEventListener('click', function() {
+            folkrnn.websocketSend({
+                command: "notification",
+                type: "midi_play",
+            });
+        });
     },
     'removeTune': function (tune_id) {
         "use strict";
@@ -282,31 +299,35 @@ folkrnn.validateStartABC = function() {
 
 folkrnn.updateKeyMeter = function() {
     "use strict";
+    // Update key, meter options per new model's vocab
+    
+    // Keep selected value if possible
+    const meter = folkrnn.fieldMeter.value;
+    const key = folkrnn.fieldKey.value;
+
+    // Set Meter options from model
     while (folkrnn.fieldMeter.lastChild) {
         folkrnn.fieldMeter.removeChild(folkrnn.fieldMeter.lastChild);
     }
     for (const m of folkrnn.models[folkrnn.fieldModel.value].header_m_tokens) {
         folkrnn.fieldMeter.appendChild(new Option(m.slice(2), m));
-        if (m == 'M:4/4') {
-            folkrnn.fieldMeter.lastChild.selected = true;
-        }
     }
+    folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, meter, 'M:4/4');
 
+    // Set Key options from model
     while (folkrnn.fieldKey.lastChild) {
         folkrnn.fieldKey.removeChild(folkrnn.fieldKey.lastChild);
     }
+    let key_map = {
+        'K:Cmaj': 'C Major',		
+        'K:Cmin': 'C Minor',		
+        'K:Cdor': 'C Dorian',		
+        'K:Cmix': 'C Mixolydian',
+    };
     for (const k of folkrnn.models[folkrnn.fieldModel.value].header_k_tokens) {
-        let key_map = {
-            'K:Cmaj': 'C Major',		
-            'K:Cmin': 'C Minor',		
-            'K:Cdor': 'C Dorian',		
-            'K:Cmix': 'C Mixolydian',
-        };
         folkrnn.fieldKey.appendChild(new Option(key_map[k], k));
-        if (k == 'K:Cmaj') {
-            folkrnn.fieldKey.lastChild.selected = true;
-        }
     }
+    folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, key, 'K:Cmaj');
 };
 
 folkrnn.updateTuneDiv = function(tune) {
@@ -351,12 +372,18 @@ folkrnn.updateTuneDiv = function(tune) {
 };
 
 folkrnn.utilities = {};
-folkrnn.utilities.setSelectByValue = function(element, value) {
+folkrnn.utilities.setSelectByValue = function(element, value, default_value) {
     "use strict";
     for(let i = 0, j = element.options.length; i < j; ++i) {
         if(element.options[i].value === value) {
            element.selectedIndex = i;
-           break;
+           return;
+        }
+    }
+    for(let i = 0, j = element.options.length; i < j; ++i) {
+        if(element.options[i].value === default_value) {
+           element.selectedIndex = i;
+           return;
         }
     }
 };
