@@ -193,7 +193,10 @@ class ComposerConsumer(JsonWebsocketConsumer):
                 })
         if content['command'] == 'unregister_for_tune':
             self.log_use(f"Hide tune {content['tune_id']}")
-            del self.abc_sent[content['tune_id']]
+            try:
+                del self.abc_sent[content['tune_id']]
+            except KeyError:
+                logger.warning(f"unregister_for_tune: tune {content['tune_id']} not in abc_sent")
             async_to_sync(self.channel_layer.group_discard)(
                                         f"tune_{content['tune_id']}", 
                                         self.channel_name
