@@ -16,9 +16,15 @@
                     <label for="{{ compose_form.temp.id_for_label }}">Temperature</label>
                     {% render_field compose_form.temp class+="pure-input-1" title="A number between 0.1 and 10 saying how adventurous the generation will be. Ex: 1.0 is normal. 2.0 is more wild. 0.5 is more cautious." %}
                 </div>
-                <div class="pure-u-1-2">
-                    <label for="{{ compose_form.seed.id_for_label }}">Seed</label>
-                    {% render_field compose_form.seed class+="pure-input-1" title="The random number generator seed. Change this number to generate a different tune with the same settings." %}
+                <div class="pure-u-1-2" style="position: relative;">
+                    <div id="seed_auto_div" class="pure-input-1" style="position: absolute; top: 0; left: 0">
+                        <label for="seed_auto">Seed</label>
+                        <input id="seed_auto" type="text" class="pure-input-1" style="background: red;" title="Revert the random number generator to producing a new seed for every compose.">
+                    </div>
+                    <div id="seed_field_div" class="pure-input-1" style="position: absolute; top: 0; left: 0">
+                        <label for="{{ compose_form.seed.id_for_label }}">&nbsp;</label>
+                        {% render_field compose_form.seed class+="pure-input-1" title="The random number generator seed. Change this number to generate a different tune with the same settings." %}
+                    </div>
                 </div>
                 <legend><!-- Tune Properties --></legend>
                 <div class="pure-u-1-2">

@@ -12,6 +12,7 @@ folkrnn.initialise = function() {
     folkrnn.fieldKey = document.getElementById("id_key");
     folkrnn.fieldMeter = document.getElementById("id_meter");
     folkrnn.fieldStartABC = document.getElementById("id_start_abc");
+    folkrnn.seedAutoButton = document.getElementById("seed_auto")
     folkrnn.composeButton = document.getElementById("compose_button");
     
     folkrnn.div_about = document.getElementById("header");
@@ -39,6 +40,14 @@ folkrnn.initialise = function() {
         folkrnn.validateStartABC();
         folkrnn.stateManager.updateState(false);
     });
+
+    folkrnn.fieldSeed.addEventListener("input", function() {
+        folkrnn.handleSeedAuto(false);
+    });
+    folkrnn.seedAutoButton.addEventListener("click", function() {
+        folkrnn.handleSeedAuto(true);
+    });
+
     
     folkrnn.composeButton.addEventListener("click", folkrnn.generateRequest);
     
@@ -372,6 +381,15 @@ folkrnn.updateTuneDiv = function(tune) {
         }
     }
 };
+
+folkrnn.handleSeedAuto = function(autoSeedOn) {
+    const seed_field_div = document.getElementById('seed_field_div');
+    if (autoSeedOn) {
+        seed_field_div.className = 'pure-u-1';
+    } else {
+        seed_field_div.className = 'pure-u-7-8';
+    }
+}
 
 folkrnn.utilities = {};
 folkrnn.utilities.setSelectByValue = function(element, value, default_value) {
