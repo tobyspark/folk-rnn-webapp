@@ -51,6 +51,9 @@ async def test_generation_status():
     communicator.scope['client'] = ['composer.tests_aync']
     connected, subprotocol = await communicator.connect()
     assert connected
+    response = await communicator.receive_from()
+    response_data = json.loads(response)
+    assert response_data['command'] == 'set_session'
     
     # Register. This should add the consumer to the tune groups
     tune_a = await database_sync_to_async(RNNTune.objects.create)(**FOLKRNN_IN)
@@ -135,6 +138,9 @@ async def test_receive_json_compose_valid():
     communicator.scope['client'] = ['composer.tests_aync']
     connected, subprotocol = await communicator.connect()
     assert connected
+    response = await communicator.receive_from()
+    response_data = json.loads(response)
+    assert response_data['command'] == 'set_session'
     
     content = {
         'command': 'compose',
@@ -167,6 +173,9 @@ async def test_receive_json_compose_invalid():
     communicator.scope['client'] = ['composer.tests_aync']
     connected, subprotocol = await communicator.connect()
     assert connected
+    response = await communicator.receive_from()
+    response_data = json.loads(response)
+    assert response_data['command'] == 'set_session'
     
     count_before = RNNTune.objects.count()
 
