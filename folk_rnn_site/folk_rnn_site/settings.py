@@ -157,7 +157,7 @@ LOGGING = {
     'loggers': {
         'composer': {
             'handlers': ['console'],
-            'level': 'DEBUG',
+            'level': 'WARNING' if 'FOLKRNN_PRODUCTION' in os.environ else 'DEBUG',
         },
         'composer.use': {
             'handlers': ['file_composer_use'],
