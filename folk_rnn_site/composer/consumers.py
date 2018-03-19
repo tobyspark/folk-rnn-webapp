@@ -1,6 +1,7 @@
 import os
 import subprocess
 import json
+import logging
 from django.utils.timezone import now
 from channels.consumer import SyncConsumer
 from channels.exceptions import StopConsumer
@@ -9,7 +10,7 @@ from asgiref.sync import async_to_sync
 
 from composer.rnn_models import folk_rnn_cached
 from composer import ABC2ABC_PATH, TUNE_PATH, FOLKRNN_TUNE_TITLE
-from composer.models import RNNTune
+from composer.models import RNNTune, Session
 from composer.forms import ComposeForm
 
 ABC2ABC_COMMAND = [
@@ -19,7 +20,10 @@ ABC2ABC_COMMAND = [
             '-s', # -s to re-space
             '-n', '4' # -n 4 for newline every four bars
             ]
-            
+
+logger = logging.getLogger(__name__)
+logger_use = logging.getLogger('composer.use')
+
 class FolkRNNConsumer(SyncConsumer):
 
     def folkrnn_generate(self, event):
@@ -97,7 +101,7 @@ class FolkRNNConsumer(SyncConsumer):
             abc = result.stdout.decode()
         except:
             # do something, probably marking in DB
-            print(f'ABC2ABC failed in folk_rnn_task for id:{tune.id}')
+            logger.warning(f'ABC2ABC failed in folk_rnn_task for id:{tune.id}')
             return
         
         # Save the formatted, incrementally built ABC
@@ -128,11 +132,27 @@ class ComposerConsumer(JsonWebsocketConsumer):
 
     def connect(self):
         self.accept()
-        if not hasattr(self, 'abc_sent'):
-            self.abc_sent = {}
+        try:
+            id_int = int(self.scope['path'][1:])
+            self.session = Session.objects.get(id=id_int).id
+        except (ValueError, TypeError, Session.DoesNotExist):
+            self.session = Session.objects.create().id
+            logger.info(f"New session; {self.session}. Path was {self.scope['path']}")
+            self.send_json({
+                        'command': 'set_session',
+                        'session_id': self.session,
+                        })
+        
+        self.log_use("Connect")
+        
+        if hasattr(self, 'abc_sent'):
+            print('Surprise! These are not created on connect!')
+        self.abc_sent = {}
     
     def generation_status(self, message):
         if message['status'] in ['start', 'finish']:
+            self.log_use(f"Generate {message['status']} for tune {message['tune']['id']}")
+            
             message['command'] = message.pop('type')
             self.send_json(message)
         elif message['status'] == 'new_abc':
@@ -151,14 +171,15 @@ class ComposerConsumer(JsonWebsocketConsumer):
                         })
         
     def receive_json(self, content):
-        print(f'{id(self)} – receive_json: {content}')
+        logger.debug(f'{id(self)} – receive_json: {content}')
         if content['command'] == 'register_for_tune':
             try:
                 tune = RNNTune.objects.get(id=content['tune_id'])
             except (TypeError, RNNTune.DoesNotExist):
-                print('invalid tune_id')
+                logger.debug('invalid tune_id')
                 return
             
+            self.log_use(f"Show tune {tune.id}")
             self.abc_sent[tune.id] = ''
             async_to_sync(self.channel_layer.group_add)(
                                         f"tune_{tune.id}", 
@@ -171,7 +192,11 @@ class ComposerConsumer(JsonWebsocketConsumer):
                     'tune': tune.plain_dict(),
                 })
         if content['command'] == 'unregister_for_tune':
-            del self.abc_sent[content['tune_id']]
+            self.log_use(f"Hide tune {content['tune_id']}")
+            try:
+                del self.abc_sent[content['tune_id']]
+            except KeyError:
+                logger.warning(f"unregister_for_tune: tune {content['tune_id']} not in abc_sent")
             async_to_sync(self.channel_layer.group_discard)(
                                         f"tune_{content['tune_id']}", 
                                         self.channel_name
@@ -188,6 +213,8 @@ class ComposerConsumer(JsonWebsocketConsumer):
                 tune.start_abc = form.cleaned_data['start_abc']
                 tune.save()
                 
+                self.log_use(f"Compose command. Tune {tune.id} created.")
+                
                 async_to_sync(self.channel_layer.send)('folk_rnn', {
                                                         'type': 'folkrnn.generate', 
                                                         'id': tune.id
@@ -197,11 +224,30 @@ class ComposerConsumer(JsonWebsocketConsumer):
                     'tune': tune.plain_dict(),
                     })
             else:
-                print(f'receive_json.compose: invalid form data\n{form.errors}')
+                self.log_use(f"Compose command data had errors: {form.errors}")
+                logger.info(f'receive_json.compose: invalid form data\n{form.errors}')
+        if content['command'] == 'notification':
+            if content['type'] == 'state_change':
+                # untrusted input
+                to_log = f"URL: {content['url']}. State: {content['state']}"
+                # poor mans check
+                if len(to_log) < 400:
+                    self.log_use(to_log)
+                else:
+                    self.log_use(to_log[:400])
+                    logger.warning('(worryingly)long state_notification')
+            elif content['type'] in ['midi_play', 'midi_download']:
+                self.log_use(content['type'])
+            else:
+                logger.warning('Unknown notification')
         
     def disconnect(self, close_code):
+        self.log_use("Disconnect")
         for tune_id in self.abc_sent:
             async_to_sync(self.channel_layer.group_discard)(
                                             f'tune_{tune_id}', 
                                             self.channel_name
                                             )
+    
+    def log_use(self, message):
+        logger_use.info(message, extra={'session': self.session})

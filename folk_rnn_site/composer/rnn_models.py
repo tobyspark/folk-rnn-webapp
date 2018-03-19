@@ -2,10 +2,13 @@ import os
 import pickle
 import functools
 import json
+import logging
 from collections import OrderedDict
 
 from composer import MODEL_PATH, FOLKRNN_INSTANCE_CACHE_COUNT
 from folk_rnn import Folk_RNN
+
+logger = logging.getLogger(__name__)
 
 @functools.lru_cache(maxsize=FOLKRNN_INSTANCE_CACHE_COUNT)
 def folk_rnn_cached(rnn_model_name):
@@ -32,7 +35,7 @@ def models():
             model['header_k_tokens'] = sorted({x for x in model['tokens'] if x.startswith('K:')})
             models[filename] = model
         except:
-            print(f'Error parsing {filename}')
+            logger.warning(f'Error parsing {filename}')
             pass
     return models
 

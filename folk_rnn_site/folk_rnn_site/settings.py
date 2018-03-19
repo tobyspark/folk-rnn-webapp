@@ -127,6 +127,45 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+## Logging
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'as_per_channels': {
+            # https://github.com/django/channels/blob/master/channels/log.py#L12
+            'format': '%(asctime)s - %(levelname)s - %(module)s - %(message)s'
+        },
+        'use': {
+            'format': '%(asctime)s %(session)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'as_per_channels', 
+        },
+        'file_composer_use': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': '/var/log/folk_rnn_webapp/composer.use.log',
+            'formatter': 'use',
+        },
+    },
+    'loggers': {
+        'composer': {
+            'handlers': ['console'],
+            'level': 'WARNING' if 'FOLKRNN_PRODUCTION' in os.environ else 'DEBUG',
+        },
+        'composer.use': {
+            'handlers': ['file_composer_use'],
+            'level': 'DEBUG',
+        },
+    },
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/

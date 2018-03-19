@@ -32,6 +32,10 @@ if [ ! -d /var/opt/folk_rnn_task ]; then
     su vagrant -c /folk_rnn_webapp/tools/create_model_from_config_meta.py
 fi
 
+# folk_rnn webapp log dir
+mkdir -p /var/log/folk_rnn_webapp
+chown vagrant:vagrant /var/log/folk_rnn_webapp
+
 # folk_rnn webapp static dir
 mkdir -p /folk_rnn_static
 chown vagrant:vagrant /folk_rnn_static
