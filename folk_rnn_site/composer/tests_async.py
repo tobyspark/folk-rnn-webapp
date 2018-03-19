@@ -150,7 +150,7 @@ async def test_receive_json_compose_valid():
             'seed': 123,
             'meter': 'M:4/4',
             'key': 'K:Cmaj',
-            'start_abc': 'a b c',
+            'start_abc': 'a b c *',
             }
     }
     await communicator.send_to(json.dumps(content))
@@ -163,7 +163,7 @@ async def test_receive_json_compose_valid():
     assert tune.rnn_model_name == 'thesession_with_repeats.pickle'
     assert tune.temp == 0.1
     assert tune.seed == 123
-    assert tune.prime_tokens == 'M:4/4 K:Cmaj a b c'
+    assert tune.prime_tokens == 'M:4/4 K:Cmaj a b c *'
     await communicator.disconnect()
     
 @pytest.mark.django_db()    
