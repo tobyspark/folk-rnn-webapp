@@ -32,6 +32,7 @@ folkrnn.parseABC = function(abc) {
     const numbset = new Set(['1','2','3','4','5','6','7','8','9']);
     const modset = new Set(['/']);
     const contset = new Set(['>','<']);
+    const wildcardset = new Set(['*']);
 
     let result = [];
     let invalidIndexes = [];
@@ -123,6 +124,15 @@ folkrnn.parseABC = function(abc) {
             }
             flag_innote=0;
             flag_indur=1;
+        } else if (wildcardset.has(c)) {
+            if (w.length > 0) {
+                result.push(w);
+                w="";
+            }
+            flag_innote=0;
+            flag_indur=0;
+            flag_expectingnote=0;
+            result.push(c)
         } else {
             invalidIndexes.push(i);
         }
