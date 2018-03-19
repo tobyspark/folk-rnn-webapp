@@ -18,7 +18,8 @@ def folk_rnn_cached(rnn_model_name):
     return Folk_RNN(
         job_spec['token2idx'],
         job_spec['param_values'], 
-        job_spec['num_layers'], 
+        job_spec['num_layers'],
+        '*' 
         )
 
 @functools.lru_cache(maxsize=1)
@@ -30,9 +31,10 @@ def models():
                 job_spec = pickle.load(f)
             model = {}
             model['tokens'] = set(job_spec['token2idx'].keys())
+            model['tokens'].add('*')
             model['display_name'] = job_spec['name']
-            model['header_m_tokens'] = sorted({x for x in model['tokens'] if x.startswith('M:')}, key=lambda x: int(x[2:].split('/')[0]))
-            model['header_k_tokens'] = sorted({x for x in model['tokens'] if x.startswith('K:')})
+            model['header_m_tokens'] = sorted({x for x in model['tokens'] if x.startswith('M:')}, key=lambda x: int(x[2:].split('/')[0])) + ['*']
+            model['header_k_tokens'] = sorted({x for x in model['tokens'] if x.startswith('K:')}) + ['*']
             models[filename] = model
         except:
             logger.warning(f'Error parsing {filename}')
