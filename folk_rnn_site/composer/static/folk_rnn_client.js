@@ -309,6 +309,7 @@ folkrnn.updateKeyMeter = function() {
     while (folkrnn.fieldMeter.lastChild) {
         folkrnn.fieldMeter.removeChild(folkrnn.fieldMeter.lastChild);
     }
+    folkrnn.fieldMeter.appendChild(new Option('Surprise me', '*'));
     for (const m of folkrnn.models[folkrnn.fieldModel.value].header_m_tokens) {
         folkrnn.fieldMeter.appendChild(new Option(m.slice(2), m));
     }
@@ -318,6 +319,7 @@ folkrnn.updateKeyMeter = function() {
     while (folkrnn.fieldKey.lastChild) {
         folkrnn.fieldKey.removeChild(folkrnn.fieldKey.lastChild);
     }
+    folkrnn.fieldKey.appendChild(new Option('Surprise me', '*'));
     let key_map = {
         'K:Cmaj': 'C Major',		
         'K:Cmin': 'C Minor',		
