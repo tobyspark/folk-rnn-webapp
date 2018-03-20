@@ -93,6 +93,11 @@ h3 {
     letter-spacing: 0.1em;
 }
 
+h1.content-subhead {
+    border-bottom: 2px solid black;
+    font-size: 100%;
+}
+
 .content {
     padding: 2em 1em 0;
 }
