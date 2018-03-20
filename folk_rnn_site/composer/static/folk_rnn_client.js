@@ -19,6 +19,7 @@ folkrnn.initialise = function() {
     folkrnn.div_tune = document.getElementById("tune");
     
     folkrnn.updateKeyMeter();
+    folkrnn.handleSeedAuto(true);
     
     folkrnn.fieldModel.addEventListener("change", function() {
         folkrnn.updateKeyMeter();
@@ -263,6 +264,10 @@ folkrnn.generateRequest = function () {
                     'data': formData,
         });
     }
+    
+    if (folkrnn.fieldSeed.dataset.autoseed) {
+        folkrnn.fieldSeed.value = Math.floor(Math.random() * Math.floor(folkrnn.maxSeed))
+    }
 };
 
 folkrnn.abcjsModelChangedCallback = function (abcelem) {
@@ -386,8 +391,10 @@ folkrnn.handleSeedAuto = function(autoSeedOn) {
     const seed_field_div = document.getElementById('seed_field_div');
     if (autoSeedOn) {
         seed_field_div.className = 'pure-u-1';
+        folkrnn.fieldSeed.dataset.autoseed = "truthy";
     } else {
         seed_field_div.className = 'pure-u-7-8';
+        delete folkrnn.fieldSeed.dataset.autoseed;
     }
 }
 
