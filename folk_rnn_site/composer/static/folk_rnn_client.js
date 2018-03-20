@@ -196,11 +196,7 @@ folkrnn.tuneManager = {
             warnings_id:"warnings",
             midi_options: {
                 generateDownload: true,
-                downloadLabel:"Download MIDI",
-                inlineControls: {
-                    tempo: true,
-                },
-                //selectionToggle: true, // not yet implemented according to https://github.com/paulrosen/abcjs/blob/master/docs/api.md
+                downloadLabel:"Download MIDI"
             },
             render_options: {
                 paddingleft:0,
