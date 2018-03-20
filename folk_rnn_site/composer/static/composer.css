@@ -58,6 +58,10 @@ h3 {
     color: rgb(176, 202, 219);
 }
 
+.brand-title a {
+    color: white;
+}
+
 .nav-list {
     margin: 0;
     padding: 0;
