@@ -152,6 +152,7 @@ folkrnn.tuneManager = {
         // Add tune to manager
         const div_tune_new = folkrnn.div_tune.cloneNode(true);
         div_tune_new.id = "tune_" + tune_id;
+        div_tune_new.querySelector('h1').innerHTML = folkrnn.tuneTitle + tune_id;
         div_tune_new.querySelector('#abc').id = 'abc-' + tune_id;
         div_tune_new.querySelector('#rnn_model_name').id = 'rnn_model_name-' + tune_id;
         div_tune_new.querySelector('#seed').id = 'seed-' + tune_id;

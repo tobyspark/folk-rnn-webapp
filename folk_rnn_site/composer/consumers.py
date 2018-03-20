@@ -46,7 +46,9 @@ class FolkRNNConsumer(SyncConsumer):
                                 })
         
         # Machinery to build ABC incrementally, notifying consumers of abc updates.
-        abc = f'X:{tune.id}\nT:{FOLKRNN_TUNE_TITLE}{tune.id}\n'
+        abc = f'X:{tune.id}\n'
+        if FOLKRNN_TUNE_TITLE:
+            abc += f'T:{FOLKRNN_TUNE_TITLE}{tune.id}\n'
         token_count = 0
         deferred_tokens = []
         def on_token(token):

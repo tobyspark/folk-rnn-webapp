@@ -27,7 +27,7 @@ class RNNTune(ABCModel):
             'rnn_started': self.rnn_started.isoformat() if self.rnn_started else None,
             'rnn_finished': self.rnn_finished.isoformat() if self.rnn_finished else None,
             'abc': self.abc,
-            'title': self.title if self.abc else "",
+            'title': self.title,
             'id': self.id,
             'url': self.url,
             'archive_url': self.archive_url,

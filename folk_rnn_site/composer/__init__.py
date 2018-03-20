@@ -14,7 +14,8 @@ STORE_PATH = '/var/opt/folk_rnn_task'
 MODEL_PATH = os.path.join(STORE_PATH, 'models')
 TUNE_PATH = os.path.join(STORE_PATH, 'tunes')
 
-FOLKRNN_TUNE_TITLE = 'Folk RNN Tune №'
+FOLKRNN_TUNE_TITLE = None
+FOLKRNN_TUNE_TITLE_CLIENT = 'Folk RNN Tune №'
 
 try:
     os.makedirs(MODEL_PATH)
@@ -36,6 +37,7 @@ with open(os.path.join(static_path, 'folk_rnn_models.js'), 'w') as f:
     js += 'if (typeof folkrnn == "undefined") \n'
     js += '    folkrnn = {}; \n'
     js += ' \n'
+    js += f'folkrnn.tuneTitle = "{FOLKRNN_TUNE_TITLE_CLIENT}"; \n'
     js += f'folkrnn.maxSeed = {FOLKRNN_MAX_SEED}; \n'
     js += 'folkrnn.models = ' + models_json() + '; \n'
     f.write(js)
