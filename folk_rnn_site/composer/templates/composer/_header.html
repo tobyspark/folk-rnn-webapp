@@ -1,8 +1,17 @@
 <div id="header">
     <h1 class="content-subhead">About Folk RNN</h1>
     <div class="post-description">
-        <p>This website lets you generate music using an artificial intelligence called a "recurrent neural network" (RNN). It's called "folk-rnn" because the RNN is trained on transcriptions of folk music.</p>
-        <p>The transcriptions are in <a href="http://abcnotation.com/wiki/abc:standard:v2.1" target="_blank">ABC format</a>, but also displayed in common notation. You can also copy and paste the ABC <a href="http://mandolintab.net/abcconverter.php" target="_blank">here</a> to transpose it to any key you want. (More technical information, as well as links to several compositions created using this program, can be found at the <a href="https://github.com/IraKorshunova/folk-rnn" target="_blank">folk-rnn project webpage</a>.)</p>
+        <p>This website lets you generate music using an artificial intelligence called a “recurrent neural network” (RNN). It's called “folk-rnn” because the RNN is trained on transcriptions of folk music. Each press of the ‘generate’ button will create a new tune, shaped by your initial input. For example, raising ‘temperature’ will make the algorithm more adventurous. Or if a generated tune has a feature you like, you can copy that back into the ‘Initial ABC’ field and generate new tunes led by that feature.</p>
+        <h2 class="content-subhead">Demonstration</h2>
         <iframe src="https://player.vimeo.com/video/260916789" width="640" height="586" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+        <h2 class="content-subhead">ABC Notation</h2>
+        <p>The transcriptions are in <a href="http://abcnotation.com/wiki/abc:standard:v2.1" target="_blank">ABC format</a>, which is a way of writing music with plain text. “In basic form it uses the letters A through G to represent the given notes, with other elements used to place added value on these - sharp, flat, the length of the note, key, ornamentation.” – more <a href="https://en.wikipedia.org/wiki/ABC_notation">on wikipedia</a>. We also transposed everything into the key of ‘C’ so folk-rnn learnt the patterns in the music rather than the differences in key. Getting tunes to and from ABC, and into other keys, is easy. See these useful links:
+        <ul>
+            <li>Converting ABC - <a href="http://www.mandolintab.net/abcconverter.php">http://www.mandolintab.net/abcconverter.php</a></li>
+            <li>An ABC tune search - <a href="http://rudy-rucker.mit.edu/~jc/cgi/abc/tunefind">http://rudy-rucker.mit.edu/~jc/cgi/abc/tunefind</a></li>
+            <li>The site folk-rnn was trained on, which uses ABC - <a href="https://thesession.org">https://thesession.org</a></li>
+            <li>Getting started with ABC - <a href="http://abcnotation.com/blog/2009/12/23/how-to-get-started-with-abc-notation/">http://abcnotation.com/blog/2009/12/23/how-to-get-started-with-abc-notation/</a></li>
+            <li>Understanding ABC - <a href="http://abcnotation.com/blog/2010/01/31/how-to-understand-abc-the-basics/">http://abcnotation.com/blog/2010/01/31/how-to-understand-abc-the-basics/</a></li>
+        </ul>
     </div>
 </div>
