@@ -37,7 +37,7 @@
                 </div>
                 <div class="pure-u-1">
                 <label for="{{ compose_form.start_abc.id_for_label }}">Initial ABC</label>
-                    {% render_field compose_form.start_abc class+="pure-input-1" rows="3" placeholder="Enter start of tune in ABC notation" title="Example: |: (3 D E F" %}
+                    {% render_field compose_form.start_abc class+="pure-input-1" rows="3" placeholder="Enter start of tune in ABC notation" title="Example: |: (3 D E F" autocomplete="off" spellcheck="false" autocapitalize="none" %}
                 </div>
                 <legend></legend>
                 <input id="compose_button" type="button" value="Generate..." class="pure-button pure-button-primary pure-input-1">
