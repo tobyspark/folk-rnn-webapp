@@ -214,6 +214,7 @@ folkrnn.tuneManager = {
             folkrnn.websocketSend({
                 command: "notification",
                 type: "midi_download",
+                tune_id: tune_id,
             });
         });
         const midi_play_button = document.body.querySelector('#midi-' + tune_id + ' > div > button.abcjs-midi-start.abcjs-btn');
@@ -221,6 +222,7 @@ folkrnn.tuneManager = {
             folkrnn.websocketSend({
                 command: "notification",
                 type: "midi_play",
+                tune_id: tune_id,
             });
         });
     },
