@@ -1,0 +1,152 @@
+body {
+    color: #666;
+    font-family: Georgia, serif;
+}
+
+a {
+    color: unset;
+    text-decoration: underline dotted orange;
+}
+
+a:hover {
+    background-color: orange;
+}
+
+.header {
+    width: 100%;
+    text-align: center;
+    border-width: 0 0 0 0;
+}
+
+.logo {
+    margin: 1em auto;
+}
+
+.logo .thesession {
+    font-size: 1em;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    vertical-align: 0.3em;
+    margin: 0 0.7em;
+}
+
+.logo .machinefolk {
+    font-size: 3em;
+    font-style: italic;
+    text-transform: lowercase;
+}
+
+.logo a {
+    text-decoration: none;
+}
+
+.header .pure-menu-item {
+    height: unset;
+}
+
+.main-menu {
+    padding: 0 10%;
+}
+.main-menu::before {
+    content: "";
+    width: 80%;
+    position: absolute;
+    left: 10%;
+    border-bottom: solid 1px;
+}
+
+.main-menu::after {
+    content: "";
+    width: 70%;
+    position: absolute;
+    left: 15%;
+    border-bottom: dotted 1px;
+}
+
+.main-menu li {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    width: 33%;
+}
+
+.main-menu a {
+    border-bottom: unset;
+}
+
+.pure-menu-active>.pure-menu-link, .pure-menu-link:focus, .pure-menu-link:hover {
+    background-color: unset;
+    z-index: 2;
+}
+
+.pure-menu-link:hover::after {
+    content: "";
+    background-color: orange;
+    position: absolute;
+    width:80%;
+    height: 0.3em;
+    top:43%;
+    left:10%;
+    z-index: -1;
+}
+
+.sub-menu {
+    padding: 0 10%;
+    position: relative;
+    margin: 0 auto;
+    font-style: italic;
+    line-height: 2em;
+}
+
+.sub-menu::after {
+    content: "";
+    width: 60%;
+    position: absolute;
+    top: 2em;
+    left: 20%;
+    border-bottom: dotted 1px;
+}
+
+.main {
+    padding: 1em 10%;
+}
+
+.main h1, .main h2, .main h3 {
+    display: inline-block;
+    width: 30%;
+    margin-top: 0;
+    padding-right: 2%;
+    font-weight: lighter;
+    text-align: right;
+    vertical-align: top;
+}
+
+.main p {
+    margin-top: 0;
+}
+
+.main p:last-child {
+    margin-bottom: 0;
+}
+
+.main .section-body {
+    display: inline-block;
+    position: relative;
+    width: 64%;
+    min-height: 2em;
+    border-left: dotted 1px;
+    padding-left: 2%;
+    margin-bottom: 1em;
+}
+
+#content::after {
+    content: "";
+    width: 70%;
+    position: absolute;
+    left: 15%;
+    border-bottom: dotted 1px;
+}
+
+#footer {
+    margin: 1em 0;
+    font-size: smaller;
+}

@@ -1,20 +1,46 @@
 <html>
     <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
         <title>The Machine Folk Session – {% block title %}An archive of folk music co-composed with machines{% endblock %}</title>
+
+        <link rel="stylesheet" href="/static/pure/pure-min.css">
+        <link rel="stylesheet" href="/static/archiver.css">
+        {% include "_abcjs-headend.html" %}
         {% block headend %}{% endblock %}
     </head>
     <body>
-        <div id="header">
-            <h1><a href="/">The <em>machine folk</em> Session</a></h1>
-            <p>folk-rnn is a computer model that generates transcriptions in <a href="http://abcnotation.com/wiki/abc:standard:v2.1" target="_blank">ABC format</a>. This model was trained on about 23,000 transcriptions collected from <a href="http://thesession.org" target="_blank">http://thesession.org</a>. This website provides an interface to this model so that you can create your own new tunes. (More technical information about this model, as well as links to several compositions created using it, can be found at the <a href="https://github.com/IraKorshunova/folk-rnn" target="_blank">folk-rnn project webpage</a>.)</p>
-            <hr>
-        </div>
-        <div id="content">
-            {% block content %}{% endblock %}
-        </div>
-        <div id="footer">
-            <hr>
-            <p> The Machine Folk Session is a project funded by the <a href="http://www.ahrc.ac.uk/" target="_blank">UK Arts and Humanities Research Council</a>, grant no. <a href="http://gtr.rcuk.ac.uk/projects?ref=AH%2FR004706%2F1" target="_blank">AH/R004706/1: "Engaging three user communities with applications and outcomes of computational music creativity"<a/>. See also: <a href="http://folkrnn.org">folk-rnn</a>. Web applications by <a href="http://tobyz.net">Toby Harris</a>.</p>
+        <div id="layout">
+            <div class="header">
+                <div class="logo">
+                    <a href="/">
+                    <span class="thesession">The</span><span class="machinefolk">Machine Folk</span><span class="thesession">Session</span>
+                    </a>
+                </div>
+                <div class="main-menu pure-menu">
+                    <ul class="pure-menu-horizontal pure-menu-list">
+                        <li class="pure-menu-item"><a class="pure-menu-link" href="/tunes">Tunes</a>{% comment %}as wrong as this feels, no closing li gives no whitespace between elements, and html5 doesn't mind{% endcomment %}
+                        <li class="pure-menu-item"><a class="pure-menu-link" href="/">Recordings</a>
+                        <li class="pure-menu-item"><a class="pure-menu-link" href="/">Events</a>
+                    </ul>
+                </div>
+                <div class="sub-menu">
+                        {% if user.is_authenticated %}<a href="#">{{ user.name }}</a>{% else %}community{% endif %}: {% if user.is_authenticated %}<a href="/logout">log out</a>{% else %}<a href="/login">log in</a> or <a href="/signup">sign up</a>{% endif %}</a>; <a href="/">submit a tune</a>; <a href="/">Q & A</a>
+                </div>
+            </div>
+            <div class="main">
+                <div id="content">
+                {% block content %}{% endblock %}
+                </div>
+                <div id="footer">
+                    <h1>About</h2>
+                    <div class="section-body">
+                        <p> The Machine Folk Session is a project funded by the <a href="http://www.ahrc.ac.uk/" target="_blank">UK Arts and Humanities Research Council</a>, grant no. <a href="http://gtr.rcuk.ac.uk/projects?ref=AH%2FR004706%2F1" target="_blank">AH/R004706/1: "Engaging three user communities with applications and outcomes of computational music creativity"<a/>. See also: <a href="http://folkrnn.org">folk-rnn</a>, where you can generate folk tunes with a recurrent neural network.</p>
+                        <p>Web applications by <a href="http://tobyz.net">Toby Harris</a>.</p>
+                    </div>
+                </div>
+            </div>
         </div>
         {% block bodyend %}{% endblock %}
     </body>
