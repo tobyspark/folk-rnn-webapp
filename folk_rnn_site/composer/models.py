@@ -45,7 +45,6 @@ class RNNTune(ABCModel):
     requested = models.DateTimeField(auto_now_add=True)
     rnn_started = models.DateTimeField(null=True)
     rnn_finished = models.DateTimeField(null=True)
-    abc = models.TextField(default='')
     
 class Session(models.Model):
     started = models.DateTimeField(auto_now_add=True)
