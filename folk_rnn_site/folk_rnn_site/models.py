@@ -4,8 +4,6 @@ import re
 
 from composer import ABC2ABC_PATH
 
-USERNAME_MAX_LENGTH = 128
-
 header_t_regex = re.compile(r'(?<=^T:)\s*(.*?)\s*$', re.MULTILINE)
 header_m_regex = re.compile(r'^M:\s*(.*?)\s*$', re.MULTILINE)
 header_k_regex = re.compile(r'^K:\s*(.*?)\s*$', re.MULTILINE)
@@ -30,6 +28,8 @@ def conform_abc(abc):
 class ABCModel(models.Model):
     class Meta:
         abstract = True
+        
+    abc = models.TextField(default='')
 
     @property
     def title(self):
