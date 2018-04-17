@@ -2,11 +2,12 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from django.core.files import File as dFile
 from django.utils.timezone import now
+from django.contrib.auth.models import User
 from tempfile import TemporaryFile
 
 from archiver import MAX_RECENT_ITEMS
 from archiver.models import Tune, Setting, Comment
-from archiver.forms import TuneForm, CommentForm
+from archiver.forms import TuneForm, CommentForm, SignupForm
 from archiver.dataset import dataset_as_csv
 
 def home_page(request):
@@ -91,3 +92,23 @@ def dataset_download(request):
         response = HttpResponse(dFile(f), content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="folkrnn_dataset_{}"'.format(now().strftime('%Y%m%d-%H%M%S'))
         return response
+        
+def signup(request):
+    if request.method == 'POST':
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            name = form.cleaned_data.get('name')
+            password = form.cleaned_data.get('password')
+            email = form.cleaned_data.get('email')
+            try:
+                user = User.objects.create_user(name, email, password)
+                login(request, user)
+                return redirect('/')
+            except Exception as error:
+                form.add_error(None, ValidationError(error)) # TODO: parse error into correct field
+    else:
+        form = SignupForm()
+    
+    return render(request, 'registration/signup.html', {
+        'form': form,
+    })
