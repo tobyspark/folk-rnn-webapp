@@ -378,6 +378,13 @@ folkrnn.updateTuneDiv = function(tune) {
         el_archive_title.value = tune.title;
         el_archive_form.setAttribute('action', tune.archive_url);
         el_archive_form.removeAttribute('hidden');
+        
+        folkrnn.fieldModel.value = tune.rnn_model_name;
+        folkrnn.fieldTemp.value = tune.temp;
+        folkrnn.fieldSeed.value = tune.seed;
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, tune.key, '');
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, tune.meter, '');
+        folkrnn.fieldStartABC.value = tune.start_abc;
     } else {
         el_requested.innerHTML = new Date(tune.requested).toLocaleString();
         el_requested.parentNode.removeAttribute('hidden');
