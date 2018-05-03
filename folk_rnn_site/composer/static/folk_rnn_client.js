@@ -237,6 +237,11 @@ folkrnn.tuneManager = {
         // Remove from page
         folkrnn.div_tune.parentNode.removeChild(folkrnn.tuneManager.tunes[tune_id].div);
         delete folkrnn.tuneManager.tunes[tune_id];
+        
+        // If last tune, stop any remaining MIDI playback
+        if (Object.keys(folkrnn.tuneManager.tunes).length === 0) {
+            MIDI.player.stop();
+        }
     },
 };
 
