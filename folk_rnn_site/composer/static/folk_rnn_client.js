@@ -61,6 +61,9 @@ folkrnn.initialise = function() {
     window.addEventListener('unload', function(event) {
       folkrnn.stateManager.updateState(false);
     });
+    
+    // False when generating tunes. True for 'static' /tune/x pages.
+    folkrnn.setComposeParametersFromTune = false;
 };
 
 folkrnn.stateManager = {
@@ -267,6 +270,8 @@ folkrnn.generateRequest = function () {
                     'command': 'compose',
                     'data': formData,
         });
+        
+        folkrnn.setComposeParametersFromTune = false;
     }
     
     if (folkrnn.fieldSeed.dataset.autoseed) {
@@ -379,12 +384,14 @@ folkrnn.updateTuneDiv = function(tune) {
         el_archive_form.setAttribute('action', tune.archive_url);
         el_archive_form.removeAttribute('hidden');
         
-        folkrnn.fieldModel.value = tune.rnn_model_name;
-        folkrnn.fieldTemp.value = tune.temp;
-        folkrnn.fieldSeed.value = tune.seed;
-        folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, tune.key, '');
-        folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, tune.meter, '');
-        folkrnn.fieldStartABC.value = tune.start_abc;
+        if (folkrnn.setComposeParametersFromTune) {
+            folkrnn.fieldModel.value = tune.rnn_model_name;
+            folkrnn.fieldTemp.value = tune.temp;
+            folkrnn.fieldSeed.value = tune.seed;
+            folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, tune.key, '');
+            folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, tune.meter, '');
+            folkrnn.fieldStartABC.value = tune.start_abc;
+        }
     } else {
         el_requested.innerHTML = new Date(tune.requested).toLocaleString();
         el_requested.parentNode.removeAttribute('hidden');
