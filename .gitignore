@@ -1,6 +1,7 @@
 folk_rnn_models.js
 
 .env
+folkrnn-gdrive.json
 
 .vagrant
 *.log
