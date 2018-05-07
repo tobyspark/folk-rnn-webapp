@@ -1,0 +1,9 @@
+[Unit]
+Description = Run backup action folk_rnn.org daily
+
+[Timer]
+OnBootSec=15min
+OnCalendar=05:43
+
+[Install]
+WantedBy = timers.target
