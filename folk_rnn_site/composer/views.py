@@ -23,7 +23,7 @@ def tune_page(request, tune_id=None):
     except (TypeError, RNNTune.DoesNotExist):
         return redirect('/')
 
-    return render(request, 'composer/tune.html', {
+    return render(request, 'composer/home.html', {
         'compose_form': ComposeForm(),
         'archive_form': ArchiveForm(),
         'machine_folk_tune_count': Tune.objects.count(),

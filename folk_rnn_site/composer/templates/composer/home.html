@@ -27,6 +27,19 @@
         <script src="/static/folk_rnn_constants.js" type="text/javascript"></script>
         <script src="/static/folk_rnn_client.js" type="text/javascript"></script>
         <script type="text/javascript">window.addEventListener("load", folkrnn.initialise, false);</script>
+        {% if tune_id %}
+        <script type="text/javascript">window.addEventListener("load", function() {
+            folkrnn.showAboutSection(false);
+            folkrnn.setComposeParametersFromTune = true; 
+            folkrnn.stateManager.addTune({{ tune_id }});
+            }, false);
+        </script>
+        {% else %}
+        <script type="text/javascript">window.addEventListener("load", function() {
+            folkrnn.showAboutSection(true);
+            }, false);
+        </script>
+        {% endif %}
         {% block bodyend %}{% endblock %}
     </body>
 </html>
