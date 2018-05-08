@@ -17,6 +17,15 @@ h3 {
     font-weight: 100;
 }
 
+blockquote {
+    font-style: italic;
+}
+
+blockquote .citation {
+    font-style: normal;
+    font-size: smaller;
+}
+
 /* LAYOUT CSS */
 .pure-img-responsive {
     max-width: 100%;
@@ -58,6 +67,10 @@ h3 {
     color: rgb(176, 202, 219);
 }
 
+.brand-title a {
+    color: white;
+}
+
 .nav-list {
     margin: 0;
     padding: 0;
@@ -91,6 +104,11 @@ h3 {
     font-size: 80%;
     font-weight: 500;
     letter-spacing: 0.1em;
+}
+
+h1.content-subhead {
+    border-bottom: 2px solid black;
+    font-size: 100%;
 }
 
 .content {

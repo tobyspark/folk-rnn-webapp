@@ -46,7 +46,9 @@ class FolkRNNConsumer(SyncConsumer):
                                 })
         
         # Machinery to build ABC incrementally, notifying consumers of abc updates.
-        abc = f'X:{tune.id}\nT:{FOLKRNN_TUNE_TITLE}{tune.id}\n'
+        abc = f'X:{tune.id}\n'
+        if FOLKRNN_TUNE_TITLE:
+            abc += f'T:{FOLKRNN_TUNE_TITLE}{tune.id}\n'
         token_count = 0
         deferred_tokens = []
         def on_token(token):
@@ -237,7 +239,7 @@ class ComposerConsumer(JsonWebsocketConsumer):
                     self.log_use(to_log[:400])
                     logger.warning('(worryingly)long state_notification')
             elif content['type'] in ['midi_play', 'midi_download']:
-                self.log_use(content['type'])
+                self.log_use(f"{content['type']} of tune {content['tune_id']}")
             else:
                 logger.warning('Unknown notification')
         

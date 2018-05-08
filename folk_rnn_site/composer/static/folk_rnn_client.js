@@ -12,12 +12,13 @@ folkrnn.initialise = function() {
     folkrnn.fieldKey = document.getElementById("id_key");
     folkrnn.fieldMeter = document.getElementById("id_meter");
     folkrnn.fieldStartABC = document.getElementById("id_start_abc");
+    folkrnn.seedAutoButton = document.getElementById("seed_auto")
     folkrnn.composeButton = document.getElementById("compose_button");
     
-    folkrnn.div_about = document.getElementById("header");
     folkrnn.div_tune = document.getElementById("tune");
     
     folkrnn.updateKeyMeter();
+    folkrnn.handleSeedAuto(true);
     
     folkrnn.fieldModel.addEventListener("change", function() {
         folkrnn.updateKeyMeter();
@@ -39,6 +40,14 @@ folkrnn.initialise = function() {
         folkrnn.validateStartABC();
         folkrnn.stateManager.updateState(false);
     });
+
+    folkrnn.fieldSeed.addEventListener("input", function() {
+        folkrnn.handleSeedAuto(false);
+    });
+    folkrnn.seedAutoButton.addEventListener("click", function() {
+        folkrnn.handleSeedAuto(true);
+    });
+
     
     folkrnn.composeButton.addEventListener("click", folkrnn.generateRequest);
     
@@ -51,13 +60,16 @@ folkrnn.initialise = function() {
     window.addEventListener('unload', function(event) {
       folkrnn.stateManager.updateState(false);
     });
+    
+    // False when generating tunes. True for 'static' /tune/x pages.
+    folkrnn.setComposeParametersFromTune = false;
 };
 
 folkrnn.stateManager = {
     'addTune': function(tune_id) {
         "use strict";
         // Hide about div, now there is a tune
-        folkrnn.div_about.setAttribute('hidden', '');
+        folkrnn.showAboutSection(false);
         
         // Add tune to page
         folkrnn.tuneManager.addTune(tune_id);
@@ -75,7 +87,7 @@ folkrnn.stateManager = {
         
         // Reveal about div, if there are no tunes
         if (Object.keys(folkrnn.tuneManager.tunes).length === 0) {
-            folkrnn.div_about.removeAttribute('hidden');
+            folkrnn.showAboutSection(true)
         }
     },
     'updateState': function(newState) {
@@ -142,6 +154,7 @@ folkrnn.tuneManager = {
         // Add tune to manager
         const div_tune_new = folkrnn.div_tune.cloneNode(true);
         div_tune_new.id = "tune_" + tune_id;
+        div_tune_new.querySelector('h1').innerHTML = folkrnn.tuneTitle + tune_id;
         div_tune_new.querySelector('#abc').id = 'abc-' + tune_id;
         div_tune_new.querySelector('#rnn_model_name').id = 'rnn_model_name-' + tune_id;
         div_tune_new.querySelector('#seed').id = 'seed-' + tune_id;
@@ -185,11 +198,7 @@ folkrnn.tuneManager = {
             warnings_id:"warnings",
             midi_options: {
                 generateDownload: true,
-                downloadLabel:"Download MIDI",
-                inlineControls: {
-                    tempo: true,
-                },
-                //selectionToggle: true, // not yet implemented according to https://github.com/paulrosen/abcjs/blob/master/docs/api.md
+                downloadLabel:"Download MIDI"
             },
             render_options: {
                 paddingleft:0,
@@ -207,6 +216,7 @@ folkrnn.tuneManager = {
             folkrnn.websocketSend({
                 command: "notification",
                 type: "midi_download",
+                tune_id: tune_id,
             });
         });
         const midi_play_button = document.body.querySelector('#midi-' + tune_id + ' > div > button.abcjs-midi-start.abcjs-btn');
@@ -214,6 +224,7 @@ folkrnn.tuneManager = {
             folkrnn.websocketSend({
                 command: "notification",
                 type: "midi_play",
+                tune_id: tune_id,
             });
         });
     },
@@ -228,6 +239,11 @@ folkrnn.tuneManager = {
         // Remove from page
         folkrnn.div_tune.parentNode.removeChild(folkrnn.tuneManager.tunes[tune_id].div);
         delete folkrnn.tuneManager.tunes[tune_id];
+        
+        // If last tune, stop any remaining MIDI playback
+        if (Object.keys(folkrnn.tuneManager.tunes).length === 0) {
+            MIDI.player.stop();
+        }
     },
 };
 
@@ -253,6 +269,12 @@ folkrnn.generateRequest = function () {
                     'command': 'compose',
                     'data': formData,
         });
+        
+        folkrnn.setComposeParametersFromTune = false;
+    }
+    
+    if (folkrnn.fieldSeed.dataset.autoseed) {
+        folkrnn.fieldSeed.value = Math.floor(Math.random() * Math.floor(folkrnn.maxSeed))
     }
 };
 
@@ -360,6 +382,15 @@ folkrnn.updateTuneDiv = function(tune) {
         el_archive_title.value = tune.title;
         el_archive_form.setAttribute('action', tune.archive_url);
         el_archive_form.removeAttribute('hidden');
+        
+        if (folkrnn.setComposeParametersFromTune) {
+            folkrnn.fieldModel.value = tune.rnn_model_name;
+            folkrnn.fieldTemp.value = tune.temp;
+            folkrnn.fieldSeed.value = tune.seed;
+            folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, tune.key, '');
+            folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, tune.meter, '');
+            folkrnn.fieldStartABC.value = tune.start_abc;
+        }
     } else {
         el_requested.innerHTML = new Date(tune.requested).toLocaleString();
         el_requested.parentNode.removeAttribute('hidden');
@@ -370,6 +401,31 @@ folkrnn.updateTuneDiv = function(tune) {
         if (!tune.rnn_started) {
             el_abc.innerHTML = folkrnn.waitingABC;
         }
+    }
+};
+
+folkrnn.showAboutSection = function(toShow) {
+    const div_about = document.getElementById("header");
+    if (toShow) {
+        div_about.removeAttribute('hidden');
+        const el_demo_embed = document.getElementById("demo-embed");
+        // lazy load embed, i.e. when about section should be visible
+        if (el_demo_embed.getAttribute("src") === "") {
+            el_demo_embed.setAttribute("src", el_demo_embed.dataset.src);
+        }
+    } else {
+        div_about.setAttribute('hidden', '');
+    }
+};
+
+folkrnn.handleSeedAuto = function(autoSeedOn) {
+    const seed_field_div = document.getElementById('seed_field_div');
+    if (autoSeedOn) {
+        seed_field_div.className = 'pure-u-1';
+        folkrnn.fieldSeed.dataset.autoseed = "truthy";
+    } else {
+        seed_field_div.className = 'pure-u-7-8';
+        delete folkrnn.fieldSeed.dataset.autoseed;
     }
 };
 
