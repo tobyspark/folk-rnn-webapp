@@ -198,7 +198,8 @@ folkrnn.tuneManager = {
             warnings_id:"warnings",
             midi_options: {
                 generateDownload: true,
-                downloadLabel:"Download MIDI"
+                downloadLabel:"Download MIDI",
+                downloadClass:["pure-button", "pure-button-primary", "pure-u-1"],
             },
             render_options: {
                 paddingleft:0,
