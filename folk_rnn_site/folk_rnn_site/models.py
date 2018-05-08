@@ -34,7 +34,7 @@ class ABCModel(models.Model):
     @property
     def title(self):
         match = header_t_regex.search(self.abc)
-        return match.group(1)
+        return match.group(1) if match else ''
 
     @title.setter
     def title(self, value):
