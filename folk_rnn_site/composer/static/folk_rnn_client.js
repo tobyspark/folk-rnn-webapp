@@ -187,28 +187,39 @@ folkrnn.tuneManager = {
         "use strict";
         return folkrnn.tuneManager.tunes[tune_id].div;
     },
+    '_enableABCJS_colorRange': function(range, color) {
+        if (range && range.elements) {
+            range.elements.forEach(function (set) {
+                set.forEach(function (item) {
+                    item.setAttribute("fill", color);
+                });
+            });
+        }
+    },
+    '_enableABCJS_animateCallback': function(lastRange, currentRange, context) {
+        folkrnn.tuneManager._enableABCJS_colorRange(lastRange, "#000000");
+        folkrnn.tuneManager._enableABCJS_colorRange(currentRange, "#3D9AFC");
+    },
     'enableABCJS': function (tune_id) {
         "use strict";
         folkrnn.tuneManager.tunes[tune_id].abcjs = new ABCJS.Editor("abc-" + tune_id, { 
-            paper_id: "notation-" + tune_id,
+            canvas_id: "notation-" + tune_id,
             generate_midi: true,
             midi_id:"midi-" + tune_id,
             midi_download_id: "midi-download-" + tune_id,
-            generate_warnings: true,
-            warnings_id:"warnings",
-            midi_options: {
+            abcjsParams: {
+                generateInline: true,
                 generateDownload: true,
                 downloadLabel:"Download MIDI",
                 downloadClass:["pure-button", "pure-button-primary", "pure-u-1"],
-            },
-            render_options: {
                 paddingleft:0,
                 paddingright:0,
                 responsive: "resize",
-                listener: { 
-                    highlight: folkrnn.abcjsSelectionCallback,
-                    modelChanged:  folkrnn.abcjsModelChangedCallback
-                }
+                animate: {
+                    listener: folkrnn.tuneManager._enableABCJS_animateCallback, 
+                    target: "notation-" + tune_id, 
+                    qpm: 120
+                },
             }
         });
         
@@ -277,18 +288,6 @@ folkrnn.generateRequest = function () {
     if (folkrnn.fieldSeed.dataset.autoseed) {
         folkrnn.fieldSeed.value = Math.floor(Math.random() * Math.floor(folkrnn.maxSeed))
     }
-};
-
-folkrnn.abcjsModelChangedCallback = function (abcelem) {
-    "use strict";
-    console.log('abcjsModelChangedCallback');
-    console.log(abcelem);
-};
-
-folkrnn.abcjsSelectionCallback = function (abcelem) {
-    "use strict";
-    console.log('abcjsSelectionCallback');
-    console.log(abcelem);
 };
 
 folkrnn.validateStartABC = function() {
