@@ -49,6 +49,7 @@ pip3.6 install "channels~=2.0"
 pip3.6 install "channels_redis"
 pip3.6 install "pytest-django" "pytest-asyncio"
 pip3.6 install psycopg2-binary
+pip3.6 install google-api-python-client google-auth google-auth-httplib2
 apt-get install --yes postgresql
 apt-get install --yes redis-server
 apt-get install --yes abcmidi
@@ -93,8 +94,11 @@ cat ./tools/systemd/daphne.service \
 > /etc/systemd/system/daphne.service
 
 cp ./tools/systemd/worker-folkrnn@.service /etc/systemd/system/worker-folkrnn@.service
+cp ./tools/systemd/folkrnn-backup.service /etc/systemd/system/folkrnn-backup.service
+cp ./tools/systemd/folkrnn-backup.timer /etc/systemd/system/folkrnn-backup.timer
 
 systemctl enable nginx
 systemctl enable daphne
 systemctl enable redis-server
 systemctl enable worker-folkrnn\@{1..1} # Worker numbers should scale with CPU cores.
+systemctl enable --now folkrnn-backup.timer # Now as `runserver` won't start it.
