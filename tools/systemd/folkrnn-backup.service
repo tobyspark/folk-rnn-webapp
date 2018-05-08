@@ -1,0 +1,13 @@
+[Unit]
+Description = Backup action folk_rnn.org
+After = network.target
+
+[Service]
+User = vagrant
+WorkingDirectory = /folk_rnn_webapp/folk_rnn_site
+EnvironmentFile = /folk_rnn_webapp/.env
+
+ExecStart = /usr/local/bin/python3.6 /folk_rnn_webapp/folk_rnn_site/manage.py backup
+
+[Install]
+WantedBy = multi-user.target

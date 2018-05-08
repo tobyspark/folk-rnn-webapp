@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'channels',
     'composer',
     'archiver',
+    'backup',
 ]
 
 MIDDLEWARE = [
@@ -162,6 +163,10 @@ LOGGING = {
         'composer.use': {
             'handlers': ['file_composer_use'],
             'level': 'DEBUG',
+        },
+        'backup': {
+            'handlers': ['console'],
+            'level': 'WARNING' if 'FOLKRNN_PRODUCTION' in os.environ else 'DEBUG',
         },
     },
 }
