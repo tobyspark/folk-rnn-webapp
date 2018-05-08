@@ -15,7 +15,6 @@ folkrnn.initialise = function() {
     folkrnn.seedAutoButton = document.getElementById("seed_auto")
     folkrnn.composeButton = document.getElementById("compose_button");
     
-    folkrnn.div_about = document.getElementById("header");
     folkrnn.div_tune = document.getElementById("tune");
     
     folkrnn.updateKeyMeter();
@@ -70,7 +69,7 @@ folkrnn.stateManager = {
     'addTune': function(tune_id) {
         "use strict";
         // Hide about div, now there is a tune
-        folkrnn.div_about.setAttribute('hidden', '');
+        folkrnn.showAboutSection(false);
         
         // Add tune to page
         folkrnn.tuneManager.addTune(tune_id);
@@ -88,7 +87,7 @@ folkrnn.stateManager = {
         
         // Reveal about div, if there are no tunes
         if (Object.keys(folkrnn.tuneManager.tunes).length === 0) {
-            folkrnn.div_about.removeAttribute('hidden');
+            folkrnn.showAboutSection(true)
         }
     },
     'updateState': function(newState) {
@@ -405,6 +404,20 @@ folkrnn.updateTuneDiv = function(tune) {
     }
 };
 
+folkrnn.showAboutSection = function(toShow) {
+    const div_about = document.getElementById("header");
+    if (toShow) {
+        div_about.removeAttribute('hidden');
+        const el_demo_embed = document.getElementById("demo-embed");
+        // lazy load embed, i.e. when about section should be visible
+        if (el_demo_embed.getAttribute("src") === "") {
+            el_demo_embed.setAttribute("src", el_demo_embed.dataset.src);
+        }
+    } else {
+        div_about.setAttribute('hidden', '');
+    }
+};
+
 folkrnn.handleSeedAuto = function(autoSeedOn) {
     const seed_field_div = document.getElementById('seed_field_div');
     if (autoSeedOn) {
@@ -414,7 +427,7 @@ folkrnn.handleSeedAuto = function(autoSeedOn) {
         seed_field_div.className = 'pure-u-7-8';
         delete folkrnn.fieldSeed.dataset.autoseed;
     }
-}
+};
 
 folkrnn.utilities = {};
 folkrnn.utilities.setSelectByValue = function(element, value, default_value) {
