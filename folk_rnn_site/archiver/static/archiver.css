@@ -110,14 +110,34 @@ a:hover {
     padding: 1em 10%;
 }
 
-.main h1, .main h2, .main h3 {
-    display: inline-block;
-    width: 30%;
-    margin-top: 0;
-    padding-right: 2%;
+h1, h2, h3 {
     font-weight: lighter;
-    text-align: right;
-    vertical-align: top;
+}
+
+.main h1 {
+    text-align: center;
+    font-style: italic;
+    margin: 0.5em 0 0.5em 0;
+}
+
+.main h2, .main h3 {
+    margin-top: 0;
+}
+
+.main ul {
+    margin: 0;
+}
+
+.main li h3, .main li p {
+    margin: 0 0 0.2em 0;
+}
+
+.main li {
+    margin-bottom: 1em;
+}
+
+.main li:last-child {
+    margin-bottom: 0;
 }
 
 .main p {
@@ -126,6 +146,15 @@ a:hover {
 
 .main p:last-child {
     margin-bottom: 0;
+}
+
+.main .section-meta {
+    display: inline-block;
+    width: 30%;
+    margin-top: 0;
+    padding-right: 2%;
+    text-align: right;
+    vertical-align: top;
 }
 
 .main .section-body {
@@ -146,7 +175,59 @@ a:hover {
     border-bottom: dotted 1px;
 }
 
+#content ul {
+    padding-left: 0;
+}
+
+#content li {
+    list-style: none;
+}
+
+#content .meta {
+    font-style: italic;
+    font-size: .8em;
+}
+
+#content .meta .parameter {
+    font-weight: bold;
+}
+
+#content form .error {
+    border-color: red;
+}
+
+#content form .errorlist {
+    color: red;
+}
+
 #footer {
     margin: 1em 0;
     font-size: smaller;
+}
+
+.main .abcjs-inline-midi {
+    color: black;
+    background-color: unset;
+}
+
+.main .abcjs-inline-midi .abcjs-btn {
+    color: black;
+}
+
+.main .abcjs-inline-midi .abcjs-btn:hover {
+    color: orange;
+}
+
+.main .abcjs-inline-midi .abcjs-midi-selection.abcjs-pushed {
+    border: 1px solid orange;
+    background-color: purple;
+}
+
+.main .abcjs-inline-midi .abcjs-midi-progress-background {
+    background-color: unset;
+    border: 2px solid black;
+}
+
+.main .abcjs-inline-midi .abcjs-midi-progress-indicator {
+    background-color: black;
 }

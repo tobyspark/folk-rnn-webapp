@@ -3,61 +3,171 @@
 {% block title %}{{ tune.title }}{% endblock %}
 
 {% block headend %}{% include "_abcjs-headend.html" %}{% endblock %}
-{% block bodyend %}{% include "_abcjs-bodyend.html" %}{% endblock %}
 
 {% block content %}
 {% load humanize %}
+{% load widget_tweaks %}
 <h1>{{ tune.title }}</h1>
-<div>
-    <div id="composition">
-        <p>The composition –</p>
-        <form method="POST">
-            {% csrf_token %}
-            {{ tune_form }}
-            {% ifequal tune_form.edit.data 'user' %}
-                <input id="save_button" name="save" type="submit" value="Save">
-                <input id="setting_button" type="submit" name="submit_setting" value="Submit Setting">
-            {% endifequal %}
-        </form>
+<script>
+window.addEventListener("load", function() {
+    const tune_id = "{{ setting.header_x }}";
+    window.ABCJS_colorRange = function(range, color) {
+        if (range && range.elements) {
+            range.elements.forEach(function (set) {
+                set.forEach(function (item) {
+                    item.setAttribute("fill", color);
+                });
+            });
+        }
+    };
+    window.ABCJS_animateCallback = function(lastRange, currentRange, context) {
+        window.ABCJS_colorRange(lastRange, "#000000");
+        window.ABCJS_colorRange(currentRange, "#3D9AFC");
+    };
+}, false);
+</script>
+<div class="section-meta">
+{% if tune.rnn_tune %}
+    <div id="composition_metadata">
+        <p class="meta">Machine generated.<br>ABC auto-formatted.<br>{% if tune.valid_abc %}Valid{% else %}Invalid{% endif %} ABC.</p>
+        <p class="meta">Archived from <a href="{{ tune.rnn_tune.url }}{# FIXME: hardcoded domain #}">folkrnn.org</a>, where it was generated using the <span id="rnn_model_name" class="parameter">{{ tune.rnn_tune.rnn_model_name | cut:'.pickle' }}</span> model.</p>
+        <p class="meta">The RNN seed was <span id="seed" class="parameter">{{ tune.rnn_tune.seed }}</span>, temperature was <span id="temp" class="parameter">{{ tune.rnn_tune.temp }}</span> and prime tokens were <span id="prime_tokens" class="parameter">{{ tune.rnn_tune.prime_tokens }}</span>.</p>
+        <div id="midi-download-tune" class=""></div>
+        <div id="abc-download">
+            <a href="#" class="" disabled>Download ABC</a>
+        </div>
+        <div id="abc-download-all">
+            <a href="#" class="" disabled>Download all ABC</a>
+        </div>
     </div>
-    <div id="midi"></div>
-    <div id="midi-download"></div>
-    <div id="warnings"></div>
-    <div id="music"></div>
-    <div id="paper0"></div>
-    <div id="paper1"></div>
-    <div id="paper2"></div>
-    <div id="paper3"></div>
-    <div id="selection"></div>
+{% endif %}
+</div>
+<div class="section-body">
+    <div id="tune">
+        <textarea id="abc-tune" hidden>{{ tune.abc }}</textarea>
+        <div id="notation-tune"></div>
+        <div id="midi-tune" class=""></div>
+    </div>
+    <script>
+    window.addEventListener("load", function() {
+        new ABCJS.Editor("abc-tune", { 
+            canvas_id: "notation-tune",
+                generate_midi: true,
+                midi_id:"midi-tune",
+                midi_download_id: "midi-download-tune",
+                abcjsParams: {
+                    generateInline: true,
+                    generateDownload: true,
+                    downloadLabel:"Download MIDI",
+                    // downloadClass:[],
+                    paddingleft:0,
+                    paddingright:0,
+                    responsive: "resize",
+                    animate: {
+                        listener: window.ABCJS_animateCallback, 
+                        target: "notation-tune", 
+                        qpm: 120
+                    },
+                }
+            });
+    }, false);
+    </script>
 </div>
 
 <div id="settings">
 {% if settings %}
-    <h2>{{ settings|length|apnumber|capfirst }} setting{{ settings|length|pluralize }}</h2>
+    {#<h2>{{ settings|length|apnumber|capfirst }} setting{{ settings|length|pluralize }}</h2>#}
     {% for setting in settings %}
-        <div id="setting {{ setting.header_x }}">
-            <pre>{{ setting.abc }}</pre>
-            <!-- TODO: Added by..., Download..., Sheet music..., -->
+    <div id="setting-{{ setting.header_x }}">
+        <div class="section-meta">
+            <h2>{{ setting.title }}</h2>
+            <p class="meta">Setting {{ setting.header_x|apnumber }}.</br>
+            Added by <a href="#">{{ setting.author }}</a>.<br>
+            {{ setting.submitted | naturalday }}.</p>
+            <div id="midi-download-{{ setting.header_x }}"></div>
+            <div id="abc-download-{{ setting.header_x }}">
+                <a href="download/{{ setting.header_x }}" class="" disabled>Download ABC</a>
+            </div>
         </div>
-    {%  endfor %}
-{% else %}
-    <h2>No settings</h2>
-{%  endif %}
+        <div class="section-body">
+            <textarea id="abc-{{ setting.header_x }}" hidden>{{ setting.abc }}</textarea>
+            <div id="notation-{{ setting.header_x }}"></div>
+            <div id="midi-{{ setting.header_x }}" class=""></div>
+        </div>
+        <script>
+        window.addEventListener("load", function() {
+            const tune_id = "{{ setting.header_x }}";
+            new ABCJS.Editor("abc-" + tune_id, { 
+                canvas_id: "notation-" + tune_id,
+                    generate_midi: true,
+                    midi_id:"midi-" + tune_id,
+                    midi_download_id: "midi-download-" + tune_id,
+                    abcjsParams: {
+                        generateInline: true,
+                        generateDownload: true,
+                        downloadLabel:"Download MIDI",
+                        // downloadClass:[],
+                        paddingleft:0,
+                        paddingright:0,
+                        responsive: "resize",
+                        animate: {
+                            listener: window.ABCJS_animateCallback, 
+                            target: "notation-" + tune_id, 
+                            qpm: 120
+                        },
+                    }
+                });
+        }, false);
+        </script>
+    </div>
+    {% endfor %}
+{% endif %}
+    <div class="section-meta">
+        <h2>Add a setting</h4>
+    </div>
+    <div class="section-body">
+    {% if user.is_authenticated %}
+        <form method="POST" class="pure-form">
+        {% with WIDGET_ERROR_CLASS='error' %}
+            {%  csrf_token %}
+            {{ setting_form.abc.errors }}
+            {% render_field setting_form.abc class+="pure-input-1" title="Add setting ABC here."%}
+            <input id="setting_button" type="submit" name="submit_setting" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+        {% endwith %}
+        </form>
+    {% else %}
+        <p><a href="{% url 'login' %}">Log in</a> to add setting.</p>
+    {% endif %}
+    </div>
 </div>
 
 <div id="comments">
-    <h2>Comments</h2>
-    <form method="POST">
-        {% csrf_token %}
-        {{ comment_form }}
-        <input id="comment_button" type="submit" name="submit_comment" value="Submit">
-    </form>
-    {% if comments %}
-    <ul id="comment_list">
-        {% for comment in comments %}
-        <li>{{ comment.text }}<br>— {{ comment.author }}, {{ comment.submitted|naturalday }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+    <div class="section-meta">
+        <h2>Comments</h2>
+    </div>
+    <div class="section-body">
+        <ul id="comment_list">
+            {% for comment in comments %}
+            <li>
+            <p>{{ comment.text }}</p>
+            <p class="meta"><a href="#">{{ comment.author }}</a>, {{ comment.submitted|naturalday }}</p>
+            </li>
+            {% endfor %}
+            <li>
+            {% if user.is_authenticated %}
+                <form method="POST" class="pure-form pure-g">
+                {% with WIDGET_ERROR_CLASS='error' %}
+                    {% csrf_token %}
+                    {{ comment_form.text.errors }}
+                    {% render_field comment_form.text class+="pure-input-1" rows="2" placeholder="Discuss this tune..." title="Add your comment here"%}
+                    <input id="comment_button" type="submit" name="submit_comment" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                {% endwith %}
+                </form>
+            {% else %}
+                <p><a href="{% url 'login' %}">Log in</a> to comment.</p>
+            {% endif %}
+            </li>
+        </ul>
+    </div>
 </div>
 {% endblock %}

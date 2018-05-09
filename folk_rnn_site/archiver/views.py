@@ -4,10 +4,12 @@ from django.core.files import File as dFile
 from django.utils.timezone import now
 from django.contrib.auth.models import User
 from tempfile import TemporaryFile
+from itertools import chain
 
+from folk_rnn_site.models import conform_abc
 from archiver import MAX_RECENT_ITEMS
 from archiver.models import Tune, Setting, Comment
-from archiver.forms import TuneForm, CommentForm, SignupForm
+from archiver.forms import SettingForm, CommentForm, SignupForm
 from archiver.dataset import dataset_as_csv
 
 def home_page(request):
@@ -17,73 +19,63 @@ def home_page(request):
                                 'comments': Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS],
                                 })
 
+def tunes_page(request):
+    qs_tune = Tune.objects.order_by('-id')[:MAX_RECENT_ITEMS]
+    qs_setting = Setting.objects.order_by('-id')[:MAX_RECENT_ITEMS]
+    # models are not similar enough for...
+    # qs_both = qs_tune.union(qs_setting).order_by('submitted')[:MAX_RECENT_ITEMS]
+    tunes_settings = list(chain(qs_tune, qs_setting))
+    tunes_settings.sort(key=lambda x: x.submitted)
+    return render(request, 'archiver/tunes.html', {
+                            'tunes_settings': tunes_settings[:MAX_RECENT_ITEMS],
+                            'comments': Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS],
+                            })
+
 def tune_page(request, tune_id=None):
     try:
         tune_id_int = int(tune_id)
         tune = Tune.objects.get(id=tune_id_int)
     except (TypeError, Tune.DoesNotExist):
         return redirect('/')
-
-    # Default content
-    tune_form = TuneForm({
-                    'tune': tune.abc,
-                    'edit': 'user',
-                    'edit_state': 'user',
-                    })
+    
+    setting_form = SettingForm({
+        'abc': conform_abc(tune.abc, raise_if_invalid=False)
+    })
     comment_form = CommentForm()
-
-    # Handle POST
     if request.method == 'POST':
-        if 'tune' in request.POST:
-            form = TuneForm(request.POST)
+        if 'submit_setting' in request.POST:
+            form = SettingForm(request.POST)
             if form.is_valid():
-                if form.cleaned_data['edit_state'] == 'user':
-                    try:
-                        tune.abc = form.cleaned_data['tune']
-                        tune.save()
-                        tune_form = TuneForm({
-                                        'tune': tune.abc, # now conformed
-                                        'edit': 'user',
-                                        'edit_state': 'user',
-                                        })
-                    except AttributeError as e:
-                        tune_form = form
-                        tune_form.add_error('tune', e) 
-                if form.cleaned_data['edit'] == 'rnn':
-                    tune_form = TuneForm({
-                                    'tune': tune.abc_rnn,
-                                    'edit': 'rnn',
-                                    'edit_state': 'rnn',
-                                    })
-                    tune_form.fields['tune'].widget.attrs['readonly'] = True
-                if 'submit_setting' in request.POST:
-                    try:
-                        Setting.objects.create_setting(tune)
-                    except ValueError as e:
-                        tune_form = form
-                        tune_form.add_error('tune', e)
+                try:
+                    print(request.user)
+                    Setting.objects.create_setting(
+                        tune=tune,
+                        abc=form.cleaned_data['abc'],
+                        author=request.user,
+                        )
+                except Exception as e:
+                    setting_form = form
+                    setting_form.add_error('abc', e) 
+            else:
+                setting_form = form
         elif 'submit_comment' in request.POST:
             form = CommentForm(request.POST)
             if form.is_valid():
                 comment = Comment(
                             tune=tune, 
                             text=form.cleaned_data['text'], 
-                            author=form.cleaned_data['author'],
+                            author=request.user,
                             )
                 comment.save()
             else:
                 comment_form = form
 
-    tune_lines = tune.abc.split('\n')
-
     return render(request, 'archiver/tune.html', {
         'tune': tune,
         'settings': Setting.objects.filter(tune=tune),
         'comments': Comment.objects.filter(tune=tune),
-        'tune_form': tune_form,
+        'setting_form': setting_form,
         'comment_form': comment_form,
-        'tune_cols': max(len(line) for line in tune_lines), # TODO: look into autosize via CSS, when CSS is a thing round here.
-        'tune_rows': len(tune_lines),
         })
 
 def dataset_download(request):

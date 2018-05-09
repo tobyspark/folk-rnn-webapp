@@ -10,7 +10,7 @@ header_k_regex = re.compile(r'^K:\s*(.*?)\s*$', re.MULTILINE)
 header_x_regex = re.compile(r'(?<=^X:)\s*([0-9]+)\s*$', re.MULTILINE)                            
 body_regex = re.compile(r'K:.*?\n(.*)',re.DOTALL) # FIXME: also ignore any final /n
 
-def conform_abc(abc):
+def conform_abc(abc, raise_if_invalid=True):
     try:
         abc_bytes = abc.encode()
         result = subprocess.run([ABC2ABC_PATH, 'stdin'], input=abc_bytes, stdout=subprocess.PIPE)
@@ -21,7 +21,7 @@ def conform_abc(abc):
         for line in result.stdout.splitlines():
             if line[:pos] == prefix:
                 errors.append(line[pos:].decode())
-    if errors:
+    if errors and raise_if_invalid:
         raise AttributeError('Invalid ABC: ' + ', '.join(errors))
     return result.stdout.decode()
 

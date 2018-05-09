@@ -1,0 +1,42 @@
+{% extends "archiver/base.html" %}
+
+{% block content %}
+{% load humanize %}
+<div id="activity">
+    <div id="tunes">
+        <div class="section-meta">
+        <h2>Recent tunes</h2>
+        </div>
+        <div class="section-body">
+            <ul>
+                {% for item in tunes_settings %}
+                <li>
+                <h3><a href="/tune/{{ item.id }}">{{item.title}}</a></h3>
+                {% if item.rnn_tune %}{# tune model #}
+                <p class="meta">Tune submitted from <a href="//folkrnn.org{{ item.rnn_tune.url }}">folkrnn.org</a> {{ item.submitted|naturalday }}</p>
+                {% else %}{# setting model #}
+                <p class="meta">Setting of <a href="{% url 'tune' tune_id=item.id %}">{{ item.tune.title }}</a> added by <a href="#">{{ item.author }}</a> {{ item.submitted|naturalday }}.</p>
+                </li>
+                {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+    <div id="comments">
+        <div class="section-meta">
+            <h2>Recent comments</h2>
+        </div>
+        <div class="section-body">
+            <ul>
+                {% for comment in comments %}
+                <li>
+                <h3><a href="/tune/{{ comment.tune.id }}">Re: {{ comment.tune.title }}</a></h3>
+                <p>{{ comment.text}}</p>
+                <p class="meta">Posted by <a href="#">{{ comment.author }}</a> {{ comment.submitted|naturalday }}.</li>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -27,17 +27,17 @@ class SettingManager(models.Manager):
         conform_abc(setting.abc)
         # Check the abc body is new
         if tune.body == setting.body:
-            raise ValueError('Setting is same as RNN')
+            raise ValueError('This setting is not a variation on the main tune.')
         # Check there isn't already a setting with this abc body
         if any(x.body == setting.body for x in self.all()):
-            raise ValueError('Existing setting abc')            
+            raise ValueError('This setting is not a variation on another setting’s tune.')
         # Check it has a new, unique title
         if setting.title.startswith(FOLKRNN_TUNE_TITLE_CLIENT):
-            raise ValueError('Default tune title')
+            raise ValueError('This setting still has the (machine generated) title of the original tune.')
         if any(x.title == setting.title for x in Tune.objects.exclude(id=tune.id)):
-            raise ValueError('Existing tune title.')
+            raise ValueError('This setting has the title of an existing (machine generated) tune.')
         if any(x.title == setting.title for x in self.all()):
-            raise ValueError('Existing setting title.')
+            raise ValueError('This setting has the title of another setting.')
         # Now verified, add to db
         setting.save()
         return setting
