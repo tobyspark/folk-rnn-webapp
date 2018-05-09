@@ -20,6 +20,7 @@ urlpatterns = [
     url(r'^$', views.home_page, name='home'),
     url(r'^tune/$', views.tune_page, name='tune'),
     url(r'^tune/(?P<tune_id>[0-9]+)$', views.tune_page, name='tune'),
+    url(r'^tunes/$', views.tunes_page, name='tunes'),
     url(r'^dataset$', views.dataset_download),
     url(r'^', include('django.contrib.auth.urls')),
     url(r'^signup', views.signup, name='signup')
