@@ -13,7 +13,7 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import url
+from django.conf.urls import url, include
 from archiver import views
 
 urlpatterns = [
@@ -21,4 +21,5 @@ urlpatterns = [
     url(r'^tune/$', views.tune_page, name='tune'),
     url(r'^tune/(?P<tune_id>[0-9]+)$', views.tune_page, name='tune'),
     url(r'^dataset$', views.dataset_download),
+    url('^', include('django.contrib.auth.urls')),
 ]
