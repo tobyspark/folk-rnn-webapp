@@ -4,7 +4,7 @@ import os
 import time
 import tarfile
 import logging
-from io import StringIO
+from io import BytesIO, TextIOWrapper
 from tempfile import SpooledTemporaryFile
 
 import apiclient
@@ -65,8 +65,8 @@ class Command(BaseCommand):
         Archive and store in Google Drive the contents of the folder (recursively)
         Returns name of uploaded file
         """
-        data = StringIO()
-        call_command('dumpdata', all=True, format='json', stdout=data)
+        data = BytesIO()
+        call_command('dumpdata', all=True, format='json', stdout=TextIOWrapper(data))
         with SpooledTemporaryFile() as f:
             # Archive to tar
             with tarfile.open(fileobj=f, mode='x:bz2') as tar:
@@ -74,6 +74,7 @@ class Command(BaseCommand):
                 info.size = data.tell()
                 data.seek(0)
                 tar.addfile(info, data)
+            data.close()
             # Store in Google Drive
             body = {
                 'name': 'db_data' + backup_suffix() + '.tar.gz',
