@@ -194,3 +194,7 @@ STATIC_ROOT = '/folk_rnn_static/'
 STATICFILES_DIRS = [
     '/folk_rnn_sf/',
 ]
+
+# URLS not in URLConf. (This isn't good)
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
