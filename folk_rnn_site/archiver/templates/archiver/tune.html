@@ -32,12 +32,12 @@ window.addEventListener("load", function() {
         <p class="meta">Machine generated.<br>ABC auto-formatted.<br>{% if tune.valid_abc %}Valid{% else %}Invalid{% endif %} ABC.</p>
         <p class="meta">Archived from <a href="{{ tune.rnn_tune.url }}{# FIXME: hardcoded domain #}">folkrnn.org</a>, where it was generated using the <span id="rnn_model_name" class="parameter">{{ tune.rnn_tune.rnn_model_name | cut:'.pickle' }}</span> model.</p>
         <p class="meta">The RNN seed was <span id="seed" class="parameter">{{ tune.rnn_tune.seed }}</span>, temperature was <span id="temp" class="parameter">{{ tune.rnn_tune.temp }}</span> and prime tokens were <span id="prime_tokens" class="parameter">{{ tune.rnn_tune.prime_tokens }}</span>.</p>
-        <div id="midi-download-tune" class=""></div>
-        <div id="abc-download">
-            <a href="#" class="" disabled>Download ABC</a>
+        <div id="midi-download-tune" class="download-link"></div>
+        <div id="abc-download" class="download-link">
+            <a href="#">Download ABC</a>
         </div>
-        <div id="abc-download-all">
-            <a href="#" class="" disabled>Download all ABC</a>
+        <div id="abc-download-all" class="download-link">
+            <a href="#">Download all ABC</a>
         </div>
     </div>
 {% endif %}
@@ -59,7 +59,6 @@ window.addEventListener("load", function() {
                     generateInline: true,
                     generateDownload: true,
                     downloadLabel:"Download MIDI",
-                    // downloadClass:[],
                     paddingleft:0,
                     paddingright:0,
                     responsive: "resize",
@@ -84,9 +83,9 @@ window.addEventListener("load", function() {
             <p class="meta">Setting {{ setting.header_x|apnumber }}.</br>
             Added by <a href="#">{{ setting.author }}</a>.<br>
             {{ setting.submitted | naturalday }}.</p>
-            <div id="midi-download-{{ setting.header_x }}"></div>
-            <div id="abc-download-{{ setting.header_x }}">
-                <a href="download/{{ setting.header_x }}" class="" disabled>Download ABC</a>
+            <div id="midi-download-{{ setting.header_x }}" class="download-link"></div>
+            <div id="abc-download-{{ setting.header_x }}" class="download-link">
+                <a href="download/{{ setting.header_x }}">Download ABC</a>
             </div>
         </div>
         <div class="section-body">
@@ -106,7 +105,6 @@ window.addEventListener("load", function() {
                         generateInline: true,
                         generateDownload: true,
                         downloadLabel:"Download MIDI",
-                        // downloadClass:[],
                         paddingleft:0,
                         paddingright:0,
                         responsive: "resize",
