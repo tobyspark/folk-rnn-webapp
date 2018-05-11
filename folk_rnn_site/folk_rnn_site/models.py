@@ -3,8 +3,8 @@ import subprocess
 import re
 
 from composer import ABC2ABC_PATH
-
 header_t_regex = re.compile(r'(?<=^T:)\s*(.*?)\s*$', re.MULTILINE)
+header_t_line_regex = re.compile(r'T:.*?\n')
 header_m_regex = re.compile(r'^M:\s*(.*?)\s*$', re.MULTILINE)
 header_k_regex = re.compile(r'^K:\s*(.*?)\s*$', re.MULTILINE)
 header_x_regex = re.compile(r'(?<=^X:)\s*([0-9]+)\s*$', re.MULTILINE)                            
@@ -38,8 +38,17 @@ class ABCModel(models.Model):
 
     @title.setter
     def title(self, value):
-        self.abc = header_t_regex.sub(str(value), self.abc)
-
+        # is value empty? remove the T: line
+        if value == None or value == "":
+            self.abc = header_t_line_regex.sub('', self.abc)
+        else:
+            if header_t_regex.search(self.abc):
+                # update T: value
+                self.abc = header_t_regex.sub(str(value), self.abc)
+            else:
+                # add T: line after X:
+                self.abc = header_x_regex.sub(f'{self.header_x}\nT:{value}', self.abc)
+    
     @property
     def body(self):
         match = body_regex.search(self.abc)

@@ -44,7 +44,7 @@ window.addEventListener("load", function() {
 </div>
 <div class="section-body">
     <div id="tune">
-        <textarea id="abc-tune" hidden>{{ tune.abc }}</textarea>
+        <textarea id="abc-tune" hidden>{{ tune.abc_trimmed }}</textarea>
         <div id="notation-tune"></div>
         <div id="midi-tune" class=""></div>
     </div>
@@ -89,7 +89,7 @@ window.addEventListener("load", function() {
             </div>
         </div>
         <div class="section-body">
-            <textarea id="abc-{{ setting.header_x }}" hidden>{{ setting.abc }}</textarea>
+            <textarea id="abc-{{ setting.header_x }}" hidden>{{ setting.abc_trimmed }}</textarea>
             <div id="notation-{{ setting.header_x }}"></div>
             <div id="midi-{{ setting.header_x }}" class=""></div>
         </div>
