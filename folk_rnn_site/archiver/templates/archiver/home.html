@@ -11,13 +11,6 @@
         <p>You can find tunes to play, find recordings of them, or events where they're played.</p>
     </div>
 </div>
-<div id="activity">
-    <div class="section-meta">
-        <h2>Recent activity</h2>
-    </div>
-    <div class="section-body">    
-        <p>TODO: https://django-activity-stream.readthedocs.io</p>
-    </div>
-</div>
+{% include "archiver/_activity.html" %}
 
 {% endblock %}

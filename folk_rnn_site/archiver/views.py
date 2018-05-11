@@ -12,14 +12,7 @@ from archiver.models import Tune, Setting, Comment
 from archiver.forms import SettingForm, CommentForm, SignupForm
 from archiver.dataset import dataset_as_csv
 
-def home_page(request):
-    return render(request, 'archiver/home.html', {
-                                'tunes': Tune.objects.order_by('-id')[:MAX_RECENT_ITEMS],
-                                'settings': Setting.objects.order_by('-id')[:MAX_RECENT_ITEMS],
-                                'comments': Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS],
-                                })
-
-def tunes_page(request):
+def activity():
     qs_tune = Tune.objects.order_by('-id')[:MAX_RECENT_ITEMS]
     qs_setting = Setting.objects.order_by('-id')[:MAX_RECENT_ITEMS]
     # models are not similar enough for...
@@ -34,9 +27,22 @@ def tunes_page(request):
         abc_trimmed.body = abc_trimmed.body.partition('\n')[0]
         tune.abc_trimmed = abc_trimmed.abc
     
+    comments = Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS]
+    
+    return (tunes_settings, comments)
+
+def home_page(request):
+    tunes_settings, comments = activity()
+    return render(request, 'archiver/home.html', {
+                            'tunes_settings': tunes_settings,
+                            'comments': comments,
+                                })
+
+def tunes_page(request):
+    tunes_settings, comments = activity()
     return render(request, 'archiver/tunes.html', {
                             'tunes_settings': tunes_settings,
-                            'comments': Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS],
+                            'comments': comments,
                             })
 
 def tune_page(request, tune_id=None):
