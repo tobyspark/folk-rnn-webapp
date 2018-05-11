@@ -26,8 +26,16 @@ def tunes_page(request):
     # qs_both = qs_tune.union(qs_setting).order_by('submitted')[:MAX_RECENT_ITEMS]
     tunes_settings = list(chain(qs_tune, qs_setting))
     tunes_settings.sort(key=lambda x: x.submitted)
+    tunes_settings[MAX_RECENT_ITEMS:] = []
+    
+    for tune in tunes_settings:
+        abc_trimmed = ABCModel(abc = tune.abc)
+        abc_trimmed.title = None
+        abc_trimmed.body = abc_trimmed.body.partition('\n')[0]
+        tune.abc_trimmed = abc_trimmed.abc
+    
     return render(request, 'archiver/tunes.html', {
-                            'tunes_settings': tunes_settings[:MAX_RECENT_ITEMS],
+                            'tunes_settings': tunes_settings,
                             'comments': Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS],
                             })
 

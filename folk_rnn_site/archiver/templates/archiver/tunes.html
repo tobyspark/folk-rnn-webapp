@@ -3,7 +3,7 @@
 {% block content %}
 {% load humanize %}
 <div id="activity">
-    <div id="tunes">
+    <div id="recent-tunes">
         <div class="section-meta">
         <h2>Recent tunes</h2>
         </div>
@@ -12,17 +12,32 @@
                 {% for item in tunes_settings %}
                 <li>
                 <h3><a href="/tune/{{ item.id }}">{{item.title}}</a></h3>
+                <textarea id="abc-{{ forloop.counter }}" hidden>{{ item.abc_trimmed }}</textarea>
+                <div id="notation-{{ forloop.counter }}"></div>
+                <script>
+                window.addEventListener("load", function() {
+                    const tune_id = "{{ forloop.counter }}";
+                    new ABCJS.Editor("abc-" + tune_id, { 
+                        canvas_id: "notation-" + tune_id,
+                        abcjsParams: {
+                            paddingleft:0,
+                            paddingright:0,
+                            responsive: "resize",
+                            }
+                        });
+                }, false);
+                </script>
                 {% if item.rnn_tune %}{# tune model #}
                 <p class="meta">Tune submitted from <a href="//folkrnn.org{{ item.rnn_tune.url }}">folkrnn.org</a> {{ item.submitted|naturalday }}</p>
                 {% else %}{# setting model #}
                 <p class="meta">Setting of <a href="{% url 'tune' tune_id=item.id %}">{{ item.tune.title }}</a> added by <a href="#">{{ item.author }}</a> {{ item.submitted|naturalday }}.</p>
-                </li>
                 {% endif %}
+                </li>
                 {% endfor %}
             </ul>
         </div>
     </div>
-    <div id="comments">
+    <div id="recent-comments">
         <div class="section-meta">
             <h2>Recent comments</h2>
         </div>
