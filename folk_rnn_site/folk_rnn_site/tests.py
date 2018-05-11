@@ -96,6 +96,10 @@ K:Cmaj
         tune = ConcreteABCTune(abc=chapka_abc)
         self.assertEqual(tune.body, chapka_abc_body)
         
+        tune = ConcreteABCTune(abc=mint_abc())
+        tune.body = ABC_BODY + ABC_BODY
+        self.assertEqual(tune.abc, mint_abc(body=ABC_BODY + ABC_BODY))
+        
 class ABCJSTest(TestCase):
 
     def test_abcjs_available(self):
