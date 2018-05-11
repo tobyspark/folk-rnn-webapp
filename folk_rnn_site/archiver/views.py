@@ -6,7 +6,7 @@ from django.contrib.auth.models import User
 from tempfile import TemporaryFile
 from itertools import chain
 
-from folk_rnn_site.models import conform_abc
+from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS
 from archiver.models import Tune, Setting, Comment
 from archiver.forms import SettingForm, CommentForm, SignupForm
@@ -69,10 +69,20 @@ def tune_page(request, tune_id=None):
                 comment.save()
             else:
                 comment_form = form
-
+    
+    abc_trimmed = ABCModel(abc = tune.abc)
+    abc_trimmed.title = None
+    tune.abc_trimmed = abc_trimmed.abc
+    
+    settings = Setting.objects.filter(tune=tune)
+    for setting in settings:
+        abc_trimmed = ABCModel(abc = setting.abc)
+        abc_trimmed.title = None
+        setting.abc_trimmed = abc_trimmed.abc
+        
     return render(request, 'archiver/tune.html', {
         'tune': tune,
-        'settings': Setting.objects.filter(tune=tune),
+        'settings': settings,
         'comments': Comment.objects.filter(tune=tune),
         'setting_form': setting_form,
         'comment_form': comment_form,
