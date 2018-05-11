@@ -192,6 +192,14 @@ h1, h2, h3 {
     font-weight: bold;
 }
 
+#content #recent-tunes .meta {
+    margin-top: -1em;
+}
+
+#content #recent-tunes .abcjs-container {
+    margin-top: -0.3em;
+}
+
 #content .download-link {
     font-size: 0.8em;
     text-transform: uppercase;
