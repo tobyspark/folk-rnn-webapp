@@ -14,13 +14,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url, include
+from django.views.generic import RedirectView
 from archiver import views
 
 urlpatterns = [
     url(r'^$', views.home_page, name='home'),
-    url(r'^tune/$', views.tune_page, name='tune'),
-    url(r'^tune/(?P<tune_id>[0-9]+)$', views.tune_page, name='tune'),
+    url(r'^tune/$', RedirectView.as_view(url='/tunes', permanent=True)),
     url(r'^tunes/$', views.tunes_page, name='tunes'),
+    url(r'^tune/(?P<tune_id>[0-9]+)$', views.tune_page, name='tune'),
     url(r'^dataset$', views.dataset_download),
     url(r'^', include('django.contrib.auth.urls')),
     url(r'^signup', views.signup, name='signup')
