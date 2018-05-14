@@ -36,9 +36,11 @@ window.addEventListener("load", function() {
         <div id="abc-download" class="download-link">
             <a href="{% url 'tune_download' tune_id=tune.id %}">Download ABC</a>
         </div>
+        {% if settings %}
         <div id="abc-download-all" class="download-link">
             <a href="{% url 'tune_setting_download' tune_id=tune.id %}">Download all ABC</a>
         </div>
+        {% endif %}
     </div>
 {% endif %}
 </div>
