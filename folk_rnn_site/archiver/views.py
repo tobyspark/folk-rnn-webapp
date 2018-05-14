@@ -130,6 +130,22 @@ def setting_download(request, tune_id=None, setting_id=None):
     response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tune_{tune_id}_setting_{setting_id}"'
     return response
 
+def tune_setting_download(request, tune_id=None):
+    try:
+        tune_id_int = int(tune_id)
+        tune = Tune.objects.get(id=tune_id_int)
+    except (TypeError, Tune.DoesNotExist):
+        return redirect('/')
+    
+    tune_zeroed = ABCModel(abc=tune.abc)
+    tune_zeroed.header_x = 0
+    settings = Setting.objects.filter(tune=tune)
+    abc_tunebook = '\n\n'.join([tune_zeroed.abc] + [x.abc for x in settings])
+
+    response = HttpResponse(abc_tunebook, content_type='text/plain')
+    response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tune_{tune_id}_and_settings"'
+    return response
+
 def dataset_download(request):
     with TemporaryFile(mode='w+') as f:
         dataset_as_csv(f)

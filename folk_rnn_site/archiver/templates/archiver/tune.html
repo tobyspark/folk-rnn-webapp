@@ -37,7 +37,7 @@ window.addEventListener("load", function() {
             <a href="{% url 'tune_download' tune_id=tune.id %}">Download ABC</a>
         </div>
         <div id="abc-download-all" class="download-link">
-            <a href="#">Download all ABC</a>
+            <a href="{% url 'tune_setting_download' tune_id=tune.id %}">Download all ABC</a>
         </div>
     </div>
 {% endif %}
