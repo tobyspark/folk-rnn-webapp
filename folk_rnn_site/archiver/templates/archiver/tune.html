@@ -34,7 +34,7 @@ window.addEventListener("load", function() {
         <p class="meta">The RNN seed was <span id="seed" class="parameter">{{ tune.rnn_tune.seed }}</span>, temperature was <span id="temp" class="parameter">{{ tune.rnn_tune.temp }}</span> and prime tokens were <span id="prime_tokens" class="parameter">{{ tune.rnn_tune.prime_tokens }}</span>.</p>
         <div id="midi-download-tune" class="download-link"></div>
         <div id="abc-download" class="download-link">
-            <a href="#">Download ABC</a>
+            <a href="{% url 'tune_download' tune_id=tune.id %}">Download ABC</a>
         </div>
         <div id="abc-download-all" class="download-link">
             <a href="#">Download all ABC</a>

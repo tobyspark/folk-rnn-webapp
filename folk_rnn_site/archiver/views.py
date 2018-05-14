@@ -102,6 +102,17 @@ def tune_page(request, tune_id=None):
         'comment_form': comment_form,
         })
 
+def tune_download(request, tune_id=None):
+    try:
+        tune_id_int = int(tune_id)
+        tune = Tune.objects.get(id=tune_id_int)
+    except (TypeError, Tune.DoesNotExist):
+        return redirect('/')
+
+    response = HttpResponse(tune.abc, content_type='text/plain')
+    response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tune_{tune_id}"'
+    return response
+
 def dataset_download(request):
     with TemporaryFile(mode='w+') as f:
         dataset_as_csv(f)
