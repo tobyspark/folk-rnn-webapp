@@ -22,7 +22,7 @@ class SettingManager(models.Manager):
     def create_setting(self, tune, abc, author):
         # Create but don't add to db
         setting = Setting(tune=tune, abc=abc, author=author)
-        setting.header_x = self.filter(tune=tune).count()
+        setting.header_x = self.filter(tune=tune).count() + 1
         # Validate ABC
         conform_abc(setting.abc)
         # Check the abc body is new
