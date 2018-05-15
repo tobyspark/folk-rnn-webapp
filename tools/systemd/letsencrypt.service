@@ -1,0 +1,10 @@
+[Unit]
+Description = Check Lets Encrypt SSL certificates
+After = network.target
+
+[Service]
+User = root
+ExecStart = /usr/bin/certbox renew
+
+[Install]
+WantedBy = multi-user.target
