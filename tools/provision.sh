@@ -48,5 +48,21 @@ echo ***
 ufw default deny incoming
 ufw allow ssh
 ufw allow http/tcp
+ufw allow https/tcp
 ufw --force enable
 ufw status
+
+echo ***
+echo *** Check SSL Cert
+echo ***
+
+if [ ! -d /etc/letsencrypt ]; then
+    apt-get install --yes software-properties-common
+    add-apt-repository ppa:certbot/certbot
+    apt-get update
+    apt-get install --yes python-certbot-nginx
+    certbot --non-interactive --nginx --agree-tos -m $LETSENCRYPT_ACCOUNT_EMAIL -d folkrnn.org -d www.folkrnn.org -d themachinefolksession.org -d www.themachinefolksession.org
+fi
+cp /folk_rnn_webapp/tools/systemd/letsencrypt.service /etc/systemd/system/letsencrypt.service
+cp /folk_rnn_webapp/tools/systemd/letsencrypt.timer /etc/systemd/system/letsencrypt.timer
+systemctl enable --now letsencrypt.timer
