@@ -2,9 +2,9 @@
 
 ### Folk RNN WebApp functional / unit test requirements, for dev only
 
-echo ***
-echo *** Check Folk RNN Test Rig
-echo ***
+echo "***"
+echo "*** Check Folk RNN Test Rig"
+echo "***"
 
 # Selenium for Python
 pip3.6 install "selenium<4"
