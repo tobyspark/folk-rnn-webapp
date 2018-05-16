@@ -1,8 +1,8 @@
 #!/bin/bash
 
-echo ***
-echo *** Check Folk RNN
-echo ***
+echo "***"
+echo "*** Check Folk RNN"
+echo "***"
 
 ### Load environment
 set -a; source /folk_rnn_webapp/.env; set +a

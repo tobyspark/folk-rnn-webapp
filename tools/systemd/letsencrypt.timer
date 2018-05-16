@@ -1,0 +1,8 @@
+[Unit]
+Description = Run Lets Encrypt check daily
+
+[Timer]
+OnCalendar=04:32
+
+[Install]
+WantedBy = timers.target
