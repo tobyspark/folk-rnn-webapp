@@ -44,7 +44,6 @@ class SettingManager(models.Manager):
 
 class Setting(ABCModel):
     tune = models.ForeignKey(Tune)
-    abc = models.TextField(default='')
     author = models.ForeignKey(User)
     submitted = models.DateTimeField(auto_now_add=True)
 
