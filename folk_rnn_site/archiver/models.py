@@ -1,9 +1,61 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 
 from folk_rnn_site.models import ABCModel, conform_abc
 from composer.models import RNNTune
 from composer import FOLKRNN_TUNE_TITLE_CLIENT
+
+class UserManager(BaseUserManager):
+    """
+    Manager for User model with email address as the username
+    https://www.fomfus.com/articles/how-to-use-email-as-username-for-django-authentication-removing-the-username
+    """
+
+    use_in_migrations = True
+
+    def _create_user(self, email, password, **extra_fields):
+        """
+        Create and save a User with the given email and password.
+        """
+        if not email:
+            raise ValueError('The given email must be set')
+        email = self.normalize_email(email)
+        user = self.model(email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_user(self, email, password=None, **extra_fields):
+        """Create and save a regular User with the given email and password."""
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(email, password, **extra_fields)
+
+    def create_superuser(self, email, password, **extra_fields):
+        """Create and save a SuperUser with the given email and password."""
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self._create_user(email, password, **extra_fields)
+
+class User(AbstractUser):
+    """
+    User, with email address as the username
+    https://www.fomfus.com/articles/how-to-use-email-as-username-for-django-authentication-removing-the-username
+    https://github.com/django/django/blob/stable/1.11.x/django/contrib/auth/models.py#L299
+    """
+    username = None
+    email = models.EmailField('email address', unique=True)
+    
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
+    
+    objects = UserManager()
 
 class Tune(ABCModel):
     def __str__(self):

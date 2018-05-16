@@ -1,6 +1,29 @@
 from django.contrib import admin
-from archiver.models import Tune, Setting, Comment
+from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from archiver.models import User, Tune, Setting, Comment
 
 admin.site.register(Tune)
 admin.site.register(Setting)
 admin.site.register(Comment)
+
+@admin.register(User)
+class UserAdmin(DjangoUserAdmin):
+    """
+    Define admin model for User with email address as username
+    """
+
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2'),
+        }),
+    )
+    list_display = ('email', 'first_name', 'last_name', 'is_staff')
+    search_fields = ('email', 'first_name', 'last_name')
+    ordering = ('email',)
