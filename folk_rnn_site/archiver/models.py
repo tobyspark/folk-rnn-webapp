@@ -6,6 +6,8 @@ from composer.models import RNNTune
 from composer import FOLKRNN_TUNE_TITLE_CLIENT
 
 class Tune(ABCModel):
+    def __str__(self):
+        return f'Tune: {self.title} (FolkRNN {self.rnn_tune.id})'
     
     @property 
     def valid_abc(self):
@@ -43,6 +45,9 @@ class SettingManager(models.Manager):
         return setting
 
 class Setting(ABCModel):
+    def __str__(self):
+        return f'Setting: {self.title} (X {self.header_x}, MachineFolk {self.tune.id}, FolkRNN {self.tune.rnn_tune.id})'
+    
     tune = models.ForeignKey(Tune)
     author = models.ForeignKey(User)
     submitted = models.DateTimeField(auto_now_add=True)
@@ -50,6 +55,9 @@ class Setting(ABCModel):
     objects = SettingManager()
 
 class Comment(models.Model):
+    def __str__(self):
+        return f'Comment: "{self.text[:30]}" by {self.author} on MachineFolk {self.tune.id})'
+        
     tune = models.ForeignKey(Tune)
     text = models.TextField(default='')
     author = models.ForeignKey(User)

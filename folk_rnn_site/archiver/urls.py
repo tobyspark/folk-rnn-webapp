@@ -15,6 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.views.generic import RedirectView
+from django.contrib import admin
 from archiver import views
 
 urlpatterns = [
@@ -27,5 +28,6 @@ urlpatterns = [
     url(r'^tune/(?P<tune_id>[0-9]+)/download/all$', views.tune_setting_download, name='tune_setting_download'),
     url(r'^dataset$', views.dataset_download),
     url(r'^', include('django.contrib.auth.urls')),
-    url(r'^signup', views.signup, name='signup')
+    url(r'^signup', views.signup, name='signup'),
+    url(r'^admin/', admin.site.urls),
 ]

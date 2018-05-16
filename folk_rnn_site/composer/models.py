@@ -3,7 +3,9 @@ from folk_rnn_site.models import ABCModel
 from django_hosts.resolvers import reverse
 
 class RNNTune(ABCModel):
-    
+    def __str__(self):
+        return f'RNNTune {self.id}'
+        
     @property
     def prime_tokens(self):
         prime_token_items = (self.meter, self.key, self.start_abc)
