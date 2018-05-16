@@ -2,13 +2,13 @@ from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from django.core.files import File as dFile
 from django.utils.timezone import now
-from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from tempfile import TemporaryFile
 from itertools import chain
 
 from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS
-from archiver.models import Tune, Setting, Comment
+from archiver.models import User, Tune, Setting, Comment
 from archiver.forms import SettingForm, CommentForm, SignupForm
 from archiver.dataset import dataset_as_csv
 
@@ -157,11 +157,12 @@ def signup(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)
         if form.is_valid():
-            name = form.cleaned_data.get('name')
+            first_name = form.cleaned_data.get('first_name')
+            last_name = form.cleaned_data.get('last_name')
             password = form.cleaned_data.get('password')
             email = form.cleaned_data.get('email')
             try:
-                user = User.objects.create_user(name, email, password)
+                user = User.objects.create_user(email, password, first_name=first_name, last_name=last_name)
                 login(request, user)
                 return redirect('/')
             except Exception as error:

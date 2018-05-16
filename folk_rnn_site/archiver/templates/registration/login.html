@@ -24,7 +24,7 @@
                 {% csrf_token %}
                 <div class="pure-control-group">
                     <label for="{{ form.username.id_for_label }}">{{ form.username.label_tag }}</label>
-                    {% render_field form.username class+="pure-u-1" title="Enter username" placeholder="e.g. Ada Lovelace"%}
+                    {% render_field form.username class+="pure-u-1" title="Enter email address" placeholder="e.g. ada@lovelace.org"%}
                 </div>
                 <div class="pure-control-group">
                     <label for="{{ form.password.id_for_label }}">{{ form.password.label_tag }}</label>
