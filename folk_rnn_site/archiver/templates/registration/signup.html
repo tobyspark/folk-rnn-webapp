@@ -2,33 +2,37 @@
 
 {% block content %}
 
-<h1>Sign up</h1>
+<div id="signup">
+    <div class="section-meta">
+        <h2>Sign up</h2>
+    </div>
+    <div class="section-body">
+        {% for field, error in form.errors.items %}
+        <p>{{ field }}, {{ error|escape }}</p>
+        {% endfor %}
 
-{% for field, error in form.errors.items %}
-<p>{{ field }}, {{ error|escape }}</p>
-{% endfor %}
-
-<form method="post" action="{% url 'signup' %}" class="pure-form pure-form-aligned">
-{% load widget_tweaks %}
-{% csrf_token %}
-    <fieldset>
-        <div class="pure-control-group">
-            <label for="{{ form.name.id_for_label }}">{{ form.name.label_tag }}</label>
-            {% render_field form.name class+="pure-u-1-2" title="Enter your name" %}
-        </div>
-        <div class="pure-control-group">
-            <label for="{{ form.password.id_for_label }}">{{ form.password.label_tag }}</label>
-            {% render_field form.password class+="pure-u-1-2" title="Enter password" %}
-        </div>
-        <div class="pure-control-group">
-            <label for="{{ form.email.id_for_label }}">{{ form.email.label_tag }}</label>
-            {% render_field form.email class+="pure-u-1-2" title="Enter email address" %}
-        </div>
-        <div class="pure-controls">
-            <input type="submit" value="Sign up" class="pure-button pure-button-primary pure-u-1-4"/>
-            <input type="hidden" name="next" value="{{ next }}" />
-        </div>
-    </fieldset>
-</form>
+    <form method="post" action="{% url 'signup' %}" class="pure-form pure-form-stacked">
+    {% load widget_tweaks %}
+        <fieldset>
+            <div class="pure-control-group">
+                <label for="{{ form.name.id_for_label }}">{{ form.name.label_tag }}</label>
+                {% render_field form.name class+="pure-u-1" title="Enter your name" placeholder="e.g. Ada Lovelace"%}
+            </div>
+            <div class="pure-control-group">
+                <label for="{{ form.password.id_for_label }}">{{ form.password.label_tag }}</label>
+                {% render_field form.password class+="pure-u-1" title="Enter password" placeholder="e.g. four-common-random-words"%}
+            </div>
+            <div class="pure-control-group">
+                <label for="{{ form.email.id_for_label }}">{{ form.email.label_tag }}</label>
+                {% render_field form.email class+="pure-u-1" title="Enter email address" placeholder="e.g. ada@lovelace.org" %}
+            </div>
+            <div class="pure-control-group">
+                <input type="submit" value="Sign up" class="pure-button pure-button-primary pure-u-1-3"/>
+                <input type="hidden" name="next" value="{{ next }}" />
+                {% csrf_token %}
+            </div>
+        </fieldset>
+    </form>
+</div>
 
 {% endblock %}
