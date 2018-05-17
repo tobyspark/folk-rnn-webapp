@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
-from archiver.models import User, Tune, Setting, Comment
+from archiver.models import User, Tune, TuneAttribution, Setting, Comment
 
 admin.site.register(Tune)
+admin.site.register(TuneAttribution)
 admin.site.register(Setting)
 admin.site.register(Comment)
 

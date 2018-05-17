@@ -147,7 +147,20 @@ h1, h2, h3 {
     padding-right: 2%;
     text-align: right;
     vertical-align: top;
+    overflow: hidden;
+    margin-bottom: 1em;
 }
+
+.main .section-meta>:first-child {
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.main .section-meta>:last-child {
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
 
 .main .section-body {
     display: inline-block;

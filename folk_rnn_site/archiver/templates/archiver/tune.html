@@ -7,30 +7,35 @@
 {% block content %}
 {% load humanize %}
 {% load widget_tweaks %}
-<h1>{{ tune.title }}</h1>
-<div class="section-meta">
-{% if tune.rnn_tune %}
-    <div id="composition_metadata">
+<div id="tune">
+    <h1>{{ tune.title }}</h1>
+    <div class="section-meta">
+    {% for attribution in attributions %}
+        <p class="meta">{{ attribution.text }}{% if attribution.text and attribution.url %}<br>{% endif %}{% if attribution.url %}<a href="{{ attribution.url }}">{{ attribution.url }}</a>{% endif %}</p>
+    {% endfor %}
+    {% if tune.rnn_tune %}
         <p class="meta">Machine generated.<br>ABC auto-formatted.<br>{% if tune.valid_abc %}Valid{% else %}Invalid{% endif %} ABC.</p>
         <p class="meta">Archived from <a href="{{ tune.rnn_tune.url }}{# FIXME: hardcoded domain #}" class="parameter">folkrnn.org</a>, where it was generated using the <span id="rnn_model_name" class="parameter">{{ tune.rnn_tune.rnn_model_name | cut:'.pickle' }}</span> model.</p>
         <p class="meta">The RNN seed was <span id="seed" class="parameter">{{ tune.rnn_tune.seed }}</span>, temperature was <span id="temp" class="parameter">{{ tune.rnn_tune.temp }}</span> and prime tokens were <span id="prime_tokens" class="parameter">{{ tune.rnn_tune.prime_tokens }}</span>.</p>
+    {% endif %}
+        <p class="meta">Added by <a href="#">{{ tune.author.get_short_name }}</a>.<br>
+        {{ tune.submitted | naturalday | capfirst }}.</p>
         <div id="midi-download-0" class="download-link"></div>
         <div id="abc-download-0" class="download-link">
             <a href="{% url 'tune_download' tune_id=tune.id %}">Download ABC</a>
         </div>
-        {% if settings %}
+    {% if settings %}
         <div id="abc-download-all" class="download-link">
             <a href="{% url 'tune_setting_download' tune_id=tune.id %}">Download all ABC</a>
         </div>
-        {% endif %}
+    {% endif %}
     </div>
-{% endif %}
-</div>
-<div class="section-body">
-    <div id="tune">
-        <textarea id="abc-0" hidden>{{ tune.abc_trimmed }}</textarea>
-        <div id="notation-0"></div>
-        <div id="midi-0"></div>
+    <div class="section-body">
+        <div id="tune">
+            <textarea id="abc-0" hidden>{{ tune.abc_trimmed }}</textarea>
+            <div id="notation-0"></div>
+            <div id="midi-0"></div>
+        </div>
     </div>
 </div>
 
@@ -42,8 +47,8 @@
         <div class="section-meta">
             <h2>{{ setting.title }}</h2>
             <p class="meta">Setting {{ setting.header_x|apnumber }}.</br>
-            Added by <a href="#">{{ setting.author }}</a>.<br>
-            {{ setting.submitted | naturalday }}.</p>
+            Added by <a href="#">{{ setting.author.get_short_name }}</a>.<br>
+            {{ setting.submitted | naturalday | capfirst }}.</p>
             <div id="midi-download-{{ forloop.counter }}" class="download-link"></div>
             <div id="abc-download-{{ forloop.counter }}" class="download-link">
                 <a href="{% url 'setting_download' tune_id=tune.id setting_id=setting.header_x %}">Download ABC</a>
@@ -58,22 +63,24 @@
     </div>
     {% endfor %}
 {% endif %}
-    <div class="section-meta">
-        <h2>Add a setting</h4>
-    </div>
-    <div class="section-body">
-    {% if user.is_authenticated %}
-        <form method="POST" class="pure-form">
-        {% with WIDGET_ERROR_CLASS='error' %}
-            {%  csrf_token %}
-            {{ setting_form.abc.errors }}
-            {% render_field setting_form.abc class+="pure-input-1" title="Add setting ABC here."%}
-            <input id="setting_button" type="submit" name="submit_setting" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
-        {% endwith %}
-        </form>
-    {% else %}
-        <p><a href="{% url 'login' %}">Log in</a> to add setting.</p>
-    {% endif %}
+    <div class="section">
+        <div class="section-meta">
+            <h2>Add a setting</h4>
+        </div>
+        <div class="section-body">
+        {% if user.is_authenticated %}
+            <form method="POST" class="pure-form">
+            {% with WIDGET_ERROR_CLASS='error' %}
+                {%  csrf_token %}
+                {{ setting_form.abc.errors }}
+                {% render_field setting_form.abc class+="pure-input-1" title="Add setting ABC here."%}
+                <input id="setting_button" type="submit" name="submit_setting" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+            {% endwith %}
+            </form>
+        {% else %}
+            <p><a href="{% url 'login' %}">Log in</a> to add setting.</p>
+        {% endif %}
+        </div>
     </div>
 </div>
 

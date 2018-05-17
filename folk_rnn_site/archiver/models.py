@@ -59,7 +59,10 @@ class User(AbstractUser):
 
 class Tune(ABCModel):
     def __str__(self):
-        return f'Tune: {self.title} (FolkRNN {self.rnn_tune.id})'
+        info = [f'MachineFolk {self.id}']
+        if self.rnn_tune:
+            info += [f'FolkRNN {self.rnn_tune.id}']
+        return f'Tune: {self.title} ({", ".join(info)})'
     
     @property 
     def valid_abc(self):
@@ -69,9 +72,18 @@ class Tune(ABCModel):
         except:
             return False
     
-    rnn_tune = models.ForeignKey(RNNTune)
+    author = models.ForeignKey(User)
+    rnn_tune = models.ForeignKey(RNNTune, null=True, blank=True)
     submitted = models.DateTimeField(auto_now_add=True)
 
+class TuneAttribution(models.Model):
+    def __str__(self):
+        return f'Tune Meta: {self.text[:30]} (MachineFolk {self.tune.id})'
+        
+    tune = models.ForeignKey(Tune)
+    text = models.TextField(null=True, blank=True)
+    url = models.URLField(null=True, blank=True)
+    
 class SettingManager(models.Manager):
     def create_setting(self, tune, abc, author):
         # Create but don't add to db

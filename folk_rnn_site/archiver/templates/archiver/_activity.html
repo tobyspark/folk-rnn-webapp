@@ -10,8 +10,10 @@
                 <li>
                 <h3><a href="/tune/{{ item.id }}">{{item.title}}</a></h3>
                 <div id="notation-{{ forloop.counter }}"></div>
-                {% if item.rnn_tune %}{# tune model #}
+                {% if item.rnn_tune %}{# tune model from folk-rnn #}
                 <p class="meta">Tune submitted from <a href="//folkrnn.org{{ item.rnn_tune.url }}">folkrnn.org</a> {{ item.submitted|naturalday }}</p>
+                {% elif not item.tune %}{# tune model not from folk-rnn #}
+                <p class="meta">Original tune submitted {{ item.submitted|naturalday }}</p>
                 {% else %}{# setting model #}
                 <p class="meta">Setting of <a href="{% url 'tune' tune_id=item.id %}">{{ item.tune.title }}</a> added by <a href="#">{{ item.author }}</a> {{ item.submitted|naturalday }}.</p>
                 {% endif %}
