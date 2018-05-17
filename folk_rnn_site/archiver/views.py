@@ -88,7 +88,7 @@ def tune_page(request, tune_id=None):
     abc_trimmed.title = None
     tune.abc_trimmed = abc_trimmed.abc
     
-    settings = Setting.objects.filter(tune=tune)
+    settings = tune.setting_set.all()
     for setting in settings:
         abc_trimmed = ABCModel(abc = setting.abc)
         abc_trimmed.title = None
@@ -96,9 +96,8 @@ def tune_page(request, tune_id=None):
         
     return render(request, 'archiver/tune.html', {
         'tune': tune,
-        'attributions': TuneAttribution.objects.filter(tune=tune).order_by('id'),
         'settings': settings,
-        'comments': Comment.objects.filter(tune=tune),
+        'comments': tune.comment_set.all(),
         'setting_form': setting_form,
         'comment_form': comment_form,
         })
@@ -122,7 +121,7 @@ def setting_download(request, tune_id=None, setting_id=None):
         return redirect('/')
 
     try:
-        settings = Setting.objects.filter(tune=tune)
+        settings = tune.setting_set.all()
         abc = [x.abc for x in settings if x.header_x == setting_id][0]
     except (IndexError):
         return redirect('/')
@@ -140,7 +139,7 @@ def tune_setting_download(request, tune_id=None):
     
     tune_zeroed = ABCModel(abc=tune.abc)
     tune_zeroed.header_x = 0
-    settings = Setting.objects.filter(tune=tune)
+    settings = tune.setting_set.all()
     abc_tunebook = '\n\n'.join([tune_zeroed.abc] + [x.abc for x in settings])
 
     response = HttpResponse(abc_tunebook, content_type='text/plain')
