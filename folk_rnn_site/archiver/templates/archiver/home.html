@@ -2,7 +2,7 @@
 
 {% block content %}
 {% load humanize %}
-<div id="welcome">
+<div id="welcome" class="section">
     <div class="section-meta">
         <h2>Hello {% if not user.is_authenticated %}World{% else %}{{ user.get_short_name }}{% endif %}</h2>
     </div>

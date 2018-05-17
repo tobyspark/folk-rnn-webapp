@@ -140,6 +140,10 @@ h1, h2, h3 {
     margin-bottom: 1em;
 }
 
+.main .section {
+    display: flex;
+}
+
 .main .section-meta {
     display: inline-block;
     width: 30%;
