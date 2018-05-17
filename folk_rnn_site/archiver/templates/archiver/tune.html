@@ -10,7 +10,7 @@
 <h1>{{ tune.title }}</h1>
 <div id="tune" class="section">
     <div class="section-meta">
-    {% for attribution in attributions %}
+    {% for attribution in tune.tuneattribution_set.all %}
         <p class="meta">{{ attribution.text }}{% if attribution.text and attribution.url %}<br>{% endif %}{% if attribution.url %}<a href="{{ attribution.url }}">{{ attribution.url }}</a>{% endif %}</p>
     {% endfor %}
     {% if tune.rnn_tune %}
@@ -39,11 +39,11 @@
     </div>
 </div>
 
-<div id="settings" class="section">
+<div id="settings">
 {% if settings %}
     {#<h2>{{ settings|length|apnumber|capfirst }} setting{{ settings|length|pluralize }}</h2>#}
     {% for setting in settings %}
-    <div id="setting-{{ forloop.counter }}">
+    <div id="setting-{{ forloop.counter }}" class="section">
         <div class="section-meta">
             <h2>{{ setting.title }}</h2>
             <p class="meta">Setting {{ setting.header_x|apnumber }}.</br>
@@ -59,7 +59,6 @@
             <div id="notation-{{ forloop.counter }}"></div>
             <div id="midi-{{ forloop.counter }}"></div>
         </div>
-
     </div>
     {% endfor %}
 {% endif %}
