@@ -48,6 +48,10 @@ a:hover {
     height: unset;
 }
 
+.header .pure-menu-selected {
+    font-weight: bold;
+}
+
 .main-menu {
     padding: 0 10%;
 }
