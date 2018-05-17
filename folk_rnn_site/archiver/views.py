@@ -174,17 +174,19 @@ def dataset_download(request):
 def signup(request):
     if request.method == 'POST':
         form = SignupForm(request.POST)
-        if form.is_valid():
-            first_name = form.cleaned_data.get('first_name')
-            last_name = form.cleaned_data.get('last_name')
-            password = form.cleaned_data.get('password')
-            email = form.cleaned_data.get('email')
-            try:
-                user = User.objects.create_user(email, password, first_name=first_name, last_name=last_name)
-                login(request, user)
-                return redirect('/')
-            except Exception as error:
-                form.add_error(None, ValidationError(error)) # TODO: parse error into correct field
+        form.add_error('password', "...we're working on opening up the community features. Sign-up is currently disabled.")
+        # FIXME: Re-enable for site launch with community features
+        # if form.is_valid():
+        #     first_name = form.cleaned_data.get('first_name')
+        #     last_name = form.cleaned_data.get('last_name')
+        #     password = form.cleaned_data.get('password')
+        #     email = form.cleaned_data.get('email')
+        #     try:
+        #         user = User.objects.create_user(email, password, first_name=first_name, last_name=last_name)
+        #         login(request, user)
+        #         return redirect('/')
+        #     except Exception as error:
+        #         form.add_error(None, ValidationError(error)) # TODO: parse error into correct field
     else:
         form = SignupForm()
     
