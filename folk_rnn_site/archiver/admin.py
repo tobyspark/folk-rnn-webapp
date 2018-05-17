@@ -2,14 +2,32 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from archiver.models import User, Tune, TuneAttribution, TuneRecording, TuneEvent, Setting, Comment, Recording, Event
 
-admin.site.register(Tune)
-admin.site.register(TuneAttribution)
-admin.site.register(TuneRecording)
-admin.site.register(TuneEvent)
-admin.site.register(Setting)
-admin.site.register(Comment)
-admin.site.register(Recording)
-admin.site.register(Event)
+class TuneAttributionInline(admin.StackedInline):
+    model = TuneAttribution
+
+class SettingInline(admin.StackedInline):
+    model = Setting
+     
+class CommentInline(admin.StackedInline):
+    model = Comment
+
+class TuneRecordingInline(admin.StackedInline):
+    model = TuneRecording
+
+class TuneEventInline(admin.StackedInline):
+    model = TuneEvent
+
+@admin.register(Tune)
+class TuneAdmin(admin.ModelAdmin):
+    inlines = [ TuneAttributionInline, SettingInline, CommentInline, TuneEventInline, TuneRecordingInline ]
+
+@admin.register(Recording)
+class RecordingAdmin(admin.ModelAdmin):
+    inlines = [ TuneRecordingInline ]
+
+@admin.register(Event)
+class EventAdmin(admin.ModelAdmin):
+    inlines = [ TuneEventInline ]
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
