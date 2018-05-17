@@ -1,0 +1,23 @@
+{% extends "archiver/base.html" %}
+
+{% block content %}
+{% load humanize %}
+{% load embed_video_tags %}
+{% load markdown_deux_tags %}
+{% for event in events %}
+<div id="event" class="section">
+    <div class="section-meta">
+        <h2>{{ event.title }}</h2>
+        <p class="meta">Happened {{ event.date | naturalday }}</p>
+        <p class="meta">Added by <a href="#">{{ event.author.get_full_name }}</a>.</p> 
+    </div>
+    <div class="section-body">
+        <img src="{{ event.image }}">
+        {{ event.body | markdown }}
+    {% for recording in event.recording_set.all %}
+        <p>Features recording: {{ recording.title }}</a>
+    {% endfor %}
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

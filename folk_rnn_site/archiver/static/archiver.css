@@ -1,0 +1,289 @@
+body {
+    color: #666;
+    font-family: Georgia, serif;
+}
+
+a {
+    color: unset;
+    text-decoration: underline dotted orange;
+}
+
+a:hover {
+    background-color: orange;
+}
+
+.pure-button-primary {
+    background-color: orange;
+}
+
+.header {
+    width: 100%;
+    text-align: center;
+    border-width: 0 0 0 0;
+}
+
+.logo {
+    margin: 1em auto;
+}
+
+.logo .thesession {
+    font-size: 1em;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    vertical-align: 0.3em;
+    margin: 0 0.7em;
+}
+
+.logo .machinefolk {
+    font-size: 3em;
+    font-style: italic;
+    text-transform: lowercase;
+}
+
+.logo a {
+    text-decoration: none;
+}
+
+.header .pure-menu-item {
+    height: unset;
+}
+
+.header .pure-menu-selected {
+    font-weight: bold;
+}
+
+.main-menu {
+    padding: 0 10%;
+}
+.main-menu::before {
+    content: "";
+    width: 80%;
+    position: absolute;
+    left: 10%;
+    border-bottom: solid 1px;
+}
+
+.main-menu::after {
+    content: "";
+    width: 70%;
+    position: absolute;
+    left: 15%;
+    border-bottom: dotted 1px;
+}
+
+.main-menu li {
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    width: 33%;
+}
+
+.main-menu a {
+    border-bottom: unset;
+}
+
+.pure-menu-active>.pure-menu-link, .pure-menu-link:focus, .pure-menu-link:hover {
+    background-color: unset;
+    z-index: 2;
+}
+
+.pure-menu-link:hover::after {
+    content: "";
+    background-color: orange;
+    position: absolute;
+    width:80%;
+    height: 0.3em;
+    top:43%;
+    left:10%;
+    z-index: -1;
+}
+
+.sub-menu {
+    padding: 0 10%;
+    position: relative;
+    margin: 0 auto;
+    font-style: italic;
+    line-height: 2em;
+}
+
+.sub-menu::after {
+    content: "";
+    width: 60%;
+    position: absolute;
+    top: 2em;
+    left: 20%;
+    border-bottom: dotted 1px;
+}
+
+.main {
+    padding: 1em 10%;
+}
+
+h1, h2, h3 {
+    font-weight: lighter;
+}
+
+.main h1 {
+    text-align: center;
+    font-style: italic;
+    margin: 0.5em 0 0.5em 0;
+}
+
+.main h2, .main h3 {
+    margin-top: 0;
+}
+
+.main ul {
+    margin: 0;
+}
+
+.main li h3, .main li p {
+    margin: 0 0 0.2em 0;
+}
+
+.main li:not(:last-child) {
+    margin-bottom: 1em;
+}
+
+.main .section {
+    display: flex;
+}
+
+.main .section-meta {
+    display: inline-block;
+    width: 30%;
+    margin-top: 0;
+    padding-right: 2%;
+    text-align: right;
+    vertical-align: top;
+    overflow: hidden;
+    margin-bottom: 1em;
+}
+
+.main .section-meta>:first-child {
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.main .section-meta>:last-child {
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+
+.main .section-body {
+    display: inline-block;
+    position: relative;
+    width: 64%;
+    min-height: 2em;
+    border-left: dotted 1px;
+    padding-left: 2%;
+    margin-bottom: 1em;
+}
+
+.main .section-body>:first-child {
+    padding-top: 0;
+    margin-top: 0;
+}
+
+.main .section-body>:last-child {
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.main .pure-g [class*=pure-u] {
+    font-family: Georgia, serif;
+}
+
+#content::after {
+    content: "";
+    width: 70%;
+    position: absolute;
+    left: 15%;
+    border-bottom: dotted 1px;
+}
+
+#content ul {
+    padding-left: 0;
+}
+
+#content li {
+    list-style: none;
+}
+
+#content .meta {
+    font-style: italic;
+    font-size: .8em;
+}
+
+#content .meta .parameter {
+    font-weight: bold;
+}
+
+#content #recent-tunes .meta {
+    margin-top: -1em;
+}
+
+#content #recent-tunes .abcjs-container {
+    margin-top: -0.3em;
+}
+
+#content .download-link {
+    font-size: 0.8em;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5em;
+}
+
+#content form>:first-child {
+    padding-top: 0;
+    margin-top: 0;
+}
+
+#content form>:last-child {
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+#content form .error {
+    border-color: red;
+}
+
+#content form .errorlist {
+    color: red;
+}
+
+#content .pure-control-group:last-child {
+    margin-top: 1em;
+}
+
+#footer {
+    margin: 1em 0;
+    font-size: smaller;
+}
+
+.main .abcjs-inline-midi {
+    color: black;
+    background-color: unset;
+}
+
+.main .abcjs-inline-midi .abcjs-btn {
+    color: black;
+}
+
+.main .abcjs-inline-midi .abcjs-btn:hover {
+    color: orange;
+}
+
+.main .abcjs-inline-midi .abcjs-midi-selection.abcjs-pushed {
+    border: 1px solid orange;
+    background-color: purple;
+}
+
+.main .abcjs-inline-midi .abcjs-midi-progress-background {
+    background-color: unset;
+    border: 2px solid black;
+}
+
+.main .abcjs-inline-midi .abcjs-midi-progress-indicator {
+    background-color: black;
+}

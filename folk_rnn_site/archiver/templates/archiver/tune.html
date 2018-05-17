@@ -3,61 +3,153 @@
 {% block title %}{{ tune.title }}{% endblock %}
 
 {% block headend %}{% include "_abcjs-headend.html" %}{% endblock %}
-{% block bodyend %}{% include "_abcjs-bodyend.html" %}{% endblock %}
 
 {% block content %}
 {% load humanize %}
+{% load widget_tweaks %}
 <h1>{{ tune.title }}</h1>
-<div>
-    <div id="composition">
-        <p>The composition –</p>
-        <form method="POST">
-            {% csrf_token %}
-            {{ tune_form }}
-            {% ifequal tune_form.edit.data 'user' %}
-                <input id="save_button" name="save" type="submit" value="Save">
-                <input id="setting_button" type="submit" name="submit_setting" value="Submit Setting">
-            {% endifequal %}
-        </form>
+<div id="tune" class="section">
+    <div class="section-meta">
+    {% for attribution in tune.tuneattribution_set.all %}
+        <p class="meta">{{ attribution.text }}{% if attribution.text and attribution.url %}<br>{% endif %}{% if attribution.url %}<a href="{{ attribution.url }}">{{ attribution.url }}</a>{% endif %}</p>
+    {% endfor %}
+    {% if tune.rnn_tune %}
+        <p class="meta">Machine generated.<br>ABC auto-formatted.<br>{% if tune.valid_abc %}Valid{% else %}Invalid{% endif %} ABC.</p>
+        <p class="meta">Archived from <a href="{{ tune.rnn_tune.url }}{# FIXME: hardcoded domain #}" class="parameter">folkrnn.org</a>, where it was generated using the <span id="rnn_model_name" class="parameter">{{ tune.rnn_tune.rnn_model_name | cut:'.pickle' }}</span> model.</p>
+        <p class="meta">The RNN seed was <span id="seed" class="parameter">{{ tune.rnn_tune.seed }}</span>, temperature was <span id="temp" class="parameter">{{ tune.rnn_tune.temp }}</span> and prime tokens were <span id="prime_tokens" class="parameter">{{ tune.rnn_tune.prime_tokens }}</span>.</p>
+    {% endif %}
+        <p class="meta">Added by <a href="#">{{ tune.author.get_full_name }}</a>.<br>
+        {{ tune.submitted | naturalday | capfirst }}.</p>
+        <div id="midi-download-0" class="download-link"></div>
+        <div id="abc-download-0" class="download-link">
+            <a href="{% url 'tune_download' tune_id=tune.id %}">Download ABC</a>
+        </div>
+    {% if settings %}
+        <div id="abc-download-all" class="download-link">
+            <a href="{% url 'tune_setting_download' tune_id=tune.id %}">Download all ABC</a>
+        </div>
+    {% endif %}
     </div>
-    <div id="midi"></div>
-    <div id="midi-download"></div>
-    <div id="warnings"></div>
-    <div id="music"></div>
-    <div id="paper0"></div>
-    <div id="paper1"></div>
-    <div id="paper2"></div>
-    <div id="paper3"></div>
-    <div id="selection"></div>
+    <div class="section-body">
+        <div id="tune">
+            <textarea id="abc-0" hidden>{{ tune.abc_trimmed }}</textarea>
+            <div id="notation-0"></div>
+            <div id="midi-0"></div>
+        </div>
+    </div>
 </div>
 
 <div id="settings">
 {% if settings %}
-    <h2>{{ settings|length|apnumber|capfirst }} setting{{ settings|length|pluralize }}</h2>
+    {#<h2>{{ settings|length|apnumber|capfirst }} setting{{ settings|length|pluralize }}</h2>#}
     {% for setting in settings %}
-        <div id="setting {{ setting.header_x }}">
-            <pre>{{ setting.abc }}</pre>
-            <!-- TODO: Added by..., Download..., Sheet music..., -->
+    <div id="setting-{{ forloop.counter }}" class="section">
+        <div class="section-meta">
+            <h2>{{ setting.title }}</h2>
+            <p class="meta">Setting {{ setting.header_x|apnumber }}.</br>
+            Added by <a href="#">{{ setting.author.get_full_name }}</a>.<br>
+            {{ setting.submitted | naturalday | capfirst }}.</p>
+            <div id="midi-download-{{ forloop.counter }}" class="download-link"></div>
+            <div id="abc-download-{{ forloop.counter }}" class="download-link">
+                <a href="{% url 'setting_download' tune_id=tune.id setting_id=setting.header_x %}">Download ABC</a>
+            </div>
         </div>
-    {%  endfor %}
-{% else %}
-    <h2>No settings</h2>
-{%  endif %}
+        <div class="section-body">
+            <textarea id="abc-{{ forloop.counter }}" hidden>{{ setting.abc_trimmed }}</textarea>
+            <div id="notation-{{ forloop.counter }}"></div>
+            <div id="midi-{{ forloop.counter }}"></div>
+        </div>
+    </div>
+    {% endfor %}
+{% endif %}
+    <div class="section">
+        <div class="section-meta">
+            <h2>Add a setting</h4>
+        </div>
+        <div class="section-body">
+        {% if user.is_authenticated %}
+            <form method="POST" class="pure-form">
+            {% with WIDGET_ERROR_CLASS='error' %}
+                {%  csrf_token %}
+                {{ setting_form.abc.errors }}
+                {% render_field setting_form.abc class+="pure-input-1" title="Add setting ABC here."%}
+                <input id="setting_button" type="submit" name="submit_setting" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+            {% endwith %}
+            </form>
+        {% else %}
+            <p><a href="{% url 'login' %}">Log in</a> to add setting.</p>
+        {% endif %}
+        </div>
+    </div>
 </div>
 
-<div id="comments">
-    <h2>Comments</h2>
-    <form method="POST">
-        {% csrf_token %}
-        {{ comment_form }}
-        <input id="comment_button" type="submit" name="submit_comment" value="Submit">
-    </form>
-    {% if comments %}
-    <ul id="comment_list">
-        {% for comment in comments %}
-        <li>{{ comment.text }}<br>— {{ comment.author }}, {{ comment.submitted|naturalday }}</li>
-        {% endfor %}
-    </ul>
-    {% endif %}
+<div id="comments" class="section">
+    <div class="section-meta">
+        <h2>Comments</h2>
+    </div>
+    <div class="section-body">
+        <ul id="comment_list">
+            {% for comment in comments %}
+            <li>
+            <p>{{ comment.text }}</p>
+            <p class="meta"><a href="#">{{ comment.author }}</a>, {{ comment.submitted|naturalday }}</p>
+            </li>
+            {% endfor %}
+            <li>
+            {% if user.is_authenticated %}
+                <form method="POST" class="pure-form pure-g">
+                {% with WIDGET_ERROR_CLASS='error' %}
+                    {% csrf_token %}
+                    {{ comment_form.text.errors }}
+                    {% render_field comment_form.text class+="pure-input-1" rows="2" placeholder="Discuss this tune..." title="Add your comment here"%}
+                    <input id="comment_button" type="submit" name="submit_comment" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                {% endwith %}
+                </form>
+            {% else %}
+                <p><a href="{% url 'login' %}">Log in</a> to comment.</p>
+            {% endif %}
+            </li>
+        </ul>
+    </div>
 </div>
+<script>
+window.addEventListener("load", function() {
+    const colorRange = function(range, color) {
+        if (range && range.elements) {
+            range.elements.forEach(function (set) {
+                set.forEach(function (item) {
+                    item.setAttribute("fill", color);
+                });
+            });
+        }
+    };
+    const animateCallback = function(lastRange, currentRange, context) {
+    console.log("animateCallback", lastRange, currentRange)
+        colorRange(lastRange, "#000000");
+        colorRange(currentRange, "#3D9AFC");
+    };
+    for (let i = 0; i <= {{ settings|length }}; i++) {
+        new ABCJS.Editor("abc-" + i, { 
+            canvas_id: "notation-" + i,
+            generate_midi: true,
+            midi_id:"midi-" + i,
+            midi_download_id: "midi-download-" + i,
+            abcjsParams: {
+                generateInline: true,
+                generateDownload: true,
+                downloadLabel:"Download MIDI",
+                paddingleft:0,
+                paddingright:0,
+                responsive: "resize",
+                animate: {
+                    listener: animateCallback, 
+                    target: "notation-" + i, 
+                    qpm: 120
+                },
+            }
+        });
+    }            
+}, false);
+</script>
+
 {% endblock %}

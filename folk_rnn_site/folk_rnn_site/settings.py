@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'widget_tweaks',
+    'embed_video',
+    'markdown_deux',
     'django_hosts',
     'channels',
     'composer',
@@ -109,6 +111,10 @@ DATABASES = {
     }
 }
 
+# Substituting a custom User model
+# https://docs.djangoproject.com/en/1.11/topics/auth/customizing/#auth-custom-user
+
+AUTH_USER_MODEL = 'archiver.User'
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -194,3 +200,7 @@ STATIC_ROOT = '/folk_rnn_static/'
 STATICFILES_DIRS = [
     '/folk_rnn_sf/',
 ]
+
+# URLS not in URLConf. (This isn't good)
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
