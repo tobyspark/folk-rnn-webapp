@@ -8,7 +8,7 @@ from itertools import chain
 
 from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS
-from archiver.models import User, Tune, Setting, Comment
+from archiver.models import User, Tune, TuneAttribution, Setting, Comment
 from archiver.forms import SettingForm, CommentForm, SignupForm
 from archiver.dataset import dataset_as_csv
 
@@ -96,6 +96,7 @@ def tune_page(request, tune_id=None):
         
     return render(request, 'archiver/tune.html', {
         'tune': tune,
+        'attributions': TuneAttribution.objects.filter(tune=tune).order_by('id'),
         'settings': settings,
         'comments': Comment.objects.filter(tune=tune),
         'setting_form': setting_form,
