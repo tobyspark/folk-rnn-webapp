@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<div id="signup">
+<div id="signup" class="section">
     <div class="section-meta">
         <h2>Sign up</h2>
     </div>
@@ -17,7 +17,7 @@
                 <div class="pure-g">
                     <div class="pure-control-group pure-u-1-2">
                         <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label_tag }}</label>
-                        {% render_field form.first_name class+="pure-input-23-24" title="Enter your first name" placeholder="e.g. Ada"%}
+                        {% render_field form.first_name class+="pure-input-1" title="Enter your first name" placeholder="e.g. Ada"%}
                     </div>
                     <div class="pure-control-group pure-u-1-2">
                         <label for="{{ form.last_name.id_for_label }}">{{ form.last_name.label_tag }}</label>
