@@ -27,7 +27,7 @@
                 </div>
                 {{ context }}
                 <div class="sub-menu">
-                        {% if user.is_authenticated %}<a href="#">{{ user.get_short_name }}</a>{% else %}community{% endif %}: {% if user.is_authenticated %}<a href="/logout">log out</a>{% else %}<a href="/login">log in</a> or <a href="/signup">sign up</a>{% endif %}</a>; <a href="/">submit a tune</a>; <a href="/">Q & A</a>
+                        {% if user.is_authenticated %}<a href="#">{{ user.get_short_name }}</a>{% else %}community{% endif %}: {% if user.is_authenticated %}<a href="/logout">log out</a>{% else %}<a href="/login">log in</a> or <a href="/signup">sign up</a>{% endif %}</a>; <a href="/submit">submit a tune</a>; <a href="/questions">Q & A</a>
                 </div>
             </div>
             <div class="main">
