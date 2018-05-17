@@ -1,11 +1,15 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
-from archiver.models import User, Tune, TuneAttribution, Setting, Comment
+from archiver.models import User, Tune, TuneAttribution, TuneRecording, TuneEvent, Setting, Comment, Recording, Event
 
 admin.site.register(Tune)
 admin.site.register(TuneAttribution)
+admin.site.register(TuneRecording)
+admin.site.register(TuneEvent)
 admin.site.register(Setting)
 admin.site.register(Comment)
+admin.site.register(Recording)
+admin.site.register(Event)
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):

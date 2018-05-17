@@ -8,7 +8,7 @@ from itertools import chain
 
 from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS
-from archiver.models import User, Tune, TuneAttribution, Setting, Comment
+from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event
 from archiver.forms import SettingForm, CommentForm, SignupForm
 from archiver.dataset import dataset_as_csv
 
@@ -146,6 +146,16 @@ def tune_setting_download(request, tune_id=None):
     response = HttpResponse(abc_tunebook, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tune_{tune_id}_and_settings"'
     return response
+
+def recordings_page(request):
+    return render(request, 'archiver/recordings.html', {
+        'recordings': Recording.objects.all()
+    })
+
+def events_page(request):
+    return render(request, 'archiver/events.html', {
+        'events': Event.objects.all()
+    })
 
 def dataset_download(request):
     with TemporaryFile(mode='w+') as f:

@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     'widget_tweaks',
+    'embed_video',
+    'markdown_deux',
     'django_hosts',
     'channels',
     'composer',
