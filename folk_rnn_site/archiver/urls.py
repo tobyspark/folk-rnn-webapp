@@ -26,6 +26,8 @@ urlpatterns = [
     url(r'^tune/(?P<tune_id>[0-9]+)/download$', views.tune_download, name='tune_download'),
     url(r'^tune/(?P<tune_id>[0-9]+)/download/setting/(?P<setting_id>[0-9]+)$', views.setting_download, name='setting_download'),
     url(r'^tune/(?P<tune_id>[0-9]+)/download/all$', views.tune_setting_download, name='tune_setting_download'),
+    url(r'^recordings/$', views.recordings_page, name='recordings'),
+    url(r'^events/$', views.events_page, name='events'),
     url(r'^dataset$', views.dataset_download),
     url(r'^', include('django.contrib.auth.urls')),
     url(r'^signup', views.signup, name='signup'),

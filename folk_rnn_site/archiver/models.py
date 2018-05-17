@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from embed_video.fields import EmbedVideoField
 
 from folk_rnn_site.models import ABCModel, conform_abc
 from composer.models import RNNTune
@@ -126,3 +127,40 @@ class Comment(models.Model):
     text = models.TextField(default='')
     author = models.ForeignKey(User)
     submitted = models.DateTimeField(auto_now_add=True)
+
+class Documentation(models.Model):
+    class Meta:
+        abstract = True
+
+    title = models.CharField(max_length=150)
+    body = models.TextField()
+    url = models.URLField(null=True, blank=True)
+    date = models.DateField()
+    author = models.ForeignKey(User)
+
+class Event(Documentation):
+    def __str__(self):
+        return f'Event: {self.title[:30]}'
+    
+    image = models.ImageField(null=True, blank=True)
+
+class Recording(Documentation):
+    def __str__(self):
+        return f'Recording: {self.title[:30]}'
+    
+    video = EmbedVideoField()
+    event = models.ForeignKey(Event, null=True, blank=True)
+        
+class TuneRecording(models.Model):
+    def __str__(self):
+        return f'Tune Recording: {self.recording.title[:30]} (MachineFolk {self.tune.id})'
+
+    tune = models.ForeignKey(Tune)
+    recording = models.ForeignKey(Recording)
+
+class TuneEvent(models.Model):
+    def __str__(self):
+        return f'Tune Event: {self.event.title[:30]} (MachineFolk {self.tune.id})'
+
+    tune = models.ForeignKey(Tune)
+    event = models.ForeignKey(Event)

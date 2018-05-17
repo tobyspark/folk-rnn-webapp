@@ -1,0 +1,29 @@
+{% extends "archiver/base.html" %}
+
+{% block content %}
+{% load humanize %}
+{% load embed_video_tags %}
+{% load markdown_deux_tags %}
+{% for recording in recordings %}
+<div id="recording" class="section">
+    <div class="section-meta">
+        <h2>{{ recording.title }}</h2>
+    {% if recording.event %}
+        <p class="meta">Recorded at <a href="#">{{ recording.event.title }}</p>
+    {% endif %}
+    {% if recording.url %}
+        <p class="meta">More info:<br><a href="{{ recording.url }}">{{ recording.url }}</a></p>
+    {% endif %}
+        <p class="meta">Recorded {{ recording.date | naturalday }}</p>
+        <p class="meta">Added by <a href="#">{{ recording.author.get_full_name }}</a>.</p> 
+    </div>
+    <div class="section-body">
+        {% video recording.video as my_video %}
+          {% video my_video%}
+          <p class="meta"><a href="{{ recording.video }}">View on {{ my_video.backend | cut:"Backend" }}</a></p>
+        {% endvideo %}
+        {{ recording.body | markdown }}
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
