@@ -46,7 +46,6 @@ chapka_abc = f'{chapka_abc_header}\n{chapka_abc_body}'
 class ConcreteABCTune(ABCModel):
     class Meta:
         app_label = 'test'
-    abc = models.TextField(default='')
 
 class ABCTuneModelTest(TestCase):
     def test_title_property(self):
@@ -62,8 +61,31 @@ class ABCTuneModelTest(TestCase):
         tune = ConcreteABCTune(abc=chapka_abc)
         self.assertEqual(tune.title, 'La Chapka')
         
-        # TODO: Test setter
-    
+        abc_no_title_line = f'''X:0
+M:4/4
+K:Cmaj
+{ABC_BODY}'''
+        
+        tune = ConcreteABCTune(abc=mint_abc())
+        tune.title = 'A New Title'
+        self.assertEqual(tune.title, 'A New Title')
+        self.assertEqual(tune.abc, mint_abc(title='A New Title'))
+        
+        tune = ConcreteABCTune(abc=abc_no_title_line)
+        tune.title = 'A New Title'
+        self.assertEqual(tune.title, 'A New Title')
+        self.assertEqual(tune.abc, mint_abc(title='A New Title'))
+        
+        tune = ConcreteABCTune(abc=mint_abc())
+        tune.title = ""
+        self.assertEqual(tune.abc, abc_no_title_line)
+        self.assertEqual(tune.title, '')
+        
+        tune = ConcreteABCTune(abc=mint_abc())
+        tune.title = None
+        self.assertEqual(tune.abc, abc_no_title_line)
+        self.assertEqual(tune.title, '')
+            
     def test_x_property(self):
         tune = ConcreteABCTune(abc=mint_abc(x='    3    '))
         self.assertEqual(tune.header_x, '3')
@@ -74,10 +96,14 @@ class ABCTuneModelTest(TestCase):
         tune = ConcreteABCTune(abc=chapka_abc)
         self.assertEqual(tune.body, chapka_abc_body)
         
+        tune = ConcreteABCTune(abc=mint_abc())
+        tune.body = ABC_BODY + ABC_BODY
+        self.assertEqual(tune.abc, mint_abc(body=ABC_BODY + ABC_BODY))
+        
 class ABCJSTest(TestCase):
 
     def test_abcjs_available(self):
-        self.assertIsNotNone(finders.find('abcjs_midi_3.3.2-min.js'))
+        self.assertIsNotNone(finders.find('abcjs_midi_5.0.1-min.js'))
         self.assertIsNotNone(finders.find('abcjs-midi.css'))
 
     def test_soundfonts_available(self):

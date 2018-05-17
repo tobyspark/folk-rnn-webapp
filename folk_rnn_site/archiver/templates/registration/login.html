@@ -1,0 +1,45 @@
+{% extends "archiver/base.html" %}
+
+{% block content %}
+
+<div id="login" class="section">
+    <div class="section-meta">
+        <h2>Log in</h2>
+    </div>
+    <div class="section-body">
+        {% if next %}
+            {% if user.is_authenticated %}
+            <p>Your account doesn't have access to this page. To proceed, please login with an account that has access.</p>
+            {% else %}
+            <p>Please login to see this page.</p>
+            {% endif %}
+        {% endif %}
+        
+        <form method="post" action="{% url 'login' %}" class="pure-form pure-form-stacked">
+        {% load widget_tweaks %}
+            {% if form.errors %}
+            <p class="errorlist">Your username and password didn't match. Please try again.</p>
+            {% endif %}
+            <fieldset>
+                {% csrf_token %}
+                <div class="pure-control-group">
+                    <label for="{{ form.username.id_for_label }}">{{ form.username.label_tag }}</label>
+                    {% render_field form.username class+="pure-u-1" title="Enter email address" placeholder="e.g. ada@lovelace.org"%}
+                </div>
+                <div class="pure-control-group">
+                    <label for="{{ form.password.id_for_label }}">{{ form.password.label_tag }}</label>
+                    {% render_field form.password class+="pure-u-1" title="Enter password" placeholder="e.g. four-random-common-words" %}
+                </div>
+                <div class="pure-control-group">
+                    <input type="submit" value="Log in" class="pure-button pure-button-primary pure-u-1-3"/>
+                    <a href="{% url 'password_reset' %}" class="pure-button pure-u-1-3">Lost password</a>
+                    <input type="hidden" name="next" value="{{ next }}" />
+                </div>
+            </fieldset>
+        </form>
+        
+        <p>Not a member of the machine folk session? <a href="{% url 'signup' %}">Sign up here</a>.</p>
+    </div>
+</div>
+
+{% endblock %}

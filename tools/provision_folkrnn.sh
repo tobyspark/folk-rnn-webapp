@@ -50,6 +50,9 @@ pip3.6 install "channels_redis"
 pip3.6 install "pytest-django" "pytest-asyncio"
 pip3.6 install psycopg2-binary
 pip3.6 install google-api-python-client google-auth google-auth-httplib2
+pip3.6 install django-embed-video
+pip3.6 install django-markdown-deux
+pip3.6 install pillow
 apt-get install --yes postgresql
 apt-get install --yes redis-server
 apt-get install --yes abcmidi

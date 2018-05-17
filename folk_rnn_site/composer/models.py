@@ -3,7 +3,9 @@ from folk_rnn_site.models import ABCModel
 from django_hosts.resolvers import reverse
 
 class RNNTune(ABCModel):
-    
+    def __str__(self):
+        return f'RNNTune {self.id}'
+        
     @property
     def prime_tokens(self):
         prime_token_items = (self.meter, self.key, self.start_abc)
@@ -45,7 +47,6 @@ class RNNTune(ABCModel):
     requested = models.DateTimeField(auto_now_add=True)
     rnn_started = models.DateTimeField(null=True)
     rnn_finished = models.DateTimeField(null=True)
-    abc = models.TextField(default='')
     
 class Session(models.Model):
     started = models.DateTimeField(auto_now_add=True)
