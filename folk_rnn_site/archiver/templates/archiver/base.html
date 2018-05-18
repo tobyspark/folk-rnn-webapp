@@ -29,6 +29,7 @@
                 <div class="sub-menu">
                         {% if user.is_authenticated %}<a href="#">{{ user.get_short_name }}</a>{% else %}community{% endif %}: {% if user.is_authenticated %}<a href="/logout">log out</a>{% else %}<a href="/login">log in</a> or <a href="/signup">sign up</a>{% endif %}</a>; <a href="/submit">submit a tune</a>; <a href="/questions">Q & A</a>
                 </div>
+                <p class="beta">In beta! Launching soon!</p>
             </div>
             <div class="main">
                 <div id="content">
