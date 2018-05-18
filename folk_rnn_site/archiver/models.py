@@ -111,7 +111,10 @@ class SettingManager(models.Manager):
 
 class Setting(ABCModel):
     def __str__(self):
-        return f'Setting: {self.title} (X {self.header_x}, MachineFolk {self.tune.id}, FolkRNN {self.tune.rnn_tune.id})'
+        info = [f'X {self.header_x}', f'MachineFolk {self.tune.id}']
+        if self.tune.rnn_tune:
+            info += [f'FolkRNN {self.tune.rnn_tune.id}']
+        return f'Setting: {self.title} ({", ".join(info)})'
     
     tune = models.ForeignKey(Tune)
     author = models.ForeignKey(User)
