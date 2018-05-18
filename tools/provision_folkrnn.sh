@@ -54,7 +54,12 @@ pip3.6 install "channels_redis"
 pip3.6 install "pytest-django" "pytest-asyncio"
 pip3.6 install psycopg2-binary
 pip3.6 install google-api-python-client google-auth google-auth-httplib2
-pip3.6 install django-embed-video
+
+# See https://github.com/jazzband/django-embed-video/issues/87
+# pip3.6 install django-embed-video
+apt-get install --yes git
+pip3.6 install git+https://github.com/tobyspark/django-embed-video.git
+
 pip3.6 install django-markdown-deux
 pip3.6 install pillow
 apt-get install --yes postgresql
