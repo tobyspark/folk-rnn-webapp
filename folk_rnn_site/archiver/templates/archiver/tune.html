@@ -34,7 +34,7 @@
             <li>No events archived here</li>
         {% endfor %}
         </ul>
-        <p class="meta">Added by <a href="#">{{ tune.author.get_full_name }}</a>.<br>
+        <p class="meta">Added by <a href="#">{{ tune.author.get_full_name }}</a>,<br>
         {{ tune.submitted | naturalday | capfirst }}.</p>
         <div id="midi-download-0" class="download-link"></div>
         <div id="abc-download-0" class="download-link">
@@ -62,9 +62,9 @@
     <div id="setting-{{ forloop.counter }}" class="section">
         <div class="section-meta">
             <h2>{{ setting.title }}</h2>
-            <p class="meta">Setting {{ setting.header_x|apnumber }}.</br>
-            Added by <a href="#">{{ setting.author.get_full_name }}</a>.<br>
-            {{ setting.submitted | naturalday | capfirst }}.</p>
+            <p class="meta">Setting {{ setting.header_x|apnumber }}</br>
+            Added by <a href="#">{{ setting.author.get_full_name }},</a><br>
+            {{ setting.submitted | naturalday | capfirst }}</p>
             <div id="midi-download-{{ forloop.counter }}" class="download-link"></div>
             <div id="abc-download-{{ forloop.counter }}" class="download-link">
                 <a href="{% url 'setting_download' tune_id=tune.id setting_id=setting.header_x %}">Download ABC</a>
