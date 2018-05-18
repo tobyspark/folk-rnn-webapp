@@ -90,6 +90,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'django.template.context_processors.media',
             ],
         },
     },
@@ -200,6 +201,12 @@ STATIC_ROOT = '/folk_rnn_static/'
 STATICFILES_DIRS = [
     '/folk_rnn_sf/',
 ]
+
+# Media files (files uploaded by a user)
+# https://docs.djangoproject.com/en/1.11/topics/files 
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/folk_rnn_media/'
 
 # URLS not in URLConf. (This isn't good)
 LOGIN_REDIRECT_URL = '/'
