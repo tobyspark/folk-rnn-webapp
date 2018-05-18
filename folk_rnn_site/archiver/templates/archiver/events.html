@@ -12,7 +12,7 @@
         <p class="meta">Recordings:</p>
         <ul class="meta">
         {% for recording in event.recording_set.all %}
-            <li>{{ recording.title }}</li>
+            <li><a href="{% url 'recording' recording_id=recording.id %}">{{ recording.title }}</a></li>
         {% empty %}
             <li>No recordings archived here</li>
         {% endfor %}

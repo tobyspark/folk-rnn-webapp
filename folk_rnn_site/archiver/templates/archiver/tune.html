@@ -18,6 +18,22 @@
         <p class="meta">Archived from <a href="{{ tune.rnn_tune.url }}{# FIXME: hardcoded domain #}" class="parameter">folkrnn.org</a>, where it was generated using the <span id="rnn_model_name" class="parameter">{{ tune.rnn_tune.rnn_model_name | cut:'.pickle' }}</span> model.</p>
         <p class="meta">The RNN seed was <span id="seed" class="parameter">{{ tune.rnn_tune.seed }}</span>, temperature was <span id="temp" class="parameter">{{ tune.rnn_tune.temp }}</span> and prime tokens were <span id="prime_tokens" class="parameter">{{ tune.rnn_tune.prime_tokens }}</span>.</p>
     {% endif %}
+        <p class="meta">Events:</p>{# TODO: pluralise #}
+        <ul class="meta">
+        {% for tuneevent in tune.tuneevent_set.all %}
+            <li><a href="{% url 'event' event_id=tuneevent.event.id %}">{{ tuneevent.event.title }}</a></li>
+        {% empty %}
+            <li>No events archived here</li>
+        {% endfor %}
+        </ul>   
+        <p class="meta">Recordings:</p>{# TODO: pluralise #}
+        <ul class="meta">
+        {% for tunerecording in tune.tunerecording_set.all %}
+            <li><a href="{% url 'recording' recording_id=tunerecording.recording.id %}">{{ tunerecording.recording.title }}</a></li>
+        {% empty %}
+            <li>No events archived here</li>
+        {% endfor %}
+        </ul>
         <p class="meta">Added by <a href="#">{{ tune.author.get_full_name }}</a>.<br>
         {{ tune.submitted | naturalday | capfirst }}.</p>
         <div id="midi-download-0" class="download-link"></div>
