@@ -195,6 +195,12 @@ h1, h2, h3 {
     margin-bottom: 0;
 }
 
+.main .section-body img {
+    width: 100%;
+    object-fit: contain;
+    border-bottom: dotted 1px;
+}
+
 .main .pure-g [class*=pure-u] {
     font-family: Georgia, serif;
 }
