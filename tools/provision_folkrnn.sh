@@ -40,6 +40,10 @@ chown vagrant:vagrant /var/log/folk_rnn_webapp
 mkdir -p /folk_rnn_static
 chown vagrant:vagrant /folk_rnn_static
 
+# folk_rnn webapp media dir
+mkdir -p /folk_rnn_media
+chown vagrant:vagrant /folk_rnn_media
+
 # folk_rnn webapp packages
 apt-get install --yes nginx
 pip3.6 install "django<1.12"
@@ -83,6 +87,7 @@ for HOST in $COMPOSER_HOST $ARCHIVER_HOST; do
     | sed "s/kDOMAIN/$HOST/g" \
     | sed 's,kSOCKET,/folk_rnn_tmp/folk_rnn.org.socket,g' \
     | sed 's,kSTATIC,/folk_rnn_static,g' \
+    | sed 's,kMEDIA,/folk_rnn_media,g' \
     > /etc/nginx/sites-available/$HOST
     sudo ln -sf /etc/nginx/sites-available/$HOST /etc/nginx/sites-enabled/$HOST
 done
