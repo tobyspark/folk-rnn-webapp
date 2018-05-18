@@ -7,13 +7,15 @@
         <h2>Sign up</h2>
     </div>
     <div class="section-body">
+        <p><em>...we're working on opening up the community features. Track our progress on <a href="https://github.com/tobyspark/folk-rnn-webapp/issues">GitHub</a></em></p>
+        
         {% for field, error in form.errors.items %}
         <p>{{ field }}, {{ error|escape }}</p>
         {% endfor %}
 
         <form method="post" action="{% url 'signup' %}" class="pure-form pure-form-stacked">
         {% load widget_tweaks %}
-            <fieldset>
+            <fieldset disabled><!-- FIXME: re-enable for site launch with community features -->
                 <div class="pure-g">
                     <div class="pure-control-group pure-u-1-2">
                         <label for="{{ form.first_name.id_for_label }}">{{ form.first_name.label_tag }}</label>

@@ -44,6 +44,11 @@ a:hover {
     text-decoration: none;
 }
 
+.beta {
+    font-style: italic;
+    background-color: yellow;
+}
+
 .header .pure-menu-item {
     height: unset;
 }
