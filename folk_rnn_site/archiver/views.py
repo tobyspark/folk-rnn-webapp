@@ -151,9 +151,31 @@ def recordings_page(request):
         'recordings': Recording.objects.all()
     })
 
+def recording_page(request, recording_id=None):
+    try:
+        recording_id_int = int(recording_id)
+        recording = Recording.objects.get(id=recording_id_int)
+    except (TypeError, Recording.DoesNotExist):
+        return redirect('/')
+
+    return render(request, 'archiver/recordings.html', {
+        'recordings': [recording],
+    })
+
 def events_page(request):
     return render(request, 'archiver/events.html', {
         'events': Event.objects.all()
+    })
+
+def event_page(request, event_id=None):
+    try:
+        event_id_int = int(event_id)
+        event = Event.objects.get(id=event_id_int)
+    except (TypeError, Event.DoesNotExist):
+        return redirect('/')
+    
+    return render(request, 'archiver/events.html', {
+        'events': [event],
     })
 
 def submit_page(request):
