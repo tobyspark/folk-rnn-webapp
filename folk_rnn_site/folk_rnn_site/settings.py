@@ -201,6 +201,12 @@ STATICFILES_DIRS = [
     '/folk_rnn_sf/',
 ]
 
+# Media files (files uploaded by a user)
+# https://docs.djangoproject.com/en/1.11/topics/files 
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = '/folk_rnn_media/'
+
 # URLS not in URLConf. (This isn't good)
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
