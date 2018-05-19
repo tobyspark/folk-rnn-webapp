@@ -148,7 +148,7 @@ class Command(BaseCommand):
         Utility function, typically for interactive use
         """
         print('Listing all stored files')
-        drive_list = self.drive.files().list().execute()
+        drive_list = self.drive.files().list(orderBy='createdTime').execute()
         for meta in drive_list['files']:
             print(self.drive.files().get(fileId=meta['id'], fields='name,size,createdTime').execute())
     
