@@ -73,6 +73,11 @@ class Tune(ABCModel):
         except:
             return False
     
+    @property
+    def title(self):
+        title = super().title
+        return title if len(title) > 0 else f'Machine Folk Session №{self.id}' 
+    
     author = models.ForeignKey(User)
     rnn_tune = models.ForeignKey(RNNTune, null=True, blank=True)
     submitted = models.DateTimeField(auto_now_add=True)
