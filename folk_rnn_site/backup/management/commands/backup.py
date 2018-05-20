@@ -150,7 +150,7 @@ class Command(BaseCommand):
         print('Listing all stored files')
         next_page_token = 'no token for first page'
         while next_page_token is not None:
-            kwargs = {'orderBy':'createdTime'}
+            kwargs = {'orderBy':'createdTime desc'}
             if next_page_token and next_page_token != 'no token for first page':
                 kwargs['pageToken'] = next_page_token
             drive_list = self.drive.files().list(**kwargs).execute()
