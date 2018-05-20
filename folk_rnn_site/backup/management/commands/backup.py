@@ -148,9 +148,18 @@ class Command(BaseCommand):
         Utility function, typically for interactive use
         """
         print('Listing all stored files')
-        drive_list = self.drive.files().list(orderBy='createdTime').execute()
-        for meta in drive_list['files']:
-            print(self.drive.files().get(fileId=meta['id'], fields='name,size,createdTime').execute())
+        next_page_token = 'no token for first page'
+        while next_page_token is not None:
+            kwargs = {'orderBy':'createdTime'}
+            if next_page_token and next_page_token != 'no token for first page':
+                kwargs['pageToken'] = next_page_token
+            drive_list = self.drive.files().list(**kwargs).execute()
+            if 'nextPageToken' in drive_list:
+                next_page_token = drive_list['nextPageToken']
+            else:
+                next_page_token = None
+            for meta in drive_list['files']:
+                print(self.drive.files().get(fileId=meta['id'], fields='name,size,createdTime').execute())
     
     def download_file(self, file_id, file_path):
         """
