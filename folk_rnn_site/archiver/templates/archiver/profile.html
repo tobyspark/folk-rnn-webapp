@@ -1,0 +1,6 @@
+{% extends "archiver/base.html" %}
+
+{% block content %}
+<h1>{{ profile.get_full_name }}</h1>
+{% include "archiver/_activity.html" %}
+{% endblock %}

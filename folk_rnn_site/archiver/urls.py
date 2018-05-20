@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^recording/(?P<recording_id>[0-9]+)$', views.recording_page, name='recording'),
     url(r'^events/$', views.events_page, name='events'),
     url(r'^event/(?P<event_id>[0-9]+)$', views.event_page, name='event'),
+    url(r'^profile/(?P<profile_id>[0-9]+)$', views.profile_page, name='profile'),
     url(r'^submit/$', views.submit_page, name='submit'),
     url(r'^questions/$', views.questions_page, name='questions'),
     url(r'^dataset$', views.dataset_download),

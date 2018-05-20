@@ -15,7 +15,7 @@
                 {% elif not item.tune %}{# tune model not from folk-rnn #}
                 <p class="meta">Original tune submitted {{ item.submitted|naturalday }}</p>
                 {% else %}{# setting model #}
-                <p class="meta">Setting of <a href="{% url 'tune' tune_id=item.id %}">{{ item.tune.title }}</a> added by <a href="#">{{ item.author }}</a> {{ item.submitted|naturalday }}.</p>
+                <p class="meta">Setting of <a href="{% url 'tune' tune_id=item.id %}">{{ item.tune.title }}</a> added by <a href="{% url 'profile' profile_id=item.author.id %}">{{ item.author }}</a> {{ item.submitted|naturalday }}.</p>
                 {% endif %}
                 </li>
                 {% endfor %}
@@ -32,7 +32,7 @@
                 <li>
                 <h3><a href="/tune/{{ comment.tune.id }}">Re: {{ comment.tune.title }}</a></h3>
                 <p>{{ comment.text}}</p>
-                <p class="meta">Posted by <a href="#">{{ comment.author }}</a> {{ comment.submitted|naturalday }}.</li>
+                <p class="meta">Posted by <a href="{% url 'profile' profile_id=comment.author.id %}">{{ comment.author }}</a> {{ comment.submitted|naturalday }}.</li>
                 </li>
                 {% endfor %}
             </ul>
