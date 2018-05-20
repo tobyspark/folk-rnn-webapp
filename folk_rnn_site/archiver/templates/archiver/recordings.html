@@ -23,7 +23,7 @@
             <li>No tunes archived here</li>
         {% endfor %}
         </ul>    
-        <p class="meta">Added by <a href="#">{{ recording.author.get_full_name }}</a></p> 
+        <p class="meta">Added by <a href="{% url 'profile' profile_id=recording.author.id %}">{{ recording.author.get_full_name }}</a></p> 
     </div>
     <div class="section-body">
         {% video recording.video is_secure=True as my_video %}

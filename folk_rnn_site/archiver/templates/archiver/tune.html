@@ -34,7 +34,7 @@
             <li>No events archived here</li>
         {% endfor %}
         </ul>
-        <p class="meta">Added by <a href="#">{{ tune.author.get_full_name }}</a>,<br>
+        <p class="meta">Added by <a href="{% url 'profile' profile_id=tune.author.id %}">{{ tune.author.get_full_name }}</a>,<br>
         {{ tune.submitted | naturalday | capfirst }}.</p>
         <div id="midi-download-0" class="download-link"></div>
         <div id="abc-download-0" class="download-link">
@@ -63,7 +63,7 @@
         <div class="section-meta">
             <h2>{{ setting.title }}</h2>
             <p class="meta">Setting {{ setting.header_x|apnumber }}</br>
-            Added by <a href="#">{{ setting.author.get_full_name }},</a><br>
+            Added by <a href="{% url 'profile' profile_id=setting.author.id %}">{{ setting.author.get_full_name }},</a><br>
             {{ setting.submitted | naturalday | capfirst }}</p>
             <div id="midi-download-{{ forloop.counter }}" class="download-link"></div>
             <div id="abc-download-{{ forloop.counter }}" class="download-link">
@@ -108,7 +108,7 @@
             {% for comment in comments %}
             <li>
             <p>{{ comment.text }}</p>
-            <p class="meta"><a href="#">{{ comment.author }}</a>, {{ comment.submitted|naturalday }}</p>
+            <p class="meta"><a href="{% url 'profile' profile_id=comment.author.id %}">{{ comment.author }}</a>, {{ comment.submitted|naturalday }}</p>
             </li>
             {% endfor %}
             <li>

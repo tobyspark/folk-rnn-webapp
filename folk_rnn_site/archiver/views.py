@@ -12,9 +12,9 @@ from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recor
 from archiver.forms import SettingForm, CommentForm, SignupForm
 from archiver.dataset import dataset_as_csv
 
-def activity():
-    qs_tune = Tune.objects.order_by('-id')[:MAX_RECENT_ITEMS]
-    qs_setting = Setting.objects.order_by('-id')[:MAX_RECENT_ITEMS]
+def activity(filter_dict={}):
+    qs_tune = Tune.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
+    qs_setting = Setting.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
     # models are not similar enough for...
     # qs_both = qs_tune.union(qs_setting).order_by('submitted')[:MAX_RECENT_ITEMS]
     tunes_settings = list(chain(qs_tune, qs_setting))
@@ -177,6 +177,20 @@ def event_page(request, event_id=None):
     return render(request, 'archiver/events.html', {
         'events': [event],
     })
+
+def profile_page(request, profile_id=None):
+    try:
+        user_id_int = int(profile_id)
+        user = User.objects.get(id=user_id_int)
+    except (TypeError, User.DoesNotExist):
+        return redirect('/')
+    
+    tunes_settings, comments = activity({'author': user})
+    return render(request, 'archiver/profile.html', {
+                            'profile': user,
+                            'tunes_settings': tunes_settings,
+                            'comments': comments,
+                            })
 
 def submit_page(request):
     return render(request, 'archiver/submit.html', {
