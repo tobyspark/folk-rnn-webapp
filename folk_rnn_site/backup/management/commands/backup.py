@@ -66,7 +66,7 @@ class Command(BaseCommand):
         Returns name of uploaded file
         """
         data = BytesIO()
-        call_command('dumpdata', all=True, format='json', stdout=TextIOWrapper(data))
+        call_command('dumpdata', all=True, format='json', stdout=TextIOWrapper(data, write_through=True))
         with SpooledTemporaryFile() as f:
             # Archive to tar
             with tarfile.open(fileobj=f, mode='x:bz2') as tar:
