@@ -178,9 +178,9 @@ def event_page(request, event_id=None):
         'events': [event],
     })
 
-def profile_page(request, profile_id=None):
+def user_page(request, user_id=None):
     try:
-        user_id_int = int(profile_id)
+        user_id_int = int(user_id)
         user = User.objects.get(id=user_id_int)
     except (TypeError, User.DoesNotExist):
         return redirect('/')
