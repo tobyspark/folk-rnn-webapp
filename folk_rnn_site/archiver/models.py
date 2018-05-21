@@ -78,7 +78,7 @@ class Tune(ABCModel):
     
     @property
     def title_or_mfsession(self):
-        return self.title if len(self.title) else f'Machine Folk Session №{self.id}' 
+        return self.title if len(self.title) else f'Untitled (Machine Folk Session №{self.id})' 
     
     author = models.ForeignKey(User)
     rnn_tune = models.ForeignKey(RNNTune, null=True, blank=True)
