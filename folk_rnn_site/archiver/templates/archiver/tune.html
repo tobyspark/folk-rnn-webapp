@@ -7,7 +7,7 @@
 {% block content %}
 {% load humanize %}
 {% load widget_tweaks %}
-<h1>{{ tune.title }}</h1>
+<h1>{{ tune.title_or_mfsession }}</h1>
 <div id="tune" class="section">
     <div class="section-meta">
     {% for attribution in tune.tuneattribution_set.all %}
@@ -108,7 +108,7 @@
             {% for comment in comments %}
             <li>
             <p>{{ comment.text }}</p>
-            <p class="meta"><a href="{% url 'user' user_id=comment.author.id %}">{{ comment.author }}</a>, {{ comment.submitted|naturalday }}</p>
+            <p class="meta"><a href="{% url 'user' user_id=comment.author.id %}">{{ comment.author.get_full_name }}</a>, {{ comment.submitted|naturalday }}</p>
             </li>
             {% endfor %}
             <li>
