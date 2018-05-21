@@ -9,7 +9,7 @@ from itertools import chain
 from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS
 from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event
-from archiver.forms import SettingForm, CommentForm, SignupForm
+from archiver.forms import SettingForm, CommentForm
 from archiver.dataset import dataset_as_csv
 
 def activity(filter_dict={}):
@@ -206,26 +206,3 @@ def dataset_download(request):
         response = HttpResponse(dFile(f), content_type='text/csv')
         response['Content-Disposition'] = 'attachment; filename="folkrnn_dataset_{}"'.format(now().strftime('%Y%m%d-%H%M%S'))
         return response
-        
-def signup(request):
-    if request.method == 'POST':
-        form = SignupForm(request.POST)
-        form.add_error('password', "...we're working on opening up the community features. Sign-up is currently disabled.")
-        # FIXME: Re-enable for site launch with community features
-        # if form.is_valid():
-        #     first_name = form.cleaned_data.get('first_name')
-        #     last_name = form.cleaned_data.get('last_name')
-        #     password = form.cleaned_data.get('password')
-        #     email = form.cleaned_data.get('email')
-        #     try:
-        #         user = User.objects.create_user(email, password, first_name=first_name, last_name=last_name)
-        #         login(request, user)
-        #         return redirect('/')
-        #     except Exception as error:
-        #         form.add_error(None, ValidationError(error)) # TODO: parse error into correct field
-    else:
-        form = SignupForm()
-    
-    return render(request, 'registration/signup.html', {
-        'form': form,
-    })
