@@ -310,3 +310,12 @@ h1, h2, h3 {
 .main .abcjs-inline-midi .abcjs-midi-progress-indicator {
     background-color: black;
 }
+
+.splash-overlay img {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+    width:150px;
+    transform: rotate(15deg);
+}

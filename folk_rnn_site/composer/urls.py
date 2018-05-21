@@ -21,4 +21,5 @@ urlpatterns = [
     url(r'^tune/$', views.tune_page, name='tune'),
     url(r'^tune/(?P<tune_id>[0-9]+)$', views.tune_page, name='tune'),
     url(r'^tune/(?P<tune_id>[0-9]+)/archive$', views.archive_tune, name='archive_tune'),
+    url(r'^competition/$', views.competition_page, name='competition')
 ]
