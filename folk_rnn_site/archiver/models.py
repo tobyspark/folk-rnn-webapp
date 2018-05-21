@@ -65,6 +65,9 @@ class Tune(ABCModel):
             info += [f'FolkRNN {self.rnn_tune.id}']
         return f'Tune: {self.title} ({", ".join(info)})'
     
+    class Meta:
+        ordering = ['id']
+    
     @property 
     def valid_abc(self):
         try:
@@ -84,6 +87,9 @@ class Tune(ABCModel):
 class TuneAttribution(models.Model):
     def __str__(self):
         return f'Tune Meta: {self.text[:30]} (MachineFolk {self.tune.id})'
+    
+    class Meta:
+        ordering = ['id']
         
     tune = models.ForeignKey(Tune)
     text = models.TextField(null=True, blank=True)
@@ -120,6 +126,9 @@ class Setting(ABCModel):
             info += [f'FolkRNN {self.tune.rnn_tune.id}']
         return f'Setting: {self.title} ({", ".join(info)})'
     
+    class Meta:
+        ordering = ['id']
+    
     tune = models.ForeignKey(Tune)
     author = models.ForeignKey(User)
     submitted = models.DateTimeField(auto_now_add=True)
@@ -129,6 +138,9 @@ class Setting(ABCModel):
 class Comment(models.Model):
     def __str__(self):
         return f'Comment: "{self.text[:30]}" by {self.author} on MachineFolk {self.tune.id})'
+    
+    class Meta:
+        ordering = ['id']
         
     tune = models.ForeignKey(Tune)
     text = models.TextField(default='')
@@ -138,6 +150,7 @@ class Comment(models.Model):
 class Documentation(models.Model):
     class Meta:
         abstract = True
+        ordering = ['date']
 
     title = models.CharField(max_length=150)
     body = models.TextField()
@@ -149,7 +162,7 @@ class Event(Documentation):
     def __str__(self):
         return f'Event: {self.title[:30]}'
     
-    image = models.ImageField(null=True, blank=True)
+        image = models.ImageField(null=True, blank=True)
 
 class Recording(Documentation):
     def __str__(self):
@@ -161,6 +174,9 @@ class Recording(Documentation):
 class TuneRecording(models.Model):
     def __str__(self):
         return f'Tune Recording: {self.recording.title[:30]} (MachineFolk {self.tune.id})'
+        
+    class Meta:
+        ordering = ['id']
 
     tune = models.ForeignKey(Tune)
     recording = models.ForeignKey(Recording)
@@ -168,6 +184,9 @@ class TuneRecording(models.Model):
 class TuneEvent(models.Model):
     def __str__(self):
         return f'Tune Event: {self.event.title[:30]} (MachineFolk {self.tune.id})'
-
+    
+    class Meta:
+        ordering = ['id']
+    
     tune = models.ForeignKey(Tune)
     event = models.ForeignKey(Event)
