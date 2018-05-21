@@ -230,6 +230,18 @@ h1, h2, h3 {
     font-weight: bold;
 }
 
+#content .meta li {
+    margin-bottom: 0;
+    font-weight: lighter;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#content p.meta + ul {
+    margin-top: -1em;
+}
+
 #content #recent-tunes .meta {
     margin-top: -1em;
 }
