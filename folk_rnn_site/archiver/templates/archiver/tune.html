@@ -99,6 +99,14 @@
     </div>
 </div>
 
+<div id="recordings">
+    {% for tunerecording in tune.tunerecording_set.all %}
+    {% with recording=tunerecording.recording %}
+    {% include 'archiver/_recording.html' %}
+    {% endwith %}
+    {% endfor %}
+</div>
+
 <div id="comments" class="section">
     <div class="section-meta">
         <h2>Comments</h2>

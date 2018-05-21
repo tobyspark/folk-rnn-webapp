@@ -1,0 +1,31 @@
+{% load humanize %}
+{% load embed_video_tags %}
+{% load markdown_deux_tags %}
+<div id="recording" class="section">
+    <div class="section-meta">
+        <h2>{{ recording.title }}</h2>
+    {% if recording.event %}
+        <p class="meta">Recorded at <a href="{% url 'event' event_id=recording.event.id %}">{{ recording.event.title }}</a></p>
+    {% endif %}
+        <p class="meta">Recorded on {{ recording.date | naturalday }}</p>
+    {% if recording.url %}
+        <p class="meta">More info:<br><a href="{{ recording.url }}">{{ recording.url }}</a></p>
+    {% endif %}
+        <p class="meta">Tunes:</p>{# TODO: pluralise #}
+        <ul class="meta">
+        {% for tunerecording in recording.tunerecording_set.all %}
+            <li><a href="{% url 'tune' tune_id=tunerecording.tune.id %}">{{ tunerecording.tune.title }}</a></li>
+        {% empty %}
+            <li>No tunes archived here</li>
+        {% endfor %}
+        </ul>    
+        <p class="meta">Added by <a href="{% url 'user' user_id=recording.author.id %}">{{ recording.author.get_full_name }}</a></p> 
+    </div>
+    <div class="section-body">
+        {% video recording.video is_secure=True as my_video %}
+          {% video my_video%}
+          <p class="meta"><a href="{{ recording.video }}">View on {{ my_video.backend | cut:"Backend" }}</a></p>
+        {% endvideo %}
+        {{ recording.body | markdown }}
+    </div>
+</div>
