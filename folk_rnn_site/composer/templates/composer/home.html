@@ -12,6 +12,9 @@
         {% block headend %}{% endblock %}
     </head>
     <body>
+        <div class="splash-overlay">
+            <a href="{% url 'competition' %}"><img src="/static/folk_rnn_competition.svg" alt="folk-rnn composition competition"></a>
+        </div>
         <div id="layout" class="pure-g">
             {% include "composer/_compose.html" %}
             <div class="content pure-u-3-4">

@@ -48,3 +48,6 @@ def archive_tune(request, tune_id=None):
                 tune_in_archive.save()
             return redirect(reverse('tune', host='archiver', kwargs={'tune_id': tune_in_archive.id}))
     return redirect('/')
+
+def competition_page(request):
+    return render(request, 'composer/competition.html', {})

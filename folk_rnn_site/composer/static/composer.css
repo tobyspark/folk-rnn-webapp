@@ -173,10 +173,32 @@ div .abcjs-inline-midi {
     background-color: unset;
 }
 
+.splash-overlay img {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+    width:150px;
+    transform: rotate(15deg);
+}
+
+.drop-header-for-splash {
+    margin-top: 80px;
+}
+
+.splash-title {
+    width:50%;
+    margin-left:25%;
+}
+
 @media (min-width: 48em) {
     .content {
         padding: 2em 3em 0;
         margin-left: 25%;
+    }
+    
+    .standalone {
+        margin: 0 25%;
     }
 
     .header {
