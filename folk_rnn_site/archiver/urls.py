@@ -15,8 +15,9 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.views.generic import RedirectView
+from registration.backends.hmac.views import RegistrationView
 from django.contrib import admin
-from archiver import views
+from archiver import views, forms
 
 urlpatterns = [
     url(r'^$', views.home_page, name='home'),
@@ -30,11 +31,15 @@ urlpatterns = [
     url(r'^recording/(?P<recording_id>[0-9]+)$', views.recording_page, name='recording'),
     url(r'^events/$', views.events_page, name='events'),
     url(r'^event/(?P<event_id>[0-9]+)$', views.event_page, name='event'),
-    url(r'^profile/(?P<profile_id>[0-9]+)$', views.profile_page, name='profile'),
+    url(r'^member/(?P<user_id>[0-9]+)$', views.profile_page, name='profile'),
     url(r'^submit/$', views.submit_page, name='submit'),
     url(r'^questions/$', views.questions_page, name='questions'),
     url(r'^dataset$', views.dataset_download),
-    url(r'^', include('django.contrib.auth.urls')),
-    url(r'^signup', views.signup, name='signup'),
+    url(r'^', include('django.contrib.auth.urls')), # per docs, registration should also provide these, but doesn't
+    url(r'^register/$',
+     RegistrationView.as_view(form_class=forms.RegistrationForm),
+     name='registration_register',
+     ),
+    url(r'^', include('registration.backends.hmac.urls')),
     url(r'^admin/', admin.site.urls),
 ]
