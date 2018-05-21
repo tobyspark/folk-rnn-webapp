@@ -26,7 +26,6 @@ def tune_page(request, tune_id=None):
     return render(request, 'composer/home.html', {
         'compose_form': ComposeForm(),
         'archive_form': ArchiveForm(),
-        'machine_folk_tune_count': Tune.objects.count(),
         'tune_id': tune.id,
         })
 
@@ -43,8 +42,9 @@ def archive_tune(request, tune_id=None):
             try:
                 tune_in_archive = Tune.objects.get(rnn_tune=tune)
             except Tune.DoesNotExist:
-                tune_in_archive = Tune(rnn_tune=tune, abc_rnn=tune.abc)  
-                tune_in_archive.title = form.cleaned_data['title']          
+                tune_in_archive = Tune(rnn_tune=tune, abc=tune.abc)
+                tune_in_archive.title = form.cleaned_data['title']
+                tune_in_archive.author_id = 1          
                 tune_in_archive.save()
             return redirect(reverse('tune', host='archiver', kwargs={'tune_id': tune_in_archive.id}))
     return redirect('/')

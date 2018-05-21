@@ -379,7 +379,7 @@ folkrnn.updateTuneDiv = function(tune) {
         el_requested.parentNode.setAttribute('hidden', '');
         el_generated.parentNode.removeAttribute('hidden');
         
-        el_archive_title.value = tune.title;
+        el_archive_title.value = folkrnn.tuneTitle + tune.id;
         el_archive_form.setAttribute('action', tune.archive_url);
         el_archive_form.removeAttribute('hidden');
         

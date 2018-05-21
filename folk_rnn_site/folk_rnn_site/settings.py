@@ -211,3 +211,20 @@ MEDIA_ROOT = '/folk_rnn_media/'
 # URLS not in URLConf. (This isn't good)
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# Sending Email 
+# https://docs.djangoproject.com/en/1.11/topics/email
+if 'FOLKRNN_PRODUCTION' in os.environ:
+    EMAIL_HOST = os.environ['EMAIL_HOST']
+    EMAIL_PORT = os.environ['EMAIL_PORT']
+    EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
+    EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
+    EMAIL_USE_TLS = os.environ['EMAIL_USE_TLS']
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Registration
+# https://django-registration.readthedocs.io/en/2.4.1/hmac.html
+ACCOUNT_ACTIVATION_DAYS = 7
+REGISTRATION_OPEN = True
+REGISTRATION_SALT = 'machine_folk_registration'

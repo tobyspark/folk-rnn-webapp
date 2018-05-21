@@ -66,7 +66,7 @@ class Command(BaseCommand):
         Returns name of uploaded file
         """
         data = BytesIO()
-        call_command('dumpdata', all=True, format='json', stdout=TextIOWrapper(data))
+        call_command('dumpdata', all=True, format='json', stdout=TextIOWrapper(data, write_through=True))
         with SpooledTemporaryFile() as f:
             # Archive to tar
             with tarfile.open(fileobj=f, mode='x:bz2') as tar:
@@ -148,9 +148,18 @@ class Command(BaseCommand):
         Utility function, typically for interactive use
         """
         print('Listing all stored files')
-        drive_list = self.drive.files().list().execute()
-        for meta in drive_list['files']:
-            print(self.drive.files().get(fileId=meta['id'], fields='name,size,createdTime').execute())
+        next_page_token = 'no token for first page'
+        while next_page_token is not None:
+            kwargs = {'orderBy':'createdTime desc'}
+            if next_page_token and next_page_token != 'no token for first page':
+                kwargs['pageToken'] = next_page_token
+            drive_list = self.drive.files().list(**kwargs).execute()
+            if 'nextPageToken' in drive_list:
+                next_page_token = drive_list['nextPageToken']
+            else:
+                next_page_token = None
+            for meta in drive_list['files']:
+                print(self.drive.files().get(fileId=meta['id'], fields='name,size,createdTime').execute())
     
     def download_file(self, file_id, file_path):
         """

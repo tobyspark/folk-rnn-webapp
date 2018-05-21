@@ -73,6 +73,10 @@ class Tune(ABCModel):
         except:
             return False
     
+    @property
+    def title_or_mfsession(self):
+        return self.title if len(self.title) else f'Machine Folk Session №{self.id}' 
+    
     author = models.ForeignKey(User)
     rnn_tune = models.ForeignKey(RNNTune, null=True, blank=True)
     submitted = models.DateTimeField(auto_now_add=True)
@@ -111,7 +115,10 @@ class SettingManager(models.Manager):
 
 class Setting(ABCModel):
     def __str__(self):
-        return f'Setting: {self.title} (X {self.header_x}, MachineFolk {self.tune.id}, FolkRNN {self.tune.rnn_tune.id})'
+        info = [f'X {self.header_x}', f'MachineFolk {self.tune.id}']
+        if self.tune.rnn_tune:
+            info += [f'FolkRNN {self.tune.rnn_tune.id}']
+        return f'Setting: {self.title} ({", ".join(info)})'
     
     tune = models.ForeignKey(Tune)
     author = models.ForeignKey(User)
