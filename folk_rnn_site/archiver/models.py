@@ -162,7 +162,7 @@ class Event(Documentation):
     def __str__(self):
         return f'Event: {self.title[:30]}'
     
-        image = models.ImageField(null=True, blank=True)
+    image = models.ImageField(null=True, blank=True)
 
 class Recording(Documentation):
     def __str__(self):
