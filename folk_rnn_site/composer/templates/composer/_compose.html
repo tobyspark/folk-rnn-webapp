@@ -7,6 +7,10 @@
                 {% load widget_tweaks %}
                 {% csrf_token %}
                 <fieldset class="pure-input-1">
+                    <label for="compose_button">Press to generate tune</label>
+                    <input id="compose_button" type="button" value="Compose" class="pure-button pure-button-primary pure-u-1">
+                </fieldset>
+                <fieldset class="pure-input-1">
                     <legend>RNN Properties</legend>
                     <div class="pure-u-1">
                         <label for="{{ compose_form.model.id_for_label }}">Model</label>
@@ -42,9 +46,7 @@
                         {% render_field compose_form.start_abc class+="pure-input-1" rows="3" placeholder="Enter start of tune in ABC notation" title="Example: |: (3 D E F" autocomplete="off" spellcheck="false" autocapitalize="none" %}
                     </div>
                 </fieldset>
-                <fieldset class="pure-input-1">
-                    <input id="compose_button" type="button" value="Generate" class="pure-button pure-button-primary pure-u-1">
-                </fieldset>
+
             </form>
         </div>
     </div>
