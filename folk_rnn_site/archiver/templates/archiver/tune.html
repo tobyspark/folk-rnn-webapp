@@ -36,6 +36,7 @@
         </ul>
         <p class="meta">Added by <a href="{% url 'user' user_id=tune.author.id %}">{{ tune.author.get_full_name }}</a>,<br>
         {{ tune.submitted | naturalday | capfirst }}.</p>
+        <p class="meta">View: <input id="abc-0-checkbox" type="checkbox"><label for="abc-0-checkbox">ABC</label> | <input id="staff-0-checkbox" type="checkbox" checked><label for="staff-0-checkbox">Staff</label></p>
         <div id="midi-download-0" class="download-link"></div>
         <div id="abc-download-0" class="download-link">
             <a href="{% url 'tune_download' tune_id=tune.id %}">Download ABC</a>
@@ -48,8 +49,8 @@
     </div>
     <div class="section-body">
         <div id="tune">
-            <textarea id="abc-0" hidden>{{ tune.abc_trimmed }}</textarea>
-            <div id="notation-0"></div>
+            <textarea class="abc" id="abc-0" hidden>{{ tune.abc_trimmed }}</textarea>
+            <div id="staff-0"></div>
             <div id="midi-0"></div>
         </div>
     </div>
@@ -65,14 +66,15 @@
             <p class="meta">Setting {{ setting.header_x|apnumber }}</br>
             Added by <a href="{% url 'user' user_id=setting.author.id %}">{{ setting.author.get_full_name }},</a><br>
             {{ setting.submitted | naturalday | capfirst }}</p>
+            <p class="meta">View: <input id="abc-{{ forloop.counter }}-checkbox" type="checkbox"><label for="abc-{{ forloop.counter }}-checkbox">ABC</label> | <input id="staff-{{ forloop.counter }}-checkbox" type="checkbox" checked><label for="staff-{{ forloop.counter }}-checkbox">Staff</label></p>
             <div id="midi-download-{{ forloop.counter }}" class="download-link"></div>
             <div id="abc-download-{{ forloop.counter }}" class="download-link">
                 <a href="{% url 'setting_download' tune_id=tune.id setting_id=setting.header_x %}">Download ABC</a>
             </div>
         </div>
         <div class="section-body">
-            <textarea id="abc-{{ forloop.counter }}" hidden>{{ setting.abc_trimmed }}</textarea>
-            <div id="notation-{{ forloop.counter }}"></div>
+            <textarea class="abc" id="abc-{{ forloop.counter }}" hidden>{{ setting.abc_trimmed }}</textarea>
+            <div id="staff-{{ forloop.counter }}"></div>
             <div id="midi-{{ forloop.counter }}"></div>
         </div>
     </div>
@@ -138,6 +140,28 @@
 </div>
 <script>
 window.addEventListener("load", function() {
+    // ABC textarea
+    for (let i = 0; i <= {{settings.count }}; i++) {
+        el = document.getElementById("abc-" + i);
+        el.setAttribute("rows", el.innerHTML.split(/\n/).length)
+    }
+    // View Checkbox
+    const viewCheckboxHandler = function() {
+        const content_id = this.id.replace("-checkbox", "");
+        const content_el = document.getElementById(content_id);
+        if (this.checked) {
+            content_el.removeAttribute("hidden");
+        } else {
+            content_el.setAttribute("hidden", "foo");
+        } 
+    };
+    for (let i = 0; i <= {{ settings.count }}; i++){
+        el = document.getElementById("abc-" + i + "-checkbox");
+        el.addEventListener("change", viewCheckboxHandler, false);
+        el = document.getElementById("staff-" + i + "-checkbox");
+        el.addEventListener("change", viewCheckboxHandler, false);
+    }
+    // abcjs
     const colorRange = function(range, color) {
         if (range && range.elements) {
             range.elements.forEach(function (set) {
@@ -154,7 +178,7 @@ window.addEventListener("load", function() {
     };
     for (let i = 0; i <= {{ settings|length }}; i++) {
         new ABCJS.Editor("abc-" + i, { 
-            canvas_id: "notation-" + i,
+            canvas_id: "staff-" + i,
             generate_midi: true,
             midi_id:"midi-" + i,
             midi_download_id: "midi-download-" + i,
@@ -167,7 +191,7 @@ window.addEventListener("load", function() {
                 responsive: "resize",
                 animate: {
                     listener: animateCallback, 
-                    target: "notation-" + i, 
+                    target: "staff-" + i, 
                     qpm: 120
                 },
             }

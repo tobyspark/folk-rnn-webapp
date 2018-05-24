@@ -12,6 +12,14 @@ a:hover {
     background-color: orange;
 }
 
+textarea.abc {
+    width: 100%;
+    resize: none;
+    overflow:hidden;
+    border: 0px;
+    font-family: monospace;
+}
+
 .pure-button-primary {
     background-color: orange;
 }
@@ -120,7 +128,7 @@ a:hover {
 }
 
 .main {
-    padding: 1em 10%;
+    padding: 0.1em;
 }
 
 h1, h2, h3 {
@@ -228,6 +236,10 @@ h1, h2, h3 {
 
 #content .meta .parameter {
     font-weight: bold;
+}
+
+#content .meta label {
+    margin-left: 0.4em;
 }
 
 #content .meta li {
