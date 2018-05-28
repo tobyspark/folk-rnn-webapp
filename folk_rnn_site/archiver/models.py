@@ -80,7 +80,7 @@ class Tune(ABCModel):
     def title_or_mfsession(self):
         return self.title if len(self.title) else f'Untitled (Machine Folk Session №{self.id})' 
     
-    author = models.ForeignKey(User)
+    author = models.ForeignKey(User, default=1)
     rnn_tune = models.ForeignKey(RNNTune, null=True, blank=True)
     submitted = models.DateTimeField(auto_now_add=True)
 
