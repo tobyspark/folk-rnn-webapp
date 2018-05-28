@@ -5,6 +5,7 @@ from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from tempfile import TemporaryFile
 from itertools import chain
+from datetime import timedelta
 
 from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS
@@ -52,6 +53,19 @@ def tune_page(request, tune_id=None):
     except (TypeError, Tune.DoesNotExist):
         return redirect('/')
     
+    # Handle new folk-rnn submission
+    default_author = 1
+    if (tune.rnn_tune is not None 
+            and tune.author_id == default_author
+            and now() - tune.submitted < timedelta(seconds=5)):
+        if request.user.is_authenticated:
+            tune.author = request.user
+            tune.save()
+        else:
+            # TODO: Prompt to log-in / sign-up
+            pass
+    
+    # Make page
     setting_form = SettingForm({
         'abc': conform_abc(tune.abc, raise_if_invalid=False)
     })
