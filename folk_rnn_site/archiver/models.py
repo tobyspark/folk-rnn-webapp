@@ -150,7 +150,7 @@ class Comment(models.Model):
 class Documentation(models.Model):
     class Meta:
         abstract = True
-        ordering = ['date']
+        ordering = ['date', 'id']
 
     title = models.CharField(max_length=150)
     body = models.TextField()
