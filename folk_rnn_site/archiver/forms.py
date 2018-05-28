@@ -4,6 +4,10 @@ from registration import validators
 
 from archiver.models import User
 
+class AttributionForm(forms.Form):
+    text = forms.CharField(required=False)
+    url = forms.URLField(required=False)
+        
 class SettingForm(forms.Form):
     abc = forms.CharField(label='', widget=forms.Textarea(attrs={'id': 'abc'}))
     

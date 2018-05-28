@@ -10,7 +10,7 @@ from datetime import timedelta
 from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS
 from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event
-from archiver.forms import SettingForm, CommentForm
+from archiver.forms import AttributionForm, SettingForm, CommentForm
 from archiver.dataset import dataset_as_csv
 
 def activity(filter_dict={}):
@@ -53,50 +53,71 @@ def tune_page(request, tune_id=None):
     except (TypeError, Tune.DoesNotExist):
         return redirect('/')
     
-    # Handle new folk-rnn submission
+    # Auto-assign logged-in user for just-submitted folk-rnn tune
     default_author = 1
     if (tune.rnn_tune is not None 
             and tune.author_id == default_author
+            and request.user.is_authenticated
             and now() - tune.submitted < timedelta(seconds=5)):
-        if request.user.is_authenticated:
-            tune.author = request.user
-            tune.save()
-        else:
-            # TODO: Prompt to log-in / sign-up
-            pass
+        tune.author = request.user
+        tune.save()
     
     # Make page
-    setting_form = SettingForm({
-        'abc': conform_abc(tune.abc, raise_if_invalid=False)
-    })
-    comment_form = CommentForm()
-    if request.method == 'POST':
-        if 'submit_setting' in request.POST:
-            form = SettingForm(request.POST)
-            if form.is_valid():
-                try:
-                    print(request.user)
-                    Setting.objects.create_setting(
-                        tune=tune,
-                        abc=form.cleaned_data['abc'],
-                        author=request.user,
-                        )
-                except Exception as e:
-                    setting_form = form
-                    setting_form.add_error('abc', e) 
+    attribution_form = None
+    setting_form = None
+    comment_form = None
+    if request.user.is_authenticated:
+        if tune.author_id in [default_author, request.user.id]:
+            attribution = TuneAttribution.objects.filter(tune=tune).first()
+            if attribution:
+                attribution_form = AttributionForm({
+                                                'text': attribution.text,
+                                                'url': attribution.url,
+                                                })
             else:
-                setting_form = form
-        elif 'submit_comment' in request.POST:
-            form = CommentForm(request.POST)
-            if form.is_valid():
-                comment = Comment(
-                            tune=tune, 
-                            text=form.cleaned_data['text'], 
+                attribution_form = AttributionForm()
+        setting_form = SettingForm({
+            'abc': conform_abc(tune.abc, raise_if_invalid=False)
+        })
+        comment_form = CommentForm()
+        if request.method == 'POST':
+            if 'submit_attribution' in request.POST:
+                attribution_form = AttributionForm(request.POST)
+                if attribution_form.is_valid():
+                    tune.author = request.user
+                    tune.save()
+                    attribution = TuneAttribution.objects.filter(tune=tune).first()
+                    if not attribution:
+                        attribution = TuneAttribution(tune=tune)
+                    attribution.text = attribution_form.cleaned_data['text']
+                    attribution.url = attribution_form.cleaned_data['url']
+                    attribution.save()
+            elif 'submit_setting' in request.POST:
+                form = SettingForm(request.POST)
+                if form.is_valid():
+                    try:
+                        print(request.user)
+                        Setting.objects.create_setting(
+                            tune=tune,
+                            abc=form.cleaned_data['abc'],
                             author=request.user,
                             )
-                comment.save()
-            else:
-                comment_form = form
+                    except Exception as e:
+                        setting_form = form
+                        setting_form.add_error('abc', e) 
+                else:
+                    setting_form = form
+            elif 'submit_comment' in request.POST:
+                form = CommentForm(request.POST)
+                if form.is_valid():
+                    comment = Comment(
+                                tune=tune, 
+                                text=form.cleaned_data['text'], 
+                                author=request.user,
+                                )
+                    comment.save()
+                else:
+                    comment_form = form
     
     abc_trimmed = ABCModel(abc = tune.abc)
     abc_trimmed.title = None
@@ -112,6 +133,7 @@ def tune_page(request, tune_id=None):
         'tune': tune,
         'settings': settings,
         'comments': tune.comment_set.all(),
+        'attribution_form': attribution_form,
         'setting_form': setting_form,
         'comment_form': comment_form,
         })

@@ -56,6 +56,34 @@
     </div>
 </div>
 
+{% if not user.is_authenticated and tune.author_id == 1 %}
+<div id="edit" class="section">
+    <div class="section-meta">
+        <h2>Your tune?</h2>
+    </div>
+    <div class="section-body">
+        <p><a href="{% url 'login' %}?next={{ request.path }}">Log-in</a> to keep track of the tunes you've archived from folk-rnn. If you don't yet have an account, <a href="{% url 'registration_register' %}" target=_blank>sign-up</a> <em>(opens in a new window)</em>.
+    </div>
+</div>
+{% elif attribution_form %}
+<div id="edit" class="section">
+    <div class="section-meta">
+        <h2>{% if tune.author_id == 1 %}Your tune?{% else %}Your notes{% endif %}</h2>
+    </div>
+    <div class="section-body">
+        <form method="POST" class="pure-form">
+        {% with WIDGET_ERROR_CLASS='error' %}
+            {% csrf_token %}
+            {{ attribution_form.errors }}
+            {% render_field attribution_form.text class+="pure-input-1" title="Add any notes about this tune here" placeholder="Note (optional) – e.g. what caught your interest in the generated tune, how was this co-created tune made, ..."%}
+            {% render_field attribution_form.url class+="pure-input-1" title="Add a link to more information about this tune here" placeholder="URL (optional) – e.g. a link to the system that generated this tune, a blog post about this composition, ..." %}
+            <input id="attribution_button" type="submit" name="submit_attribution" value="{% if tune.author_id == 1 %}Yes, added by me{% else %}Update notes{% endif %}" class="pure-button pure-button-primary pure-u-1-4">
+        {% endwith %}
+        </form>
+    </div>
+</div>
+{% endif %}
+
 <div id="settings">
 {% if settings %}
     {#<h2>{{ settings|length|apnumber|capfirst }} setting{{ settings|length|pluralize }}</h2>#}
