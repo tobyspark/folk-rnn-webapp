@@ -14,6 +14,9 @@ class SettingForm(forms.Form):
 class CommentForm(forms.Form):
     text = forms.CharField(label='Comment:', widget=forms.Textarea(attrs={'id': 'new_comment'}))
     
+class ContactForm(forms.Form):
+    text = forms.CharField(widget=forms.Textarea())
+    email = forms.EmailField(required=False)
 
 # As per registration docs, this should subclass registration.forms.RegistrationFormUniqueEmail.
 # That wasn't working, so here instead is an equivalent, based on some of that code.
