@@ -236,6 +236,10 @@ def questions_page(request):
     return render(request, 'archiver/questions.html', {
     })
 
+def help_page(request):
+    return render(request, 'archiver/help.html', {
+    })
+
 def dataset_download(request):
     with TemporaryFile(mode='w+') as f:
         dataset_as_csv(f)
