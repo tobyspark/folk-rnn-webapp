@@ -1,4 +1,5 @@
 from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.http import HttpResponse
 from django.core.files import File as dFile
 from django.utils.timezone import now
@@ -10,7 +11,7 @@ from datetime import timedelta
 from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS
 from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event
-from archiver.forms import AttributionForm, SettingForm, CommentForm
+from archiver.forms import AttributionForm, SettingForm, CommentForm, ContactForm
 from archiver.dataset import dataset_as_csv
 
 def activity(filter_dict={}):
@@ -237,7 +238,31 @@ def questions_page(request):
     })
 
 def help_page(request):
+    if request.method == 'POST':
+        contact_form = ContactForm(request.POST)
+        if contact_form.is_valid():
+            message = contact_form.cleaned_data['text']
+            if request.user.is_authenticated():
+                from_email = request.user.email
+                from_user_url = reverse('user', kwargs={'user_id': request.user.id})
+                message += f"\n\n--\nAuthenticated user: { request.user.get_full_name() }\n{ from_email }\n{ request.META['HTTP_ORIGIN'] }{ from_user_url }"
+            elif 'email' in contact_form.cleaned_data:
+                from_email = contact_form.cleaned_data['email']
+                message += f'\n\n--\nUnauthenticated user\n{ from_email }'
+            else:
+                from_email = None
+            admin_user = User.objects.first()
+            admin_user.email_user(
+                        'Message from Contact Form',
+                        message,
+                        from_email=from_email, # SMTP may ignore from_email, depends on service used.
+                        )
+            return redirect(request.path)
+    else:
+        contact_form = ContactForm()
+    
     return render(request, 'archiver/help.html', {
+                            'contact_form': contact_form,
     })
 
 def dataset_download(request):
