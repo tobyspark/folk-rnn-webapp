@@ -176,7 +176,7 @@ class TuneRecording(models.Model):
         return f'Tune Recording: {self.recording.title[:30]} (MachineFolk {self.tune.id})'
         
     class Meta:
-        ordering = ['id']
+        ordering = ['tune']
 
     tune = models.ForeignKey(Tune)
     recording = models.ForeignKey(Recording)
@@ -186,7 +186,7 @@ class TuneEvent(models.Model):
         return f'Tune Event: {self.event.title[:30]} (MachineFolk {self.tune.id})'
     
     class Meta:
-        ordering = ['id']
+        ordering = ['tune']
     
     tune = models.ForeignKey(Tune)
     event = models.ForeignKey(Event)
