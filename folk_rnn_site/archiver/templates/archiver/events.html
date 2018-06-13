@@ -30,7 +30,7 @@
         <p class="meta">Added by <a href="{% url 'user' user_id=event.author.id %}">{{ event.author.get_full_name }}</a></p>
     </div>
     <div class="section-body">
-        <img src="{{ MEDIA_URL }}{{ event.image }}">
+        {% if event.image %}<img src="{{ MEDIA_URL }}{{ event.image }}">{% endif %}
         {{ event.body | markdown }}
     </div>
 </div>

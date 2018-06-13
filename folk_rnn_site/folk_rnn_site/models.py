@@ -10,6 +10,15 @@ header_k_regex = re.compile(r'K:\s*(.*?)\s*\n')
 body_regex = re.compile(r'(K:.*?\n)(.*)',re.DOTALL) # FIXME: also ignore any final /n
 
 def conform_abc(abc, raise_if_invalid=True):
+    # Add X if missing; needed for abc2abc
+    if not header_x_regex.search(abc):
+        abc = 'X:0\n' + abc
+    # Verify K, M exist; needed for abc2abc (otherwise will comment out and pass the string)
+    if not header_m_regex.search(abc):
+        raise AttributeError('Missing M header')
+    if not header_k_regex.search(abc):
+        raise AttributeError('Missing K header')
+    # Parse through abc2abc
     try:
         abc_bytes = abc.encode()
         result = subprocess.run([ABC2ABC_PATH, 'stdin'], input=abc_bytes, stdout=subprocess.PIPE)
