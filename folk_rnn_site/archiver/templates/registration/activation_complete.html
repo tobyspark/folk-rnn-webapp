@@ -1,7 +1,8 @@
 {% extends "archiver/base.html" %}
 
-{% block content %}
+{% block title %}Sign-up: activation complete{% endblock %}
 
+{% block content %}
 <div id="signup" class="section">
     <div class="section-meta">
         <h2>Welcome</h2>
@@ -10,5 +11,4 @@
         <p>You're a member! That link activated your account and you can now <a href="{% url 'login' %}">log in</a> with the email and password you signed-up with.</p>
     </div>
 </div>
-
 {% endblock %}
