@@ -1,6 +1,6 @@
 {% extends "archiver/base.html" %}
 
-{% block title %}{{ tune.title }}{% endblock %}
+{% block title %}{{ tune.title_or_mfsession }}{% endblock %}
 
 {% block headend %}{% include "_abcjs-headend.html" %}{% endblock %}
 
@@ -36,6 +36,7 @@
         </ul>
         <p class="meta">Added by <a href="{% url 'user' user_id=tune.author.id %}">{{ tune.author.get_full_name }}</a>,<br>
         {{ tune.submitted | naturalday | capfirst }}.</p>
+        <p class="meta">View: <input id="abc-0-checkbox" type="checkbox"><label for="abc-0-checkbox">ABC</label> | <input id="staff-0-checkbox" type="checkbox" checked><label for="staff-0-checkbox">Staff</label></p>
         <div id="midi-download-0" class="download-link"></div>
         <div id="abc-download-0" class="download-link">
             <a href="{% url 'tune_download' tune_id=tune.id %}">Download ABC</a>
@@ -48,12 +49,42 @@
     </div>
     <div class="section-body">
         <div id="tune">
-            <textarea id="abc-0" hidden>{{ tune.abc_trimmed }}</textarea>
-            <div id="notation-0"></div>
+            <textarea class="abc" id="abc-0" hidden>{{ tune.abc_trimmed }}</textarea>
+            <div id="staff-0"></div>
             <div id="midi-0"></div>
         </div>
     </div>
 </div>
+
+{% if not user.is_authenticated and tune.author_id == 1 %}
+<div id="edit" class="section">
+    <div class="section-meta">
+        <h2>Your tune?</h2>
+    </div>
+    <div class="section-body">
+        <p><a href="{% url 'login' %}?next={{ request.path }}">Log-in</a> to keep track of the tunes you've archived from folk-rnn. If you don't yet have an account, <a href="{% url 'registration_register' %}" target=_blank>sign-up</a> <em>(opens in a new window)</em>.
+    </div>
+</div>
+{% elif attribution_form %}
+<div id="edit" class="section">
+    <div class="section-meta">
+        <h2>{% if tune.author_id == 1 %}Your tune?{% else %}Your notes{% endif %}</h2>
+    </div>
+    <div class="section-body">
+        <form method="POST" class="pure-form">
+        {% with WIDGET_ERROR_CLASS='error' %}
+            {% csrf_token %}
+            {{ attribution_form.errors }}
+            {% render_field attribution_form.text class+="pure-input-1" title="Add any notes about this tune here" placeholder="Note (optional) – e.g. what caught your interest in the generated tune, how was this co-created tune made, ..."%}
+            {% render_field attribution_form.url class+="pure-input-1" title="Add a link to more information about this tune here" placeholder="URL (optional) – e.g. a link to the system that generated this tune, a blog post about this composition, ..." %}
+            <div class="pure-control-group pure-u-1">
+                <input id="attribution_button" type="submit" name="submit_attribution" value="{% if tune.author_id == 1 %}Yes, added by me{% else %}Update notes{% endif %}" class="pure-button pure-button-primary pure-u-1-4">
+            </div>
+        {% endwith %}
+        </form>
+    </div>
+</div>
+{% endif %}
 
 <div id="settings">
 {% if settings %}
@@ -65,14 +96,15 @@
             <p class="meta">Setting {{ setting.header_x|apnumber }}</br>
             Added by <a href="{% url 'user' user_id=setting.author.id %}">{{ setting.author.get_full_name }},</a><br>
             {{ setting.submitted | naturalday | capfirst }}</p>
+            <p class="meta">View: <input id="abc-{{ forloop.counter }}-checkbox" type="checkbox"><label for="abc-{{ forloop.counter }}-checkbox">ABC</label> | <input id="staff-{{ forloop.counter }}-checkbox" type="checkbox" checked><label for="staff-{{ forloop.counter }}-checkbox">Staff</label></p>
             <div id="midi-download-{{ forloop.counter }}" class="download-link"></div>
             <div id="abc-download-{{ forloop.counter }}" class="download-link">
                 <a href="{% url 'setting_download' tune_id=tune.id setting_id=setting.header_x %}">Download ABC</a>
             </div>
         </div>
         <div class="section-body">
-            <textarea id="abc-{{ forloop.counter }}" hidden>{{ setting.abc_trimmed }}</textarea>
-            <div id="notation-{{ forloop.counter }}"></div>
+            <textarea class="abc" id="abc-{{ forloop.counter }}" hidden>{{ setting.abc_trimmed }}</textarea>
+            <div id="staff-{{ forloop.counter }}"></div>
             <div id="midi-{{ forloop.counter }}"></div>
         </div>
     </div>
@@ -89,7 +121,9 @@
                 {%  csrf_token %}
                 {{ setting_form.abc.errors }}
                 {% render_field setting_form.abc class+="pure-input-1" title="Add setting ABC here."%}
-                <input id="setting_button" type="submit" name="submit_setting" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                <div class="pure-control-group pure-u-1">
+                    <input id="setting_button" type="submit" name="submit_setting" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                </div>
             {% endwith %}
             </form>
         {% else %}
@@ -97,6 +131,14 @@
         {% endif %}
         </div>
     </div>
+</div>
+
+<div id="recordings">
+    {% for tunerecording in tune.tunerecording_set.all %}
+    {% with recording=tunerecording.recording %}
+    {% include 'archiver/_recording.html' %}
+    {% endwith %}
+    {% endfor %}
 </div>
 
 <div id="comments" class="section">
@@ -118,7 +160,9 @@
                     {% csrf_token %}
                     {{ comment_form.text.errors }}
                     {% render_field comment_form.text class+="pure-input-1" rows="2" placeholder="Discuss this tune..." title="Add your comment here"%}
-                    <input id="comment_button" type="submit" name="submit_comment" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                    <div class="pure-control-group pure-u-1">
+                        <input id="comment_button" type="submit" name="submit_comment" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                    </div>
                 {% endwith %}
                 </form>
             {% else %}
@@ -130,6 +174,28 @@
 </div>
 <script>
 window.addEventListener("load", function() {
+    // ABC textarea
+    for (let i = 0; i <= {{settings.count }}; i++) {
+        el = document.getElementById("abc-" + i);
+        el.setAttribute("rows", el.innerHTML.split(/\n/).length)
+    }
+    // View Checkbox
+    const viewCheckboxHandler = function() {
+        const content_id = this.id.replace("-checkbox", "");
+        const content_el = document.getElementById(content_id);
+        if (this.checked) {
+            content_el.removeAttribute("hidden");
+        } else {
+            content_el.setAttribute("hidden", "foo");
+        } 
+    };
+    for (let i = 0; i <= {{ settings.count }}; i++){
+        el = document.getElementById("abc-" + i + "-checkbox");
+        el.addEventListener("change", viewCheckboxHandler, false);
+        el = document.getElementById("staff-" + i + "-checkbox");
+        el.addEventListener("change", viewCheckboxHandler, false);
+    }
+    // abcjs
     const colorRange = function(range, color) {
         if (range && range.elements) {
             range.elements.forEach(function (set) {
@@ -146,7 +212,7 @@ window.addEventListener("load", function() {
     };
     for (let i = 0; i <= {{ settings|length }}; i++) {
         new ABCJS.Editor("abc-" + i, { 
-            canvas_id: "notation-" + i,
+            canvas_id: "staff-" + i,
             generate_midi: true,
             midi_id:"midi-" + i,
             midi_download_id: "midi-download-" + i,
@@ -159,7 +225,7 @@ window.addEventListener("load", function() {
                 responsive: "resize",
                 animate: {
                     listener: animateCallback, 
-                    target: "notation-" + i, 
+                    target: "staff-" + i, 
                     qpm: 120
                 },
             }

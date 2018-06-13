@@ -1,14 +1,85 @@
 {% extends "archiver/base.html" %}
 
+{% block title %}Submit a tune, recording or event{% endblock %}
+
 {% block content %}
 {% load humanize %}
-<div id="welcome" class="section">
+{% load widget_tweaks %}
+<div id="tune" class="section">
     <div class="section-meta">
         <h2>Submit a tune</h2>
     </div>
     <div class="section-body">
-        <p><em>...we're working on opening up the community features. Track our progress on <a href="https://github.com/tobyspark/folk-rnn-webapp/issues">GitHub</a></em></p>
+        {% if user.is_authenticated %}
+            <form method="POST" class="pure-form pure-g">
+            {% with WIDGET_ERROR_CLASS='error' %}
+                {% csrf_token %}
+                {{ tune_form.abc.errors }}
+                {% render_field tune_form.abc class+="pure-input-1" rows="6" placeholder="Tune in ABC notation, e.g. M:4/4..."%}
+                {{ tune_form.text.errors }}
+                {% render_field tune_form.text class+="pure-input-1" rows="2" placeholder="Tell the story of the tune, e.g. how was it (co-)composed by a machine?"%}
+                {{ tune_form.url.errors }}
+                {% render_field tune_form.url class+="pure-input-1" placeholder="Link (optional), e.g. to a page describing the process further"%}
+                <div class="pure-control-group pure-u-1">
+                    <input id="tune_button" type="submit" name="submit_tune" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                </div>
+            {% endwith %}
+            </form>
+        {% else %}
+            <p><a href="{% url 'login' %}?next={{ request.path }}">Log in</a> to submit a tune.</p>
+        {% endif %}
     </div>
 </div>
-
+<div id="recording" class="section">
+    <div class="section-meta">
+        <h2>Submit a recording</h2>
+    </div>
+    <div class="section-body">
+        {% if user.is_authenticated %}
+            <form method="POST" class="pure-form pure-g">
+            {% with WIDGET_ERROR_CLASS='error' %}
+                {% csrf_token %}
+                {{ recording_form.title.errors }}
+                {% render_field recording_form.title class+="pure-input-1" placeholder="Title, e.g. Ada’s Reel"%}
+                {{ recording_form.url.errors }}
+                {% render_field recording_form.url class+="pure-input-1" rows="2" placeholder="Link to the video on Youtube / Vimeo or audio on Soundcloud"%}
+                {{ recording_form.body.errors }}
+                {% render_field recording_form.body class+="pure-input-1" rows="2" placeholder="Describe the recording, e.g. Ada and Charles play... at..."%}
+                {{ recording_form.date.errors }}
+                {% render_field recording_form.date class+=""%}
+                <div class="pure-control-group pure-u-1">
+                    <input id="recording_button" type="submit" name="submit_recording" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                </div>
+            {% endwith %}
+            </form>
+        {% else %}
+            <p><a href="{% url 'login' %}?next={{ request.path }}">Log in</a> to submit a tune.</p>
+        {% endif %}
+    </div>
+</div>
+<div id="event" class="section">
+    <div class="section-meta">
+        <h2>Submit an event</h2>
+    </div>
+    <div class="section-body">
+        {% if user.is_authenticated %}
+            <form method="POST" class="pure-form pure-g">
+            {% with WIDGET_ERROR_CLASS='error' %}
+                {% csrf_token %}
+                {{ event_form.title.errors }}
+                {% render_field event_form.title class+="pure-input-1" placeholder="Title, e.g. Ada’s Session"%}
+                {{ event_form.body.errors }}
+                {% render_field event_form.body class+="pure-input-1" rows="2" placeholder="Describe the event, e.g. A session organised by Ada..."%}
+                {{ event_form.date.errors }}
+                {% render_field event_form.date class+=""%}
+                <div class="pure-control-group pure-u-1">
+                    <input id="event_button" type="submit" name="submit_event" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                </div>
+            {% endwith %}
+            </form>
+        {% else %}
+            <p><a href="{% url 'login' %}?next={{ request.path }}">Log in</a> to submit a tune.</p>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

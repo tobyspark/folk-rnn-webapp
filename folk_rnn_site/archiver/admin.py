@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 from archiver.models import User, Tune, TuneAttribution, TuneRecording, TuneEvent, Setting, Comment, Recording, Event
 
+admin.site.site_header = "Administration – The Machine Folk Session"
+admin.site.site_title = "Administration – The Machine Folk Session"
+
 class TuneAttributionInline(admin.StackedInline):
     model = TuneAttribution
 
