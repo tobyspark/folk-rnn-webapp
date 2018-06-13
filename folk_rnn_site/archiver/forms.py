@@ -1,15 +1,49 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
+from django.forms.extras.widgets import SelectDateWidget
 from registration import validators
+from embed_video.fields import EmbedVideoFormField
 
+from folk_rnn_site.models import conform_abc
+from archiver import YEAR_CHOICES
 from archiver.models import User
 
+class AttributionForm(forms.Form):
+    text = forms.CharField(required=False)
+    url = forms.URLField(required=False)
+        
 class SettingForm(forms.Form):
     abc = forms.CharField(label='', widget=forms.Textarea(attrs={'id': 'abc'}))
     
 class CommentForm(forms.Form):
     text = forms.CharField(label='Comment:', widget=forms.Textarea(attrs={'id': 'new_comment'}))
     
+class ContactForm(forms.Form):
+    text = forms.CharField(widget=forms.Textarea())
+    email = forms.EmailField(required=False)
+
+class TuneForm(forms.Form):
+    abc = forms.CharField(widget=forms.Textarea())
+    text = forms.CharField(widget=forms.Textarea())
+    url = forms.URLField(required=False)
+    
+    def clean_abc(self):
+        try:
+            abc = conform_abc(self.cleaned_data['abc'])
+        except AttributeError as e:
+            raise forms.ValidationError(e)
+        return abc
+
+class RecordingForm(forms.Form):
+    title = forms.CharField()
+    body = forms.CharField(widget=forms.Textarea())
+    date = forms.DateField(widget=SelectDateWidget(years=YEAR_CHOICES))
+    url = EmbedVideoFormField()
+
+class EventForm(forms.Form):
+    title = forms.CharField()
+    body = forms.CharField(widget=forms.Textarea())
+    date = forms.DateField(widget=SelectDateWidget(years=YEAR_CHOICES))
 
 # As per registration docs, this should subclass registration.forms.RegistrationFormUniqueEmail.
 # That wasn't working, so here instead is an equivalent, based on some of that code.

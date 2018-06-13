@@ -34,6 +34,7 @@ urlpatterns = [
     url(r'^member/(?P<user_id>[0-9]+)$', views.user_page, name='user'),
     url(r'^submit/$', views.submit_page, name='submit'),
     url(r'^questions/$', views.questions_page, name='questions'),
+    url(r'^help/$', views.help_page, name='help'),
     url(r'^dataset$', views.dataset_download),
     url(r'^', include('django.contrib.auth.urls')), # per docs, registration should also provide these, but doesn't
     url(r'^register/$',

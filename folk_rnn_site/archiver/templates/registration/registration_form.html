@@ -1,12 +1,14 @@
 {% extends "archiver/base.html" %}
 
-{% block content %}
+{% block title %}Sign-up{% endblock %}
 
+{% block content %}
 <div id="signup" class="section">
     <div class="section-meta">
         <h2>Sign up</h2>
     </div>
     <div class="section-body">
+        <p>Have a read of the <em>house rules</em> first: <a href="{% url 'help' %}#rules">rules</a> and <a href="{% url 'help' %}#notes">notes</a>.</p>
         <form method="post" action="{% url 'registration_register' %}" class="pure-form pure-form-stacked">
             {% load widget_tweaks %}
             {{ form.non_field_errors }}
