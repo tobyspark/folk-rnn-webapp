@@ -11,7 +11,7 @@ from datetime import timedelta
 from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS
 from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event
-from archiver.forms import AttributionForm, SettingForm, CommentForm, ContactForm
+from archiver.forms import AttributionForm, SettingForm, CommentForm, ContactForm, TuneForm, RecordingForm, EventForm
 from archiver.dataset import dataset_as_csv
 
 def activity(filter_dict={}):
@@ -230,7 +230,53 @@ def user_page(request, user_id=None):
                             })
 
 def submit_page(request):
+    if request.method == 'POST' and 'submit_tune' in request.POST:
+            tune_form = TuneForm(request.POST)
+            if tune_form.is_valid():
+                tune = Tune.objects.create(
+                        abc=tune_form.cleaned_data['abc'], 
+                        author=request.user,
+                        )
+                TuneAttribution.objects.create(
+                                        tune=tune,
+                                        text=tune_form.cleaned_data['text'],
+                                        url=tune_form.cleaned_data['url'],
+                                        )
+                return redirect(reverse('tune', kwargs={"tune_id": tune.id}))
+    else:
+        tune_form = TuneForm()
+
+    if request.method == 'POST' and 'submit_recording' in request.POST:
+            recording_form = RecordingForm(request.POST)
+            if recording_form.is_valid():
+                recording = Recording.objects.create(
+                        title=recording_form.cleaned_data['title'], 
+                        body=recording_form.cleaned_data['body'], 
+                        date=recording_form.cleaned_data['date'],
+                        video = recording_form.cleaned_data['url'],
+                        author=request.user,
+                        )
+                return redirect(reverse('recording', kwargs={"recording_id": recording.id}))
+    else:
+        recording_form = RecordingForm()
+    
+    if request.method == 'POST' and 'submit_event' in request.POST:
+            event_form = EventForm(request.POST)
+            if event_form.is_valid():
+                event = Event.objects.create(
+                        title=event_form.cleaned_data['title'], 
+                        body=event_form.cleaned_data['body'], 
+                        date=event_form.cleaned_data['date'], 
+                        author=request.user,
+                        )
+                return redirect(reverse('event', kwargs={"event_id": event.id}))
+    else:
+        event_form = EventForm()
+    
     return render(request, 'archiver/submit.html', {
+                            'tune_form': tune_form,
+                            'recording_form': recording_form,
+                            'event_form': event_form,
     })
 
 def questions_page(request):
