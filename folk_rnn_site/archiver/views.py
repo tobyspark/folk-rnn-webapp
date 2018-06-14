@@ -33,7 +33,7 @@ def activity(filter_dict={}):
     
     add_abc_trimmed(tunes_settings)
     
-    comments = Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS]
+    comments = Comment.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
     
     return (tunes_settings, comments)
 
