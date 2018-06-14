@@ -2,9 +2,11 @@
 <div id="tunebook" class="section">
     <div class="section-meta">
         <h2>Tunebook</h2>
+        {% if tunebook %}
         <div id="tunebook-download" class="download-link">
             <a href="{% url 'tunebook_download' user_id=profile.id %}">Download</a>
         </div>
+        {% endif %}
     </div>
     <div class="section-body">
         <ul>
