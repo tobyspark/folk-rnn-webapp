@@ -4,12 +4,13 @@ from django.http import HttpResponse
 from django.core.files import File as dFile
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from tempfile import TemporaryFile
 from itertools import chain
 from datetime import timedelta
 
 from folk_rnn_site.models import ABCModel, conform_abc
-from archiver import MAX_RECENT_ITEMS
+from archiver import MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
 from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry
 from archiver.forms import AttributionForm, SettingForm, CommentForm, ContactForm, TuneForm, RecordingForm, EventForm, TunebookForm
 from archiver.dataset import dataset_as_csv
@@ -279,7 +280,7 @@ def user_page(request, user_id=None):
     except (TypeError, User.DoesNotExist):
         return redirect('/')
     
-    tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')
+    tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')[:MAX_RECENT_ITEMS]
     add_abc_trimmed(tunebook)
     
     tunes_settings, comments = activity({'author': user})
@@ -300,9 +301,18 @@ def tunebook_page(request, user_id):
     tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')
     add_abc_trimmed(tunebook)
     
+    paginator = Paginator(tunebook, TUNE_PREVIEWS_PER_PAGE)
+    page_number = request.GET.get('page')
+    try:
+        tunebook_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        tunebook_page = paginator.page(1)
+    except EmptyPage:
+        tunebook_page = paginator.page(paginator.num_pages)
+        
     return render(request, 'archiver/tunebook.html', {
                             'profile': user,
-                            'tunebook': tunebook,
+                            'tunebook': tunebook_page,
                             })
 
 def tunebook_download(request, user_id):
