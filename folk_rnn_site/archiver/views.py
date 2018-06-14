@@ -10,9 +10,23 @@ from datetime import timedelta
 
 from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS
-from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event
-from archiver.forms import AttributionForm, SettingForm, CommentForm, ContactForm, TuneForm, RecordingForm, EventForm
+from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry
+from archiver.forms import AttributionForm, SettingForm, CommentForm, ContactForm, TuneForm, RecordingForm, EventForm, TunebookForm
 from archiver.dataset import dataset_as_csv
+
+def add_abc_trimmed(tunes):
+    for tune in tunes:
+        if not hasattr(tune, 'abc'):
+            if tune.tune is not None:
+                tune = tune.tune
+            elif tune.setting is not None:
+                tune = tune.setting
+            else:
+                raise AttributeError()
+        abc_trimmed = ABCModel(abc = tune.abc)
+        abc_trimmed.title = None
+        abc_trimmed.body = abc_trimmed.body.partition('\n')[0]
+        tune.abc_trimmed = abc_trimmed.abc
 
 def activity(filter_dict={}):
     qs_tune = Tune.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
@@ -23,11 +37,7 @@ def activity(filter_dict={}):
     tunes_settings.sort(key=lambda x: x.submitted)
     tunes_settings[:-MAX_RECENT_ITEMS] = []
     
-    for tune in tunes_settings:
-        abc_trimmed = ABCModel(abc = tune.abc)
-        abc_trimmed.title = None
-        abc_trimmed.body = abc_trimmed.body.partition('\n')[0]
-        tune.abc_trimmed = abc_trimmed.abc
+    add_abc_trimmed(tunes_settings)
     
     comments = Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS]
     
@@ -119,16 +129,70 @@ def tune_page(request, tune_id=None):
                     comment.save()
                 else:
                     comment_form = form
+            elif 'submit-tunebook-0' in request.POST:
+                form = TunebookForm(request.POST)
+                if form.is_valid():
+                    if form.cleaned_data['add']:
+                        TunebookEntry.objects.get_or_create(
+                            tune=tune,
+                            user=request.user,
+                            )
+                    else:
+                        TunebookEntry.objects.filter(
+                            tune=tune,
+                            user=request.user,
+                            ).delete()
+            else:
+                # submit-tunebook-x in request.POST where x>0
+                setting_x = None
+                for k in request.POST:
+                    if k[:16] == 'submit-tunebook-':
+                        try:
+                            setting_x = int(k[16])
+                        except:
+                            pass
+                        break
+                if setting_x is None:
+                    print('Unknown POST on /tune/x', request.POST)
+                else:
+                    setting = tune.setting_set.all()[setting_x-1]
+                    form = TunebookForm(request.POST)
+                    if form.is_valid():
+                        if form.cleaned_data['add']:
+                            TunebookEntry.objects.get_or_create(
+                                setting=setting,
+                                user=request.user,
+                                )
+                        else:
+                            TunebookEntry.objects.filter(
+                                setting=setting,
+                                user=request.user,
+                                ).delete()
+
     
     abc_trimmed = ABCModel(abc = tune.abc)
     abc_trimmed.title = None
     tune.abc_trimmed = abc_trimmed.abc
+    tune.tunebook_count = TunebookEntry.objects.filter(tune=tune).count()
+    if request.user.is_authenticated:
+        tune.other_tunebook_count = TunebookEntry.objects.filter(tune=tune).exclude(user=request.user).count()
+        tune.tunebook_form = TunebookForm({'add': TunebookEntry.objects.filter(
+                                                    user=request.user, 
+                                                    tune=tune,
+                                                    ).exists()})
     
     settings = tune.setting_set.all()
     for setting in settings:
         abc_trimmed = ABCModel(abc = setting.abc)
         abc_trimmed.title = None
         setting.abc_trimmed = abc_trimmed.abc
+        setting.tunebook_count = TunebookEntry.objects.filter(setting=setting).count()
+        if request.user.is_authenticated:
+            setting.other_tunebook_count = TunebookEntry.objects.filter(setting=setting).exclude(user=request.user).count()
+            setting.tunebook_form = TunebookForm({'add': TunebookEntry.objects.filter(
+                                                        user=request.user, 
+                                                        setting=setting,
+                                                        ).exists()})
         
     return render(request, 'archiver/tune.html', {
         'tune': tune,
@@ -222,9 +286,13 @@ def user_page(request, user_id=None):
     except (TypeError, User.DoesNotExist):
         return redirect('/')
     
+    tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')
+    add_abc_trimmed(tunebook)
+    
     tunes_settings, comments = activity({'author': user})
     return render(request, 'archiver/profile.html', {
                             'profile': user,
+                            'tunebook': tunebook,
                             'tunes_settings': tunes_settings,
                             'comments': comments,
                             })

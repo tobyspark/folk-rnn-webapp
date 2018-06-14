@@ -37,6 +37,11 @@
         <p class="meta">Added by <a href="{% url 'user' user_id=tune.author.id %}">{{ tune.author.get_full_name }}</a>,<br>
         {{ tune.submitted | naturalday | capfirst }}.</p>
         <p class="meta">View: <input id="abc-0-checkbox" type="checkbox"><label for="abc-0-checkbox">ABC</label> | <input id="staff-0-checkbox" type="checkbox" checked><label for="staff-0-checkbox">Staff</label></p>
+        {% if not user.is_authenticated %}
+        {% if tune.tunebook_count %}<p class="meta">Added to {{ tune.tunebook_count|apnumber }} tunebook{{ tune.tunebook_count|pluralize }}</p>{% endif %}
+        {% else %}
+        {% if tune.other_tunebook_count %}<p class="meta">Added to {{ tune.other_tunebook_count|apnumber }} other tunebook{{ tune.other_tunebook_count|pluralize }}</p>{% endif %}
+        <form method="POST" ><p class="meta">{% csrf_token %}<label for="tunebook-0-checkbox">In your tunebook: </label>{% render_field tune.tunebook_form.add id="tunebook-0-checkbox" onChange="this.form.submit()" %}<input type="hidden" name="submit-tunebook-0"></p></form>{% endif %}
         <div id="midi-download-0" class="download-link"></div>
         <div id="abc-download-0" class="download-link">
             <a href="{% url 'tune_download' tune_id=tune.id %}">Download ABC</a>
@@ -97,6 +102,12 @@
             Added by <a href="{% url 'user' user_id=setting.author.id %}">{{ setting.author.get_full_name }},</a><br>
             {{ setting.submitted | naturalday | capfirst }}</p>
             <p class="meta">View: <input id="abc-{{ forloop.counter }}-checkbox" type="checkbox"><label for="abc-{{ forloop.counter }}-checkbox">ABC</label> | <input id="staff-{{ forloop.counter }}-checkbox" type="checkbox" checked><label for="staff-{{ forloop.counter }}-checkbox">Staff</label></p>
+            {% if not user.is_authenticated %}
+            {% if setting.tunebook_count %}<p class="meta">Added to {{ setting.tunebook_count|apnumber }} tunebook{{ setting.tunebook_count|pluralize }}</p>{% endif %}
+            {% else %}
+            {% if setting.other_tunebook_count %}<p class="meta">Added to {{ setting.other_tunebook_count|apnumber }} other tunebook{{ setting.other_tunebook_count| pluralize }}</p>{% endif %}
+            <form method="POST" ><p class="meta">{% csrf_token %}<label for="tunebook-{{ forloop.counter }}-checkbox">In your tunebook: </label>{% render_field setting.tunebook_form.add id="tunebook-{{ forloop.counter }}-checkbox" onChange="this.form.submit()" %}<input type="hidden" name="submit-tunebook-{{ forloop.counter }}"></p></form>
+            {% endif %}
             <div id="midi-download-{{ forloop.counter }}" class="download-link"></div>
             <div id="abc-download-{{ forloop.counter }}" class="download-link">
                 <a href="{% url 'setting_download' tune_id=tune.id setting_id=setting.header_x %}">Download ABC</a>
