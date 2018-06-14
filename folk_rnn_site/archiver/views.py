@@ -16,13 +16,6 @@ from archiver.dataset import dataset_as_csv
 
 def add_abc_trimmed(tunes):
     for tune in tunes:
-        if not hasattr(tune, 'abc'):
-            if tune.tune is not None:
-                tune = tune.tune
-            elif tune.setting is not None:
-                tune = tune.setting
-            else:
-                raise AttributeError()
         abc_trimmed = ABCModel(abc = tune.abc)
         abc_trimmed.title = None
         abc_trimmed.body = abc_trimmed.body.partition('\n')[0]
@@ -296,6 +289,41 @@ def user_page(request, user_id=None):
                             'tunes_settings': tunes_settings,
                             'comments': comments,
                             })
+
+def tunebook_page(request, user_id):
+    try:
+        user_id_int = int(user_id)
+        user = User.objects.get(id=user_id_int)
+    except (TypeError, User.DoesNotExist):
+        return redirect('/')
+    
+    tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')
+    add_abc_trimmed(tunebook)
+    
+    return render(request, 'archiver/tunebook.html', {
+                            'profile': user,
+                            'tunebook': tunebook,
+                            })
+
+def tunebook_download(request, user_id):
+    try:
+        user_id_int = int(user_id)
+        user = User.objects.get(id=user_id_int)
+    except (TypeError, User.DoesNotExist):
+        return redirect('/')
+
+    tunebook_qs = TunebookEntry.objects.filter(user=user).order_by('id')
+    tunebook = [ABCModel(abc=x.abc) for x in tunebook_qs]
+    for idx, tune in enumerate(tunebook):
+        tune.header_x = idx
+    
+    tunebook_abc = f'% Tunebook – {user.get_full_name()}\n'
+    tunebook_abc += f"% https://themachinefolksession.org{request.path}\n\n\n"
+    tunebook_abc += '\n\n'.join([x.abc for x in tunebook])
+    
+    response = HttpResponse(tunebook_abc, content_type='text/plain')
+    response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tunebook_{user_id}'
+    return response
 
 def submit_page(request):
     if request.method == 'POST' and 'submit-tune' in request.POST:
