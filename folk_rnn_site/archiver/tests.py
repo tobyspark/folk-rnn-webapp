@@ -20,10 +20,10 @@ class ArchiverTestCase(TestCase):
         return self.client.post(f'/tune/{Tune.objects.last().id}', data={'tune': tune, 'edit': 'user', 'edit_state': 'user'}) 
 
     def post_setting(self, tune=mint_abc(body=ABC_BODY*3)):
-        return self.client.post(f'/tune/{Tune.objects.last().id}', data={'tune': tune, 'edit': 'user', 'edit_state': 'user', 'submit_setting': True})
+        return self.client.post(f'/tune/{Tune.objects.last().id}', data={'tune': tune, 'edit': 'user', 'edit_state': 'user', 'submit-setting': True})
 
     def post_comment(self):
-        return self.client.post(f'/tune/{Tune.objects.last().id}', data={'text': 'My first comment.', 'author': 'A. Person', 'submit_comment': True})
+        return self.client.post(f'/tune/{Tune.objects.last().id}', data={'text': 'My first comment.', 'author': 'A. Person', 'submit-comment': True})
 
 class HomePageTest(ArchiverTestCase):
 

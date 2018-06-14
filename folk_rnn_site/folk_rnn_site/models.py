@@ -60,7 +60,10 @@ class ABCModel(models.Model):
     @property
     def body(self):
         match = body_regex.search(self.abc)
-        return match.group(2)
+        try:
+            return match.group(2)
+        except:
+            raise AttributeError(self.abc)
     
     @body.setter
     def body(self, value):
