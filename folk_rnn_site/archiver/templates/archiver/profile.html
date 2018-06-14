@@ -4,6 +4,31 @@
 
 {% block content %}
 <h1>{{ profile.get_full_name }}</h1>
-{% include "archiver/_tunebook.html" %}
-{% include "archiver/_activity.html" %}
+<div id="tunebook" class="section">
+    <div class="section-meta">
+        <h2>Recent entries</h2>
+        {% if tunebook_count %}<p class="meta"><a href="{% url 'tunebook' user_id=profile.id %}">Go to Tunebook</a></p>{% endif %}
+    </div>
+    <div class="section-body">
+        {% include "archiver/_tunebookentries.html" %}
+    </div>
+</div>
+<div id="activity">
+    <div id="recent-tunes" class="section">
+        <div class="section-meta">
+        <h2>Recent tunes</h2>
+        </div>
+        <div class="section-body">
+            {% include "archiver/_tunepreviews.html" %}
+        </div>
+    </div>
+    <div id="recent-comments"  class="section">
+        <div class="section-meta">
+            <h2>Recent comments</h2>
+        </div>
+        <div class="section-body">
+            {% include "archiver/_commentpreviews.html" %}      
+        </div>
+    </div>
+</div> 
 {% endblock %}

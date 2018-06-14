@@ -1,0 +1,12 @@
+{% load humanize %}
+<ul>
+    {% for comment in comments %}
+    <li>
+    <h3><a href="/tune/{{ comment.tune.id }}">Re: {{ comment.tune.title_or_mfsession }}</a></h3>
+    <p>{{ comment.text}}</p>
+    <p class="meta">Posted by <a href="{% url 'user' user_id=comment.author.id %}">{{ comment.author.get_full_name }}</a> {{ comment.submitted|naturalday }}.</li>
+    </li>
+    {% empty %}
+    <li><p>No comments</p></li>
+    {% endfor %}
+</ul>
