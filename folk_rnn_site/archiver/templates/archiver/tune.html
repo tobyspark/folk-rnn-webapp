@@ -83,7 +83,7 @@
             {% render_field attribution_form.text class+="pure-input-1" title="Add any notes about this tune here" placeholder="Note (optional) – e.g. what caught your interest in the generated tune, how was this co-created tune made, ..."%}
             {% render_field attribution_form.url class+="pure-input-1" title="Add a link to more information about this tune here" placeholder="URL (optional) – e.g. a link to the system that generated this tune, a blog post about this composition, ..." %}
             <div class="pure-control-group pure-u-1">
-                <input id="attribution_button" type="submit" name="submit_attribution" value="{% if tune.author_id == 1 %}Yes, added by me{% else %}Update notes{% endif %}" class="pure-button pure-button-primary pure-u-1-4">
+                <input id="attribution_button" type="submit" name="submit-attribution" value="{% if tune.author_id == 1 %}Yes, added by me{% else %}Update notes{% endif %}" class="pure-button pure-button-primary pure-u-1-4">
             </div>
         {% endwith %}
         </form>
@@ -133,7 +133,7 @@
                 {{ setting_form.abc.errors }}
                 {% render_field setting_form.abc class+="pure-input-1" title="Add setting ABC here."%}
                 <div class="pure-control-group pure-u-1">
-                    <input id="setting_button" type="submit" name="submit_setting" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                    <input id="setting_button" type="submit" name="submit-setting" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
                 </div>
             {% endwith %}
             </form>
@@ -172,7 +172,7 @@
                     {{ comment_form.text.errors }}
                     {% render_field comment_form.text class+="pure-input-1" rows="2" placeholder="Discuss this tune..." title="Add your comment here"%}
                     <div class="pure-control-group pure-u-1">
-                        <input id="comment_button" type="submit" name="submit_comment" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                        <input id="comment_button" type="submit" name="submit-comment" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
                     </div>
                 {% endwith %}
                 </form>

@@ -92,7 +92,7 @@ def tune_page(request, tune_id=None):
         })
         comment_form = CommentForm()
         if request.method == 'POST':
-            if 'submit_attribution' in request.POST:
+            if 'submit-attribution' in request.POST:
                 attribution_form = AttributionForm(request.POST)
                 if attribution_form.is_valid():
                     tune.author = request.user
@@ -103,7 +103,7 @@ def tune_page(request, tune_id=None):
                     attribution.text = attribution_form.cleaned_data['text']
                     attribution.url = attribution_form.cleaned_data['url']
                     attribution.save()
-            elif 'submit_setting' in request.POST:
+            elif 'submit-setting' in request.POST:
                 form = SettingForm(request.POST)
                 if form.is_valid():
                     try:
@@ -118,7 +118,7 @@ def tune_page(request, tune_id=None):
                         setting_form.add_error('abc', e) 
                 else:
                     setting_form = form
-            elif 'submit_comment' in request.POST:
+            elif 'submit-comment' in request.POST:
                 form = CommentForm(request.POST)
                 if form.is_valid():
                     comment = Comment(
@@ -298,7 +298,7 @@ def user_page(request, user_id=None):
                             })
 
 def submit_page(request):
-    if request.method == 'POST' and 'submit_tune' in request.POST:
+    if request.method == 'POST' and 'submit-tune' in request.POST:
             tune_form = TuneForm(request.POST)
             if tune_form.is_valid():
                 tune = Tune.objects.create(
@@ -314,7 +314,7 @@ def submit_page(request):
     else:
         tune_form = TuneForm()
 
-    if request.method == 'POST' and 'submit_recording' in request.POST:
+    if request.method == 'POST' and 'submit-recording' in request.POST:
             recording_form = RecordingForm(request.POST)
             if recording_form.is_valid():
                 recording = Recording.objects.create(
@@ -328,7 +328,7 @@ def submit_page(request):
     else:
         recording_form = RecordingForm()
     
-    if request.method == 'POST' and 'submit_event' in request.POST:
+    if request.method == 'POST' and 'submit-event' in request.POST:
             event_form = EventForm(request.POST)
             if event_form.is_valid():
                 event = Event.objects.create(
