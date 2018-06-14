@@ -11,6 +11,22 @@
         <p>You can find tunes to play, find recordings of them, or events where they're played.</p>
     </div>
 </div>
-{% include "archiver/_activity.html" %}
-
+<div id="activity">
+    <div id="recent-tunes" class="section">
+        <div class="section-meta">
+        <h2>Recent tunes</h2>
+        </div>
+        <div class="section-body">
+            {% include "archiver/_tunepreviews.html" %}
+        </div>
+    </div>
+    <div id="recent-comments"  class="section">
+        <div class="section-meta">
+            <h2>Recent comments</h2>
+        </div>
+        <div class="section-body">
+            {% include "archiver/_commentpreviews.html" %}      
+        </div>
+    </div>
+</div>        
 {% endblock %}

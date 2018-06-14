@@ -3,5 +3,21 @@
 {% block title %}{{ profile.get_full_name }}’s Tunebook{% endblock %}
 
 {% block content %}
-{% include "archiver/_tunebook.html" %}
+<div id="tunebook" class="section">
+    <div class="section-meta">
+        <h2>{{ profile.get_full_name }}’s tunebook</h2>
+        {% if tunebook.paginator.num_pages > 1 %}
+        <p class="meta">Page {{ tunebook.number }} of {{ tunebook.paginator.num_pages }}<br>
+        {% if tunebook.has_previous %}<a href="?page={{ tunebook.previous_page_number }}">previous</a>{% endif %}{% if tunebook.has_previous and tunebook.has_next %} | {% endif %}{% if tunebook.has_next %}<a href="?page={{ tunebook.next_page_number }}">next</a>{% endif %}</p>
+        {% endif %}
+        {% if tunebook %}
+        <div id="tunebook-download" class="download-link">
+            <a href="{% url 'tunebook_download' user_id=profile.id %}">Download all</a>
+        </div>
+        {% endif %}
+    </div>
+    <div class="section-body">
+        {% include "archiver/_tunebookentries.html" %}
+    </div>
+</div>
 {% endblock %}
