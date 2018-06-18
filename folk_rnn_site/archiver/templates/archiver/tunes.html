@@ -8,6 +8,10 @@
     <div id="search-tune" class="section">
         <div class="section-meta">
         <h2>Tune search</h2>
+        {% if search_results.paginator.num_pages > 1 %}
+        <p class="meta">Page {{ search_results.number }} of {{ search_results.paginator.num_pages }}<br>
+        {% if search_results.has_previous %}<a href="?search={{ search_text|urlencode:'' }}&page={{ search_results.previous_page_number }}">previous</a>{% endif %}{% if search_results.has_previous and search_results.has_next %} | {% endif %}{% if search_results.has_next %}<a href="?search={{ search_text|urlencode:'' }}&page={{ search_results.next_page_number }}">next</a>{% endif %}</p>
+        {% endif %}
         </div>
         <div class="section-body">
             <form method="get" class="pure-form"> 
@@ -22,7 +26,7 @@
             {% if search_results %}
             {% include 'archiver/_tunepreviews.html' with tunes_settings=search_results id_prefix='search' %}
             {% else %}
-            <p class="meta">Search through tunes, their settings, notes or comments.
+            <p class="meta">Search through tunes, settings of those tunes, or their notes or comments.
             {% endif %}
             </div>
         </div>

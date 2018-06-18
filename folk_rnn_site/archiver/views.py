@@ -65,16 +65,26 @@ def tunes_page(request):
                 search=SearchQuery(search_text)
             ).order_by('-id').distinct('id')
         add_abc_trimmed(search_results)
+        paginator = Paginator(search_results, TUNE_PREVIEWS_PER_PAGE)
+        page_number = request.GET.get('page')
+        try:
+            search_results_page = paginator.page(page_number)
+        except PageNotAnInteger:
+            search_results_page = paginator.page(1)
+        except EmptyPage:
+            search_results_page = paginator.page(paginator.num_pages)
     else:
-        search_results = None
+        search_text = None
+        search_results_page = None
     
     search_placeholders = ['DeepBach', 'Glas Herry', 'M:3/4', 'K:Cmix', 'G/A/G/F/ ED', 'dBd edc']
     search_placeholder = f'e.g. {choice(search_placeholders)}'
     recent_tunes, comments = activity()
     return render(request, 'archiver/tunes.html', {
                             'tunesearch_form': TuneSearchForm(request.GET),
+                            'search_text': search_text,
                             'search_placeholder': search_placeholder,
-                            'search_results': search_results,
+                            'search_results': search_results_page,
                             'recent_tunes': recent_tunes,
                             'comments': comments,
                             })
