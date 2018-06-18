@@ -23,8 +23,8 @@
             </div>
             </form>
             <div id="search-results">
-            {% if search_results %}
-            {% include 'archiver/_tunepreviews.html' with tunes_settings=search_results id_prefix='search' %}
+            {% if search_text %}
+            {% include 'archiver/_tunepreviews.html' with tunes_settings=search_results id_prefix='search' empty_message='No matches found' %}
             {% else %}
             <p class="meta">Search through tunes, settings of those tunes, or their notes or comments.
             {% endif %}

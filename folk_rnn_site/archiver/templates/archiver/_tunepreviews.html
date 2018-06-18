@@ -17,7 +17,7 @@
     {% endif %}
     </li>
     {% empty %}
-    <li><p>No tunes</p></li>
+    <li><p>{{ empty_message|default:'No tunes' }}</p></li>
     {% endfor %}
     <script type="text/javascript">
     window.addEventListener("load", function() {
