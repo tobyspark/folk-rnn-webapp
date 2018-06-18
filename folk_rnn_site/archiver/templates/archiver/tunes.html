@@ -21,6 +21,8 @@
             <div id="search-results">
             {% if search_results %}
             {% include 'archiver/_tunepreviews.html' with tunes_settings=search_results id_prefix='search' %}
+            {% else %}
+            <p class="meta">Search through tunes, their settings, notes or comments.
             {% endif %}
             </div>
         </div>
