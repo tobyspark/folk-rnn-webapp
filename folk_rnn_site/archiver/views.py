@@ -59,7 +59,7 @@ def tunes_page(request):
     if 'search' in request.GET and request.GET['search'] != '':
         search_text = request.GET['search']
         search_results = Tune.objects.annotate(
-                search=SearchVector('abc', 'setting__abc', 'tuneattribution__text')
+                search=SearchVector('abc', 'setting__abc', 'tuneattribution__text', 'comment__text')
             ).filter(
                 search=SearchQuery(search_text)
             ).order_by('-id').distinct('id')
