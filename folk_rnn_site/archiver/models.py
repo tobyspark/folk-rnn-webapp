@@ -190,3 +190,22 @@ class TuneEvent(models.Model):
     
     tune = models.ForeignKey(Tune)
     event = models.ForeignKey(Event)
+
+class TunebookEntry(models.Model):
+    def __str__(self):
+        tune_str = f'MachineFolk {self.tune.id}' if self.tune else f'MachineFolk {self.setting.tune.id} Setting {self.setting.header_x}'
+        return f'Tunebook Entry: {tune_str} by {self.user.get_full_name()}'
+    
+    @property
+    def abc(self):
+        if self.tune is not None:
+            return self.tune.abc
+        elif self.setting is not None:
+            return self.setting.abc
+        else:
+            raise LookupError
+    
+    tune = models.ForeignKey(Tune, null=True)
+    setting = models.ForeignKey(Setting, null=True)
+    user = models.ForeignKey(User)
+    submitted = models.DateTimeField(auto_now_add=True)
