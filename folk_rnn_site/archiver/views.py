@@ -4,15 +4,23 @@ from django.http import HttpResponse
 from django.core.files import File as dFile
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from tempfile import TemporaryFile
 from itertools import chain
 from datetime import timedelta
 
 from folk_rnn_site.models import ABCModel, conform_abc
-from archiver import MAX_RECENT_ITEMS
-from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event
-from archiver.forms import AttributionForm, SettingForm, CommentForm, ContactForm, TuneForm, RecordingForm, EventForm
+from archiver import MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
+from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry
+from archiver.forms import AttributionForm, SettingForm, CommentForm, ContactForm, TuneForm, RecordingForm, EventForm, TunebookForm
 from archiver.dataset import dataset_as_csv
+
+def add_abc_trimmed(tunes):
+    for tune in tunes:
+        abc_trimmed = ABCModel(abc = tune.abc)
+        abc_trimmed.title = None
+        abc_trimmed.body = abc_trimmed.body.partition('\n')[0]
+        tune.abc_trimmed = abc_trimmed.abc
 
 def activity(filter_dict={}):
     qs_tune = Tune.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
@@ -23,13 +31,9 @@ def activity(filter_dict={}):
     tunes_settings.sort(key=lambda x: x.submitted)
     tunes_settings[:-MAX_RECENT_ITEMS] = []
     
-    for tune in tunes_settings:
-        abc_trimmed = ABCModel(abc = tune.abc)
-        abc_trimmed.title = None
-        abc_trimmed.body = abc_trimmed.body.partition('\n')[0]
-        tune.abc_trimmed = abc_trimmed.abc
+    add_abc_trimmed(tunes_settings)
     
-    comments = Comment.objects.order_by('-id')[:MAX_RECENT_ITEMS]
+    comments = Comment.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
     
     return (tunes_settings, comments)
 
@@ -82,7 +86,7 @@ def tune_page(request, tune_id=None):
         })
         comment_form = CommentForm()
         if request.method == 'POST':
-            if 'submit_attribution' in request.POST:
+            if 'submit-attribution' in request.POST:
                 attribution_form = AttributionForm(request.POST)
                 if attribution_form.is_valid():
                     tune.author = request.user
@@ -93,7 +97,7 @@ def tune_page(request, tune_id=None):
                     attribution.text = attribution_form.cleaned_data['text']
                     attribution.url = attribution_form.cleaned_data['url']
                     attribution.save()
-            elif 'submit_setting' in request.POST:
+            elif 'submit-setting' in request.POST:
                 form = SettingForm(request.POST)
                 if form.is_valid():
                     try:
@@ -108,7 +112,7 @@ def tune_page(request, tune_id=None):
                         setting_form.add_error('abc', e) 
                 else:
                     setting_form = form
-            elif 'submit_comment' in request.POST:
+            elif 'submit-comment' in request.POST:
                 form = CommentForm(request.POST)
                 if form.is_valid():
                     comment = Comment(
@@ -119,16 +123,70 @@ def tune_page(request, tune_id=None):
                     comment.save()
                 else:
                     comment_form = form
+            elif 'submit-tunebook-0' in request.POST:
+                form = TunebookForm(request.POST)
+                if form.is_valid():
+                    if form.cleaned_data['add']:
+                        TunebookEntry.objects.get_or_create(
+                            tune=tune,
+                            user=request.user,
+                            )
+                    else:
+                        TunebookEntry.objects.filter(
+                            tune=tune,
+                            user=request.user,
+                            ).delete()
+            else:
+                # submit-tunebook-x in request.POST where x>0
+                setting_x = None
+                for k in request.POST:
+                    if k[:16] == 'submit-tunebook-':
+                        try:
+                            setting_x = int(k[16])
+                        except:
+                            pass
+                        break
+                if setting_x is None:
+                    print('Unknown POST on /tune/x', request.POST)
+                else:
+                    setting = tune.setting_set.all()[setting_x-1]
+                    form = TunebookForm(request.POST)
+                    if form.is_valid():
+                        if form.cleaned_data['add']:
+                            TunebookEntry.objects.get_or_create(
+                                setting=setting,
+                                user=request.user,
+                                )
+                        else:
+                            TunebookEntry.objects.filter(
+                                setting=setting,
+                                user=request.user,
+                                ).delete()
+
     
     abc_trimmed = ABCModel(abc = tune.abc)
     abc_trimmed.title = None
     tune.abc_trimmed = abc_trimmed.abc
+    tune.tunebook_count = TunebookEntry.objects.filter(tune=tune).count()
+    if request.user.is_authenticated:
+        tune.other_tunebook_count = TunebookEntry.objects.filter(tune=tune).exclude(user=request.user).count()
+        tune.tunebook_form = TunebookForm({'add': TunebookEntry.objects.filter(
+                                                    user=request.user, 
+                                                    tune=tune,
+                                                    ).exists()})
     
     settings = tune.setting_set.all()
     for setting in settings:
         abc_trimmed = ABCModel(abc = setting.abc)
         abc_trimmed.title = None
         setting.abc_trimmed = abc_trimmed.abc
+        setting.tunebook_count = TunebookEntry.objects.filter(setting=setting).count()
+        if request.user.is_authenticated:
+            setting.other_tunebook_count = TunebookEntry.objects.filter(setting=setting).exclude(user=request.user).count()
+            setting.tunebook_form = TunebookForm({'add': TunebookEntry.objects.filter(
+                                                        user=request.user, 
+                                                        setting=setting,
+                                                        ).exists()})
         
     return render(request, 'archiver/tune.html', {
         'tune': tune,
@@ -222,15 +280,65 @@ def user_page(request, user_id=None):
     except (TypeError, User.DoesNotExist):
         return redirect('/')
     
+    tunebook_count = TunebookEntry.objects.filter(user=user).count()
+    tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')[:MAX_RECENT_ITEMS]
+    add_abc_trimmed(tunebook)
+    
     tunes_settings, comments = activity({'author': user})
     return render(request, 'archiver/profile.html', {
                             'profile': user,
+                            'tunebook_count': tunebook_count,
+                            'tunebook': tunebook,
                             'tunes_settings': tunes_settings,
                             'comments': comments,
                             })
 
+def tunebook_page(request, user_id):
+    try:
+        user_id_int = int(user_id)
+        user = User.objects.get(id=user_id_int)
+    except (TypeError, User.DoesNotExist):
+        return redirect('/')
+    
+    tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')
+    add_abc_trimmed(tunebook)
+    
+    paginator = Paginator(tunebook, TUNE_PREVIEWS_PER_PAGE)
+    page_number = request.GET.get('page')
+    try:
+        tunebook_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        tunebook_page = paginator.page(1)
+    except EmptyPage:
+        tunebook_page = paginator.page(paginator.num_pages)
+        
+    return render(request, 'archiver/tunebook.html', {
+                            'profile': user,
+                            'tunebook': tunebook_page,
+                            })
+
+def tunebook_download(request, user_id):
+    try:
+        user_id_int = int(user_id)
+        user = User.objects.get(id=user_id_int)
+    except (TypeError, User.DoesNotExist):
+        return redirect('/')
+
+    tunebook_qs = TunebookEntry.objects.filter(user=user).order_by('id')
+    tunebook = [ABCModel(abc=x.abc) for x in tunebook_qs]
+    for idx, tune in enumerate(tunebook):
+        tune.header_x = idx
+    
+    tunebook_abc = f'% Tunebook – {user.get_full_name()}\n'
+    tunebook_abc += f"% https://themachinefolksession.org{request.path}\n\n\n"
+    tunebook_abc += '\n\n'.join([x.abc for x in tunebook])
+    
+    response = HttpResponse(tunebook_abc, content_type='text/plain')
+    response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tunebook_{user_id}'
+    return response
+
 def submit_page(request):
-    if request.method == 'POST' and 'submit_tune' in request.POST:
+    if request.method == 'POST' and 'submit-tune' in request.POST:
             tune_form = TuneForm(request.POST)
             if tune_form.is_valid():
                 tune = Tune.objects.create(
@@ -246,7 +354,7 @@ def submit_page(request):
     else:
         tune_form = TuneForm()
 
-    if request.method == 'POST' and 'submit_recording' in request.POST:
+    if request.method == 'POST' and 'submit-recording' in request.POST:
             recording_form = RecordingForm(request.POST)
             if recording_form.is_valid():
                 recording = Recording.objects.create(
@@ -260,7 +368,7 @@ def submit_page(request):
     else:
         recording_form = RecordingForm()
     
-    if request.method == 'POST' and 'submit_event' in request.POST:
+    if request.method == 'POST' and 'submit-event' in request.POST:
             event_form = EventForm(request.POST)
             if event_form.is_valid():
                 event = Event.objects.create(

@@ -36,7 +36,7 @@
     </div>
     <div class="section-body">
         <h3>Why should I become a member?</h3>
-        <p>As a member you will be able to post tune settings, comments, and build tunebooks.<em>(beta - tunebooks coming soon!)</em></p>
+        <p>As a member you will be able to post tune settings, comments, and build tunebooks.</p>
         <h3>How do I become a member?</h3>
         <p>Just go <a href="{% url 'registration_register' %}">here</a> and provide an email address, username and choose a password. You'll then be sent an activation link via email.</p>
         <p>You can then use your email address and password to log in to The Machine Folk Session. You can change your name, email and password at any time.<em>beta - edit account coming soon!</em></p>
@@ -56,7 +56,7 @@
         <h3>What is my tunebook?</h3>
         <p>The Machine Folk Session allows you to collect tunes and add them to a virtual tunebook. It provides an easy way to recall the tunes you like.</p>
         <p>The tunebook is really just a list of tunes that you have selected. You can download the entire tunebook as a single ABC file.</p>
-        <p>To add a tune to your tunebook, log in, go to the tune in question and click on the “Add to tunebook” button. <em>(beta - coming soon!)</em></p>
+        <p>To add or remove a tune to your tunebook, log in, go to the tune in question and tick or untick the “In your tunebook” checkbox.</p>
     </div>
 </div>
 
@@ -74,7 +74,7 @@
             {% render_field contact_form.email class+="pure-input-1" title="Provide your email address for any reply" placeholder="Your email address, e.g. ada@lovelace.org"%}
             {% endif %}
             <div class="pure-control-group pure-u-1">
-                <input id="attribution_button" type="submit" name="submit_contact" value="Send message" class="pure-button pure-button-primary pure-u-1-4">
+                <input id="attribution_button" type="submit" name="submit-contact" value="Send message" class="pure-button pure-button-primary pure-u-1-4">
             </div>
         {% endwith %}
         </form>

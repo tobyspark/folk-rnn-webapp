@@ -45,6 +45,9 @@ class EventForm(forms.Form):
     body = forms.CharField(widget=forms.Textarea())
     date = forms.DateField(widget=SelectDateWidget(years=YEAR_CHOICES))
 
+class TunebookForm(forms.Form):
+    add = forms.BooleanField(required=False)
+
 # As per registration docs, this should subclass registration.forms.RegistrationFormUniqueEmail.
 # That wasn't working, so here instead is an equivalent, based on some of that code.
 def validate_duplicate_email(value):
