@@ -5,6 +5,7 @@ from django.core.files import File as dFile
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from tempfile import TemporaryFile
 from itertools import chain
 from datetime import timedelta
@@ -12,7 +13,17 @@ from datetime import timedelta
 from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
 from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry
-from archiver.forms import AttributionForm, SettingForm, CommentForm, ContactForm, TuneForm, RecordingForm, EventForm, TunebookForm
+from archiver.forms import (
+                            AttributionForm, 
+                            SettingForm, 
+                            CommentForm, 
+                            ContactForm, 
+                            TuneForm, 
+                            RecordingForm, 
+                            EventForm, 
+                            TunebookForm,
+                            TuneSearchForm,
+                            )
 from archiver.dataset import dataset_as_csv
 
 def add_abc_trimmed(tunes):
@@ -45,9 +56,21 @@ def home_page(request):
                                 })
 
 def tunes_page(request):
-    tunes_settings, comments = activity()
+    if 'search' in request.GET and request.GET['search'] != '':
+        search_text = request.GET['search']
+        search_results = Tune.objects.annotate(
+                search=SearchVector('abc', 'setting__abc', 'tuneattribution__text')
+            ).filter(
+                search=SearchQuery(search_text)
+            ).order_by('-id').distinct('id')
+    else:
+        search_results = None
+    
+    recent_tunes, comments = activity()
     return render(request, 'archiver/tunes.html', {
-                            'tunes_settings': tunes_settings,
+                            'tunesearch_form': TuneSearchForm(request.GET),
+                            'search_results': search_results,
+                            'recent_tunes': recent_tunes,
                             'comments': comments,
                             })
 

@@ -2,15 +2,35 @@
 
 {% block title %}Tunes{% endblock %}
 
-
 {% block content %}
+{% load widget_tweaks %}
+<div id="search">
+    <div id="search-tune" class="section">
+        <div class="section-meta">
+        <h2>Tune search</h2>
+        </div>
+        <div class="section-body">
+            <form method="get" class="pure-form"> 
+            <div class="pure-u-17-24">
+                {% render_field tunesearch_form.search class+="pure-input-1" title="Search text in title, notes" placeholder="e.g. DeepBach" %}
+            </div>
+            <div class="pure-u-1-4">
+                <input type="submit" value="Search" class="pure-button pure-button-primary pure-input-1"/>
+            </div>
+            </form>
+            {% if search_results %}
+            {% include 'archiver/_tunepreviews.html' with tunes_settings=search_results %}
+            {% endif %}
+        </div>
+    </div>
+</div> 
 <div id="activity">
     <div id="recent-tunes" class="section">
         <div class="section-meta">
         <h2>Recent tunes</h2>
         </div>
         <div class="section-body">
-            {% include "archiver/_tunepreviews.html" %}
+            {% include "archiver/_tunepreviews.html" with tunes_settings=recent_tunes%}
         </div>
     </div>
     <div id="recent-comments"  class="section">
