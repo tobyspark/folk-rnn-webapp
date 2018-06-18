@@ -18,9 +18,11 @@
                 <input type="submit" value="Search" class="pure-button pure-button-primary pure-input-1"/>
             </div>
             </form>
+            <div id="search-results">
             {% if search_results %}
             {% include 'archiver/_tunepreviews.html' with tunes_settings=search_results id_prefix='search' %}
             {% endif %}
+            </div>
         </div>
     </div>
 </div> 
@@ -41,5 +43,11 @@
             {% include "archiver/_commentpreviews.html" %}      
         </div>
     </div>
-</div> 
+</div>
+{# Can't put this inline as render_field trips on the quotes #}
+<script type="text/javascript">
+    document.getElementById('id_search').addEventListener('input', function() {
+        document.getElementById('search-results').innerHTML = ''
+    }, false);
+</script>
 {% endblock %}
