@@ -19,7 +19,7 @@
             </div>
             </form>
             {% if search_results %}
-            {% include 'archiver/_tunepreviews.html' with tunes_settings=search_results %}
+            {% include 'archiver/_tunepreviews.html' with tunes_settings=search_results id_prefix='search' %}
             {% endif %}
         </div>
     </div>

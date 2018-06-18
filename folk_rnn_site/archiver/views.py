@@ -63,6 +63,7 @@ def tunes_page(request):
             ).filter(
                 search=SearchQuery(search_text)
             ).order_by('-id').distinct('id')
+        add_abc_trimmed(search_results)
     else:
         search_results = None
     
