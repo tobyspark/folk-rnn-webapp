@@ -9,6 +9,7 @@ from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from tempfile import TemporaryFile
 from itertools import chain
 from datetime import timedelta
+from random import choice
 
 from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
@@ -67,9 +68,12 @@ def tunes_page(request):
     else:
         search_results = None
     
+    search_placeholders = ['DeepBach', 'Glas Herry', 'M:3/4', 'K:Cmix', 'G/A/G/F/ ED', 'dBd edc']
+    search_placeholder = f'e.g. {choice(search_placeholders)}'
     recent_tunes, comments = activity()
     return render(request, 'archiver/tunes.html', {
                             'tunesearch_form': TuneSearchForm(request.GET),
+                            'search_placeholder': search_placeholder,
                             'search_results': search_results,
                             'recent_tunes': recent_tunes,
                             'comments': comments,
