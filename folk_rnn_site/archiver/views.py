@@ -66,7 +66,7 @@ def tunes_page(request):
             ).order_by('-id').distinct('id')
     else:
         search_text = ''
-        search_results = Tune.objects.all()
+        search_results = Tune.objects.order_by('-id')
         
     paginator = Paginator(search_results, TUNE_PREVIEWS_PER_PAGE)
     page_number = request.GET.get('page')
@@ -287,7 +287,7 @@ def recordings_page(request):
             ).order_by('-id').distinct('id')
     else:
         search_text = ''
-        search_results = Recording.objects.all()
+        search_results = Recording.objects.order_by('-id')
     
     paginator = Paginator(search_results, TUNE_PREVIEWS_PER_PAGE)
     page_number = request.GET.get('page')
