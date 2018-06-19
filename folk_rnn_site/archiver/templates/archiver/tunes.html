@@ -2,23 +2,36 @@
 
 {% block title %}Tunes{% endblock %}
 
-
 {% block content %}
-<div id="activity">
-    <div id="recent-tunes" class="section">
+{% load widget_tweaks %}
+{% load humanize %}
+<div id="search">
+    <div id="search-tune" class="section">
         <div class="section-meta">
-        <h2>Recent tunes</h2>
+        <h2>Tune search</h2>
+        {% if search_results.paginator.num_pages > 1 %}
+        <p class="meta">Page {{ search_results.number }} of {{ search_results.paginator.num_pages }}<br>
+        {% if search_results.has_previous %}<a href="?search={{ search_text|urlencode:'' }}&page={{ search_results.previous_page_number }}">previous</a>{% endif %}{% if search_results.has_previous and search_results.has_next %} | {% endif %}{% if search_results.has_next %}<a href="?search={{ search_text|urlencode:'' }}&page={{ search_results.next_page_number }}">next</a>{% endif %}</p>
+        {% endif %}
         </div>
         <div class="section-body">
-            {% include "archiver/_tunepreviews.html" %}
-        </div>
-    </div>
-    <div id="recent-comments"  class="section">
-        <div class="section-meta">
-            <h2>Recent comments</h2>
-        </div>
-        <div class="section-body">
-            {% include "archiver/_commentpreviews.html" %}      
+            <form method="get" class="pure-form"> 
+            <div class="pure-u-17-24">
+                {% render_field search_form.search class+="pure-input-1" title="Add text to search tunes by" placeholder=search_placeholder %}
+            </div>
+            <div class="pure-u-1-4">
+                <input type="submit" value="Search" class="pure-button pure-button-primary pure-input-1"/>
+            </div>
+            </form>
+            <div id="search-results">
+            {% if search_text %}
+            <p class="meta">{{ search_results.paginator.count|apnumber|capfirst }} matching recording{{ search_results.paginator.count|pluralize }} found</p>
+            {% else %}
+            <p class="meta">Search through tunes, settings of those tunes, or their notes or comments. Currently showing all tunes.
+            {% endif %}
+            <p>&nbsp;</p>
+            {% include 'archiver/_tunepreviews.html' with tunes_settings=search_results id_prefix='search' empty_message='No matches found' %}
+            </div>
         </div>
     </div>
 </div> 

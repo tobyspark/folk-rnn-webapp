@@ -48,6 +48,9 @@ class EventForm(forms.Form):
 class TunebookForm(forms.Form):
     add = forms.BooleanField(required=False)
 
+class SearchForm(forms.Form):
+    search = forms.CharField(required=False)
+
 # As per registration docs, this should subclass registration.forms.RegistrationFormUniqueEmail.
 # That wasn't working, so here instead is an equivalent, based on some of that code.
 def validate_duplicate_email(value):
