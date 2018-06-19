@@ -21,6 +21,7 @@
     {% endif %}
     {% if tune.setting__count > 0 or tune.comment__count > 0 or tune.recording__count > 0 or tune.event__count > 0 %}
     <br>
+    {% if tune.tunebook__count > 0 %}In {{ tune.tunebook__count|apnumber }} tunebook{{ tune.tunebook__count|pluralize }}. {% endif %}
     {% if tune.setting__count > 0 %}{{ tune.setting__count|apnumber|capfirst }} contributed setting{{ tune.setting__count|pluralize }}. {% endif %}
     {% if tune.comment__count > 0 %}{{ tune.comment__count|apnumber|capfirst }} comment{{ tune.comment__count|pluralize }}. {% endif %}
     {% if tune.recording__count > 0 %}Has been recorded {{ tune.recording__count|once_twice_xtimes }}. {% endif %}

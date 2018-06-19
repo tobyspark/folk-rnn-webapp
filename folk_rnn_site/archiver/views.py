@@ -57,6 +57,7 @@ def home_page(request):
         Count('comment', distinct=True), 
         recording__count=Count('tunerecording', distinct=True), 
         event__count=Count('tuneevent', distinct=True),
+        tunebook__count=Count('tunebookentry', distinct=True),
     ).filter(q)
     k = min(MAX_RECENT_ITEMS, len(tunes))
     tunes = sample(list(tunes), k)
