@@ -3,7 +3,34 @@
 {% block title %}Recordings{% endblock %}
 
 {% block content %}
-{% for recording in recordings %}
+{% load widget_tweaks %}
+{% load humanize %}
+<div id="search-tune" class="section">
+    <div class="section-meta">
+    <h2>Recording search</h2>
+    {% if search_results.paginator.num_pages > 1 %}
+    <p class="meta">Page {{ search_results.number }} of {{ search_results.paginator.num_pages }}<br>
+    {% if search_results.has_previous %}<a href="?search={{ search_text|urlencode:'' }}&page={{ search_results.previous_page_number }}">previous</a>{% endif %}{% if search_results.has_previous and search_results.has_next %} | {% endif %}{% if search_results.has_next %}<a href="?search={{ search_text|urlencode:'' }}&page={{ search_results.next_page_number }}">next</a>{% endif %}</p>
+    {% endif %}
+    </div>
+    <div class="section-body">
+        <form method="get" class="pure-form"> 
+        <div class="pure-u-17-24">
+            {% render_field search_form.search class+="pure-input-1" title="Add text to search recordings by" placeholder=search_placeholder %}
+        </div>
+        <div class="pure-u-1-4">
+            <input type="submit" value="Search" class="pure-button pure-button-primary pure-input-1"/>
+        </div>
+        </form>
+        {% if search_text %}
+        <p class="meta">{{ search_results.paginator.count|apnumber|capfirst }} matching recording{{ search_results.paginator.count|pluralize }} found</p>
+        {% else %}
+        <p class="meta">Search through recordings, the names of events they were recorded at, and the tunes they contain. Currently showing all recordings.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% for recording in search_results %}
 {% include 'archiver/_recording.html' %}
 {% endfor %}
 {% endblock %}

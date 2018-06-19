@@ -5,14 +5,26 @@ from django.core.files import File as dFile
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from tempfile import TemporaryFile
 from itertools import chain
 from datetime import timedelta
+from random import choice
 
 from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
 from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry
-from archiver.forms import AttributionForm, SettingForm, CommentForm, ContactForm, TuneForm, RecordingForm, EventForm, TunebookForm
+from archiver.forms import (
+                            AttributionForm, 
+                            SettingForm, 
+                            CommentForm, 
+                            ContactForm, 
+                            TuneForm, 
+                            RecordingForm, 
+                            EventForm, 
+                            TunebookForm,
+                            SearchForm,
+                            )
 from archiver.dataset import dataset_as_csv
 
 def add_abc_trimmed(tunes):
@@ -45,10 +57,34 @@ def home_page(request):
                                 })
 
 def tunes_page(request):
-    tunes_settings, comments = activity()
+    if 'search' in request.GET and request.GET['search'] != '':
+        search_text = request.GET['search']
+        search_results = Tune.objects.annotate(
+                search=SearchVector('abc', 'setting__abc', 'tuneattribution__text', 'comment__text')
+            ).filter(
+                search=SearchQuery(search_text)
+            ).order_by('-id').distinct('id')
+    else:
+        search_text = ''
+        search_results = Tune.objects.order_by('-id')
+        
+    paginator = Paginator(search_results, TUNE_PREVIEWS_PER_PAGE)
+    page_number = request.GET.get('page')
+    try:
+        search_results_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        search_results_page = paginator.page(1)
+    except EmptyPage:
+        search_results_page = paginator.page(paginator.num_pages)
+    add_abc_trimmed(search_results_page)
+    
+    search_placeholders = ['DeepBach', 'Glas Herry', 'M:3/4', 'K:Cmix', 'G/A/G/F/ ED', 'dBd edc']
+    search_placeholder = f'e.g. {choice(search_placeholders)}'
     return render(request, 'archiver/tunes.html', {
-                            'tunes_settings': tunes_settings,
-                            'comments': comments,
+                            'search_form': SearchForm(request.GET),
+                            'search_text': search_text,
+                            'search_placeholder': search_placeholder,
+                            'search_results': search_results_page,
                             })
 
 def tune_page(request, tune_id=None):
@@ -242,8 +278,33 @@ def tune_setting_download(request, tune_id=None):
     return response
 
 def recordings_page(request):
+    if 'search' in request.GET and request.GET['search'] != '':
+        search_text = request.GET['search']
+        search_results = Recording.objects.annotate(
+                search=SearchVector('title', 'body', 'event__title', 'tunerecording__tune__abc')
+            ).filter(
+                search=SearchQuery(search_text)
+            ).order_by('-id').distinct('id')
+    else:
+        search_text = ''
+        search_results = Recording.objects.order_by('-id')
+    
+    paginator = Paginator(search_results, TUNE_PREVIEWS_PER_PAGE)
+    page_number = request.GET.get('page')
+    try:
+        search_results_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        search_results_page = paginator.page(1)
+    except EmptyPage:
+        search_results_page = paginator.page(paginator.num_pages)
+    
+    search_placeholders = ['Ensemble x.y', 'Partnerships', 'St. Dunstan']
+    search_placeholder = f'e.g. {choice(search_placeholders)}'
     return render(request, 'archiver/recordings.html', {
-        'recordings': Recording.objects.all()
+        'search_form': SearchForm(request.GET),
+        'search_text': search_text,
+        'search_placeholder': search_placeholder,
+        'search_results': search_results_page,
     })
 
 def recording_page(request, recording_id=None):
@@ -253,8 +314,8 @@ def recording_page(request, recording_id=None):
     except (TypeError, Recording.DoesNotExist):
         return redirect('/')
 
-    return render(request, 'archiver/recordings.html', {
-        'recordings': [recording],
+    return render(request, 'archiver/recording.html', {
+        'recording': recording,
     })
 
 def events_page(request):
