@@ -1,20 +1,23 @@
 {% load humanize %}
 <ul>
-    {% for item in tunes_settings %}
+    {% for tune in tunes %}
     <li>
-    {% if item.rnn_tune %}{# tune model from folk-rnn #}
-    <h3><a href="{% url 'tune' tune_id=item.id %}">{{item.title_or_mfsession}}</a></h3>
+    <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title_or_mfsession}}</a></h3>
     <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
-    <p class="meta">Tune submitted from <a href="{{ item.rnn_tune.url }}">folkrnn.org</a> {{ item.submitted|naturalday }}</p>
-    {% elif not item.tune %}{# tune model not from folk-rnn #}
-    <h3><a href="{% url 'tune' tune_id=item.id %}">{{item.title_or_mfsession}}</a></h3>
-    <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
-    <p class="meta">Original tune submitted {{ item.submitted|naturalday }}</p>
-    {% else %}{# setting model #}
-    <h3><a href="{% url 'tune' tune_id=item.tune.id %}">{{item.title}}</a></h3>
-    <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
-    <p class="meta">Setting of <a href="{% url 'tune' tune_id=item.tune.id %}">{{ item.tune.title }}</a> added by <a href="{% url 'user' user_id=item.author.id %}">{{ item.author.get_full_name }}</a> {{ item.submitted|naturalday }}.</p>
+    <p class="meta">
+    {% if tune.rnn_tune %}
+    Tune submitted from <a href="{{ tune.rnn_tune.url }}">folkrnn.org</a> {{ tune.submitted|naturalday }}
+    {% else %}
+    <p class="meta">Original tune submitted {{ tune.submitted|naturalday }}
     {% endif %}
+    {% if tune.setting__count > 0 or tune.comment__count > 0 or tune.recording__count > 0 or tune.event__count > 0 %}
+    <br>
+    {% if tune.setting__count > 0 %}Has {{ tune.setting__count|apnumber }} contributed setting{{ tune.setting__count|pluralize }}. {% endif %}
+    {% if tune.comment__count > 0 %}Has been commented upon {{ tune.comment__count|apnumber }} time{{ tune.comment__count|pluralize }}. {% endif %}
+    {% if tune.recording__count > 0 %}Has been recorded {{ tune.recording__count|apnumber }} time{{ tune.recording__count|pluralize }}. {% endif %}
+    {% if tune.event__count > 0 %}Has been played at {{ tune.event__count|apnumber }} event{{ tune.event__count|pluralize }}. {% endif %}
+    {% endif %}
+    </p>
     </li>
     {% empty %}
     <li><p>{{ empty_message|default:'No tunes' }}</p></li>
@@ -26,8 +29,8 @@
             paddingright:0,
             responsive: "resize",
         }
-        {% for item in tunes_settings %}
-        ABCJS.renderAbc("notation-{{ id_prefix }}{{ forloop.counter }}", "{{ item.abc_trimmed|escapejs }}", params);
+        {% for tune in tunes %}
+        ABCJS.renderAbc("notation-{{ id_prefix }}{{ forloop.counter }}", "{{ tune.abc_trimmed|escapejs }}", params);
         {% endfor %}
     }, false);
     </script>

@@ -30,7 +30,7 @@
             <p class="meta">Search through tunes, settings of those tunes, or their notes or comments. Currently showing all tunes.
             {% endif %}
             <p>&nbsp;</p>
-            {% include 'archiver/_tunepreviews.html' with tunes_settings=search_results id_prefix='search' empty_message='No matches found' %}
+            {% include 'archiver/_tunepreviews.html' with tunes=search_results id_prefix='search' empty_message='No matches found' %}
             </div>
         </div>
     </div>
