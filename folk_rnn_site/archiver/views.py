@@ -6,10 +6,11 @@ from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.db.models import Q, Count
 from tempfile import TemporaryFile
 from itertools import chain
 from datetime import timedelta
-from random import choice
+from random import choice, sample
 
 from folk_rnn_site.models import ABCModel, conform_abc
 from archiver import MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
@@ -50,11 +51,19 @@ def activity(filter_dict={}):
     return (tunes_settings, comments)
 
 def home_page(request):
-    tunes_settings, comments = activity()
+    q = Q(setting__count__gt=0) | Q(comment__count__gt=0) | Q(recording__count__gt=0) | Q(event__count__gt=0)
+    tunes = Tune.objects.annotate(
+        Count('setting', distinct=True), 
+        Count('comment', distinct=True), 
+        recording__count=Count('tunerecording', distinct=True), 
+        event__count=Count('tuneevent', distinct=True),
+    ).filter(q)
+    k = min(MAX_RECENT_ITEMS, len(tunes))
+    tunes = sample(list(tunes), k)
+    add_abc_trimmed(tunes)
     return render(request, 'archiver/home.html', {
-                            'tunes_settings': tunes_settings,
-                            'comments': comments,
-                                })
+                            'tunes': tunes,
+                            })
 
 def tunes_page(request):
     if 'search' in request.GET and request.GET['search'] != '':
