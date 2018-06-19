@@ -25,11 +25,10 @@
         {% if search_text %}
         <p class="meta">{{ search_results.paginator.count|apnumber|capfirst }} matching recording{{ search_results.paginator.count|pluralize }} found</p>
         {% else %}
-        <p class="meta">Search through recordings, the names of events they were recorded at, and the tunes they contain. Currently showing all recordings</p>
+        <p class="meta">Search through recordings, the names of events they were recorded at, and the tunes they contain. Currently showing all recordings.</p>
         {% endif %}
     </div>
 </div>
-
 
 {% for recording in search_results %}
 {% include 'archiver/_recording.html' %}

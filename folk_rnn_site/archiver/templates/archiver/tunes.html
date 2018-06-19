@@ -4,6 +4,7 @@
 
 {% block content %}
 {% load widget_tweaks %}
+{% load humanize %}
 <div id="search">
     <div id="search-tune" class="section">
         <div class="section-meta">
@@ -24,36 +25,14 @@
             </form>
             <div id="search-results">
             {% if search_text %}
-            {% include 'archiver/_tunepreviews.html' with tunes_settings=search_results id_prefix='search' empty_message='No matches found' %}
+            <p class="meta">{{ search_results.paginator.count|apnumber|capfirst }} matching recording{{ search_results.paginator.count|pluralize }} found</p>
             {% else %}
-            <p class="meta">Search through tunes, settings of those tunes, or their notes or comments.
+            <p class="meta">Search through tunes, settings of those tunes, or their notes or comments. Currently showing all tunes.
             {% endif %}
+            <p>&nbsp;</p>
+            {% include 'archiver/_tunepreviews.html' with tunes_settings=search_results id_prefix='search' empty_message='No matches found' %}
             </div>
         </div>
     </div>
 </div> 
-<div id="activity">
-    <div id="recent-tunes" class="section">
-        <div class="section-meta">
-        <h2>Recent tunes</h2>
-        </div>
-        <div class="section-body">
-            {% include "archiver/_tunepreviews.html" with tunes_settings=recent_tunes%}
-        </div>
-    </div>
-    <div id="recent-comments"  class="section">
-        <div class="section-meta">
-            <h2>Recent comments</h2>
-        </div>
-        <div class="section-body">
-            {% include "archiver/_commentpreviews.html" %}      
-        </div>
-    </div>
-</div>
-{# Can't put this inline as render_field trips on the quotes #}
-<script type="text/javascript">
-    document.getElementById('id_search').addEventListener('input', function() {
-        document.getElementById('search-results').innerHTML = ''
-    }, false);
-</script>
 {% endblock %}
