@@ -48,7 +48,7 @@ class EventForm(forms.Form):
 class TunebookForm(forms.Form):
     add = forms.BooleanField(required=False)
 
-class TuneSearchForm(forms.Form):
+class SearchForm(forms.Form):
     search = forms.CharField(required=False)
 
 # As per registration docs, this should subclass registration.forms.RegistrationFormUniqueEmail.
