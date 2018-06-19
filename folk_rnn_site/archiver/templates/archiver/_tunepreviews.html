@@ -1,14 +1,22 @@
 {% load humanize %}
+{% load embed_video_tags %}
 <ul>
     {% for tune in tunes %}
     <li>
     <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title_or_mfsession}}</a></h3>
+    {% if recordings and tune.recording__count > 0 %}
+    {% with tune.tunerecording_set.first.recording as recording %}
+    {% video recording.video is_secure=True as my_video %}
+      {% video my_video%}
+    {% endvideo %}
+    {% endwith %}
+    {% endif %}
     <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
     <p class="meta">
     {% if tune.rnn_tune %}
     Tune submitted from <a href="{{ tune.rnn_tune.url }}">folkrnn.org</a> {{ tune.submitted|naturalday }}
     {% else %}
-    <p class="meta">Original tune submitted {{ tune.submitted|naturalday }}
+    Original tune submitted {{ tune.submitted|naturalday }}
     {% endif %}
     {% if tune.setting__count > 0 or tune.comment__count > 0 or tune.recording__count > 0 or tune.event__count > 0 %}
     <br>
