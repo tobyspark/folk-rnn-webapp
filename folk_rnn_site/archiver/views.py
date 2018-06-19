@@ -23,7 +23,7 @@ from archiver.forms import (
                             RecordingForm, 
                             EventForm, 
                             TunebookForm,
-                            TuneSearchForm,
+                            SearchForm,
                             )
 from archiver.dataset import dataset_as_csv
 
@@ -81,7 +81,7 @@ def tunes_page(request):
     search_placeholder = f'e.g. {choice(search_placeholders)}'
     recent_tunes, comments = activity()
     return render(request, 'archiver/tunes.html', {
-                            'tunesearch_form': TuneSearchForm(request.GET),
+                            'search_form': SearchForm(request.GET),
                             'search_text': search_text,
                             'search_placeholder': search_placeholder,
                             'search_results': search_results_page,
@@ -280,8 +280,33 @@ def tune_setting_download(request, tune_id=None):
     return response
 
 def recordings_page(request):
+    if 'search' in request.GET and request.GET['search'] != '':
+        search_text = request.GET['search']
+        search_results = Recording.objects.annotate(
+                search=SearchVector('title', 'body', 'event__title', 'tunerecording__tune__abc')
+            ).filter(
+                search=SearchQuery(search_text)
+            ).order_by('-id').distinct('id')
+    else:
+        search_text = ''
+        search_results = Recording.objects.all()
+    
+    paginator = Paginator(search_results, TUNE_PREVIEWS_PER_PAGE)
+    page_number = request.GET.get('page')
+    try:
+        search_results_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        search_results_page = paginator.page(1)
+    except EmptyPage:
+        search_results_page = paginator.page(paginator.num_pages)
+    
+    search_placeholders = ['Ensemble x.y', 'Partnerships', 'St. Dunstan']
+    search_placeholder = f'e.g. {choice(search_placeholders)}'
     return render(request, 'archiver/recordings.html', {
-        'recordings': Recording.objects.all()
+        'search_form': SearchForm(request.GET),
+        'search_text': search_text,
+        'search_placeholder': search_placeholder,
+        'search_results': search_results_page,
     })
 
 def recording_page(request, recording_id=None):
@@ -291,8 +316,8 @@ def recording_page(request, recording_id=None):
     except (TypeError, Recording.DoesNotExist):
         return redirect('/')
 
-    return render(request, 'archiver/recordings.html', {
-        'recordings': [recording],
+    return render(request, 'archiver/recording.html', {
+        'recording': recording,
     })
 
 def events_page(request):
