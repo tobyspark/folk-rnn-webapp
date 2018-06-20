@@ -5,6 +5,7 @@
 {% block content %}
 {% load widget_tweaks %}
 {% load humanize %}
+{% load i18n %}
 <div id="search">
     <div id="search-tune" class="section">
         <div class="section-meta">
@@ -17,7 +18,8 @@
         <div class="section-body">
             <form method="get" class="pure-form"> 
             <div class="pure-u-17-24">
-                {% render_field search_form.search class+="pure-input-1" title="Add text to search tunes by" placeholder=search_placeholder %}
+            {% blocktrans asvar placeholder with x=search_examples|random %}e.g. {{ x }}{% endblocktrans %}
+                {% render_field search_form.search class+="pure-input-1" title="Add text to search tunes by" placeholder=placeholder %}
             </div>
             <div class="pure-u-1-4">
                 <input type="submit" value="Search" class="pure-button pure-button-primary pure-input-1"/>
@@ -27,7 +29,8 @@
             {% if search_text %}
             <p class="meta">{{ search_results.paginator.count|apnumber|capfirst }} matching recording{{ search_results.paginator.count|pluralize }} found</p>
             {% else %}
-            <p class="meta">Search through tunes, settings of those tunes, or their notes or comments. Currently showing all tunes.
+            <p class="meta">Search through tunes, settings of those tunes, or their notes or comments.<br>Some examples: {% for example in search_examples %}<a href="{% url 'tunes' %}?search={{ example }}">{{ example }}</a>{% if not forloop.last %}, {% else %}.{% endif %}{% endfor %}</p>
+            <p class="meta">Currently showing all tunes.</p>
             {% endif %}
             <p>&nbsp;</p>
             {% include 'archiver/_tunepreviews.html' with tunes=search_results id_prefix='search' empty_message='No matches found' %}

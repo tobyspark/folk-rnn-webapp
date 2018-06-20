@@ -13,8 +13,8 @@ from datetime import timedelta
 from random import choice, choices
 
 from folk_rnn_site.models import ABCModel, conform_abc
+from archiver import TUNE_SEARCH_EXAMPLES, MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
 from archiver import weightedSelectionWithoutReplacement
-from archiver import MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
 from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry, TuneRecording
 from archiver.forms import (
                             AttributionForm, 
@@ -107,12 +107,10 @@ def tunes_page(request):
         search_results_page = paginator.page(paginator.num_pages)
     add_abc_trimmed(search_results_page)
     
-    search_placeholders = ['DeepBach', 'Glas Herry', 'M:3/4', 'K:Cmix', 'G/A/G/F/ ED', 'dBd edc']
-    search_placeholder = f'e.g. {choice(search_placeholders)}'
     return render(request, 'archiver/tunes.html', {
                             'search_form': SearchForm(request.GET),
                             'search_text': search_text,
-                            'search_placeholder': search_placeholder,
+                            'search_examples': TUNE_SEARCH_EXAMPLES,
                             'search_results': search_results_page,
                             })
 
