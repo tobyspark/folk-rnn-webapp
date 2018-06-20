@@ -36,6 +36,15 @@ def add_abc_trimmed(tunes):
         abc_trimmed.body = abc_trimmed.body.partition('\n')[0]
         tune.abc_trimmed = abc_trimmed.abc
 
+def add_counts(tunes):
+    # see also interesting_tunes queryset annotation
+    for result in tunes:
+        result.setting__count = result.setting_set.count()
+        result.comment__count = result.comment_set.count() 
+        result.recording__count = result.tunerecording_set.count() 
+        result.event__count = result.tuneevent_set.count()
+        result.tunebook__count = result.tunebookentry_set.count()
+
 def activity(filter_dict={}):
     qs_tune = Tune.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
     qs_setting = Setting.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
@@ -106,6 +115,7 @@ def tunes_page(request):
     except EmptyPage:
         search_results_page = paginator.page(paginator.num_pages)
     add_abc_trimmed(search_results_page)
+    add_counts(search_results_page)
     
     return render(request, 'archiver/tunes.html', {
                             'search_form': SearchForm(request.GET),
