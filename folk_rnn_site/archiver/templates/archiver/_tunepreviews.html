@@ -7,18 +7,15 @@
     <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
     <p class="meta">
     {% if tune.rnn_tune %}
-    Tune submitted from <a href="{{ tune.rnn_tune.url }}">folkrnn.org</a> {{ tune.submitted|naturalday }}
+    Tune submitted from <a href="{{ tune.rnn_tune.url }}">folkrnn.org</a> {{ tune.submitted|naturalday }}. 
     {% else %}
-    Original tune submitted {{ tune.submitted|naturalday }}
+    Original tune submitted {{ tune.submitted|naturalday }}. 
     {% endif %}
-    {% if tune.setting__count > 0 or tune.comment__count > 0 or tune.recording__count > 0 or tune.event__count > 0 %}
-    <br>
     {% if tune.tunebook__count > 0 %}In {{ tune.tunebook__count|apnumber }} tunebook{{ tune.tunebook__count|pluralize }}. {% endif %}
     {% if tune.setting__count > 0 %}{{ tune.setting__count|apnumber|capfirst }} contributed setting{{ tune.setting__count|pluralize }}. {% endif %}
     {% if tune.comment__count > 0 %}{{ tune.comment__count|apnumber|capfirst }} comment{{ tune.comment__count|pluralize }}. {% endif %}
     {% if tune.recording__count > 0 %}Has been recorded {{ tune.recording__count|once_twice_xtimes }}. {% endif %}
     {% if tune.event__count > 0 %}Performed at {{ tune.event__count|apnumber }} event{{ tune.event__count|pluralize }}. {% endif %}
-    {% endif %}
     </p>
     </li>
     {% empty %}
