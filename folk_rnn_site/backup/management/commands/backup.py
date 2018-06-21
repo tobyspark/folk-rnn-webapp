@@ -190,7 +190,7 @@ class Command(BaseCommand):
         try:
            file_id = drive_list['files'][0]['id']
         except:
-            print('Could not find {filename}')
+            print(f'Could not find {filename}')
             raise ValueError
         self.download_file(file_id, filename)
     
