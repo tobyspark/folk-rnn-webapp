@@ -138,7 +138,7 @@
             {% endwith %}
             </form>
         {% else %}
-            <p><a href="{% url 'login' %}">Log in</a> to add setting.</p>
+            <p><a href="{% url 'login' %}?next={{ request.path }}">Log in</a> to add setting.</p>
         {% endif %}
         </div>
     </div>
@@ -177,7 +177,7 @@
                 {% endwith %}
                 </form>
             {% else %}
-                <p><a href="{% url 'login' %}">Log in</a> to comment.</p>
+                <p><a href="{% url 'login' %}?next={{ request.path }}">Log in</a> to comment.</p>
             {% endif %}
             </li>
         </ul>
