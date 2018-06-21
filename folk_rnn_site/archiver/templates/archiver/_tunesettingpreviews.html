@@ -27,7 +27,7 @@
             responsive: "resize",
         }
         {% for item in tunes_settings %}
-        ABCJS.renderAbc("notation-{{ id_prefix }}{{ forloop.counter }}", "{{ item.abc_trimmed|escapejs }}", params);
+        ABCJS.renderAbc("notation-{{ id_prefix }}{{ forloop.counter }}", "{{ item.abc_preview|escapejs }}", params);
         {% endfor %}
     }, false);
     </script>

@@ -29,13 +29,6 @@ from archiver.forms import (
                             )
 from archiver.dataset import dataset_as_csv
 
-def add_abc_trimmed(tunes):
-    for tune in tunes:
-        abc_trimmed = ABCModel(abc = tune.abc)
-        abc_trimmed.title = None
-        abc_trimmed.body = abc_trimmed.body.partition('\n')[0]
-        tune.abc_trimmed = abc_trimmed.abc
-
 def add_counts(tunes):
     # see also interesting_tunes queryset annotation
     for result in tunes:
@@ -53,8 +46,6 @@ def activity(filter_dict={}):
     tunes_settings = list(chain(qs_tune, qs_setting))
     tunes_settings.sort(key=lambda x: x.submitted)
     tunes_settings[:-MAX_RECENT_ITEMS] = []
-    
-    add_abc_trimmed(tunes_settings)
     
     comments = Comment.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
     
@@ -75,7 +66,6 @@ def home_page(request):
         tune_selection = weightedSelectionWithoutReplacement(interesting_tunes, tune_saliency, k=MAX_RECENT_ITEMS)
     else:
         tune_selection = Tune.objects.all()[-MAX_RECENT_ITEMS:]
-    add_abc_trimmed(tune_selection)
     
     recording = None
     for tune in tune_selection:
@@ -114,7 +104,6 @@ def tunes_page(request):
         search_results_page = paginator.page(1)
     except EmptyPage:
         search_results_page = paginator.page(paginator.num_pages)
-    add_abc_trimmed(search_results_page)
     add_counts(search_results_page)
     
     return render(request, 'archiver/tunes.html', {
@@ -380,7 +369,6 @@ def user_page(request, user_id=None):
     
     tunebook_count = TunebookEntry.objects.filter(user=user).count()
     tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')[:MAX_RECENT_ITEMS]
-    add_abc_trimmed(tunebook)
     
     tunes_settings, comments = activity({'author': user})
     return render(request, 'archiver/profile.html', {
@@ -399,7 +387,6 @@ def tunebook_page(request, user_id):
         return redirect('/')
     
     tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')
-    add_abc_trimmed(tunebook)
     
     paginator = Paginator(tunebook, TUNE_PREVIEWS_PER_PAGE)
     page_number = request.GET.get('page')
