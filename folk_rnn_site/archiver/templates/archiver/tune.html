@@ -54,7 +54,7 @@
     </div>
     <div class="section-body">
         <div id="tune">
-            <textarea class="abc" id="abc-0" hidden>{{ tune.abc_trimmed }}</textarea>
+            <textarea class="abc" id="abc-0" hidden>{{ tune.abc_display }}</textarea>
             <div id="staff-0"></div>
             <div id="midi-0"></div>
         </div>
@@ -114,7 +114,7 @@
             </div>
         </div>
         <div class="section-body">
-            <textarea class="abc" id="abc-{{ forloop.counter }}" hidden>{{ setting.abc_trimmed }}</textarea>
+            <textarea class="abc" id="abc-{{ forloop.counter }}" hidden>{{ setting.abc_display }}</textarea>
             <div id="staff-{{ forloop.counter }}"></div>
             <div id="midi-{{ forloop.counter }}"></div>
         </div>

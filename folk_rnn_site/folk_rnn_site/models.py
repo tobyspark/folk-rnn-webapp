@@ -111,3 +111,23 @@ class ABCModel(models.Model):
                 pass
         return abc
     
+    @property
+    def abc_display(self):
+        '''
+        A version of the tune suitable for in-line display and staff notation.
+        Pass only 'core' headers, broadly ones needed for displaying the notes.
+        '''
+        abc = ''
+        in_header = True
+        for line in self.abc.splitlines():
+            try:
+                if in_header:
+                    if line[0] in ['M', 'L', 'Q', 'K'] and line[1] == ':':
+                        abc += line + '\n'
+                        if line[0] == 'K':
+                            in_header = False
+                else:
+                    abc += line + '\n'
+            except IndexError:
+                pass
+        return abc
