@@ -6,14 +6,16 @@ from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.db.models import Q, Count
 from tempfile import TemporaryFile
 from itertools import chain
 from datetime import timedelta
-from random import choice
+from random import choice, choices
 
 from folk_rnn_site.models import ABCModel, conform_abc
-from archiver import MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
-from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry
+from archiver import TUNE_SEARCH_EXAMPLES, MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
+from archiver import weightedSelectionWithoutReplacement
+from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry, TuneRecording
 from archiver.forms import (
                             AttributionForm, 
                             SettingForm, 
@@ -27,12 +29,14 @@ from archiver.forms import (
                             )
 from archiver.dataset import dataset_as_csv
 
-def add_abc_trimmed(tunes):
-    for tune in tunes:
-        abc_trimmed = ABCModel(abc = tune.abc)
-        abc_trimmed.title = None
-        abc_trimmed.body = abc_trimmed.body.partition('\n')[0]
-        tune.abc_trimmed = abc_trimmed.abc
+def add_counts(tunes):
+    # see also interesting_tunes queryset annotation
+    for result in tunes:
+        result.setting__count = result.setting_set.count()
+        result.comment__count = result.comment_set.count() 
+        result.recording__count = result.tunerecording_set.count() 
+        result.event__count = result.tuneevent_set.count()
+        result.tunebook__count = result.tunebookentry_set.count()
 
 def activity(filter_dict={}):
     qs_tune = Tune.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
@@ -43,18 +47,42 @@ def activity(filter_dict={}):
     tunes_settings.sort(key=lambda x: x.submitted)
     tunes_settings[:-MAX_RECENT_ITEMS] = []
     
-    add_abc_trimmed(tunes_settings)
-    
     comments = Comment.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
     
     return (tunes_settings, comments)
 
 def home_page(request):
-    tunes_settings, comments = activity()
+    q = Q(setting__count__gt=0) | Q(comment__count__gt=0) | Q(recording__count__gt=0) | Q(event__count__gt=0) | Q(tunebook__count__gt=0)
+    interesting_tunes = Tune.objects.annotate(
+        Count('setting', distinct=True), 
+        Count('comment', distinct=True), 
+        recording__count=Count('tunerecording', distinct=True), 
+        event__count=Count('tuneevent', distinct=True),
+        tunebook__count=Count('tunebookentry', distinct=True),
+    ).filter(q)
+    tune_saliency = [x.tunebook__count*3 + x.setting__count*3 + x.recording__count*2 + x.event__count*2 + x.comment__count for x in interesting_tunes]
+    
+    if len(interesting_tunes) > MAX_RECENT_ITEMS:
+        tune_selection = weightedSelectionWithoutReplacement(interesting_tunes, tune_saliency, k=MAX_RECENT_ITEMS)
+    else:
+        tune_selection = Tune.objects.all()[-MAX_RECENT_ITEMS:]
+    
+    recording = None
+    for tune in tune_selection:
+        candidate_recordings = TuneRecording.objects.filter(tune=tune)
+        if len(candidate_recordings):
+            recording = choice(candidate_recordings).recording
+            break
+    if recording is None:
+        try:
+            recording = choice(Recording.objects.all())
+        except:
+            recording = None
+    
     return render(request, 'archiver/home.html', {
-                            'tunes_settings': tunes_settings,
-                            'comments': comments,
-                                })
+                            'recording': recording,
+                            'tunes': tune_selection,
+                            })
 
 def tunes_page(request):
     if 'search' in request.GET and request.GET['search'] != '':
@@ -76,14 +104,12 @@ def tunes_page(request):
         search_results_page = paginator.page(1)
     except EmptyPage:
         search_results_page = paginator.page(paginator.num_pages)
-    add_abc_trimmed(search_results_page)
+    add_counts(search_results_page)
     
-    search_placeholders = ['DeepBach', 'Glas Herry', 'M:3/4', 'K:Cmix', 'G/A/G/F/ ED', 'dBd edc']
-    search_placeholder = f'e.g. {choice(search_placeholders)}'
     return render(request, 'archiver/tunes.html', {
                             'search_form': SearchForm(request.GET),
                             'search_text': search_text,
-                            'search_placeholder': search_placeholder,
+                            'search_examples': TUNE_SEARCH_EXAMPLES,
                             'search_results': search_results_page,
                             })
 
@@ -199,10 +225,6 @@ def tune_page(request, tune_id=None):
                                 user=request.user,
                                 ).delete()
 
-    
-    abc_trimmed = ABCModel(abc = tune.abc)
-    abc_trimmed.title = None
-    tune.abc_trimmed = abc_trimmed.abc
     tune.tunebook_count = TunebookEntry.objects.filter(tune=tune).count()
     if request.user.is_authenticated:
         tune.other_tunebook_count = TunebookEntry.objects.filter(tune=tune).exclude(user=request.user).count()
@@ -213,9 +235,6 @@ def tune_page(request, tune_id=None):
     
     settings = tune.setting_set.all()
     for setting in settings:
-        abc_trimmed = ABCModel(abc = setting.abc)
-        abc_trimmed.title = None
-        setting.abc_trimmed = abc_trimmed.abc
         setting.tunebook_count = TunebookEntry.objects.filter(setting=setting).count()
         if request.user.is_authenticated:
             setting.other_tunebook_count = TunebookEntry.objects.filter(setting=setting).exclude(user=request.user).count()
@@ -343,7 +362,6 @@ def user_page(request, user_id=None):
     
     tunebook_count = TunebookEntry.objects.filter(user=user).count()
     tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')[:MAX_RECENT_ITEMS]
-    add_abc_trimmed(tunebook)
     
     tunes_settings, comments = activity({'author': user})
     return render(request, 'archiver/profile.html', {
@@ -362,7 +380,6 @@ def tunebook_page(request, user_id):
         return redirect('/')
     
     tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')
-    add_abc_trimmed(tunebook)
     
     paginator = Paginator(tunebook, TUNE_PREVIEWS_PER_PAGE)
     page_number = request.GET.get('page')

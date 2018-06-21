@@ -8,6 +8,7 @@ header_t_regex = re.compile(r'T:\s*(.*?)\s*\n')
 header_m_regex = re.compile(r'M:\s*(.*?)\s*\n')
 header_k_regex = re.compile(r'K:\s*(.*?)\s*\n')
 body_regex = re.compile(r'(K:.*?\n)(.*)',re.DOTALL) # FIXME: also ignore any final /n
+body_four_bars_regex = re.compile(r'(.*?[^|]\|){4}')
 
 def conform_abc(abc, raise_if_invalid=True):
     # Add X if missing; needed for abc2abc
@@ -85,3 +86,48 @@ class ABCModel(models.Model):
     @property
     def header_k(self):
         return header_k_regex.search(self.abc).group(1)
+    
+    @property
+    def abc_preview(self):
+        '''
+        A one-line preview of the tune. 
+        Pass only meter and mode headers and the first line of the body.
+        '''
+        abc = ''
+        in_header = True
+        for line in self.abc.splitlines():
+            try:
+                if in_header:
+                    if line[0] in ['M', 'K'] and line[1] == ':':
+                        abc += line + '\n'
+                        if line[0] == 'K':
+                            in_header = False
+                else:
+                    match = body_four_bars_regex.match(line)
+                    if match:
+                        abc += match.group(0)
+                    break
+            except IndexError:
+                pass
+        return abc
+    
+    @property
+    def abc_display(self):
+        '''
+        A version of the tune suitable for in-line display and staff notation.
+        Pass only 'core' headers, broadly ones needed for displaying the notes.
+        '''
+        abc = ''
+        in_header = True
+        for line in self.abc.splitlines():
+            try:
+                if in_header:
+                    if line[0] in ['M', 'L', 'Q', 'K'] and line[1] == ':':
+                        abc += line + '\n'
+                        if line[0] == 'K':
+                            in_header = False
+                else:
+                    abc += line + '\n'
+            except IndexError:
+                pass
+        return abc
