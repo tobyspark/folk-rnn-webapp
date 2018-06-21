@@ -27,7 +27,9 @@
             responsive: "resize",
         }
         {% for item in tunebook %}
-        ABCJS.renderAbc("notation-tunebook-{{ forloop.counter }}", "{{ item.abc_preview|escapejs }}", params);
+        {% with item.tune|default:item.setting as tune %}
+        ABCJS.renderAbc("notation-tunebook-{{ forloop.counter }}", "{{ tune.abc_preview|escapejs }}", params);
+        {% endwith %}
         {% endfor %}
     }, false);
     </script>
