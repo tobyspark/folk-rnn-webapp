@@ -225,10 +225,6 @@ def tune_page(request, tune_id=None):
                                 user=request.user,
                                 ).delete()
 
-    
-    abc_trimmed = ABCModel(abc = tune.abc)
-    abc_trimmed.title = None
-    tune.abc_trimmed = abc_trimmed.abc
     tune.tunebook_count = TunebookEntry.objects.filter(tune=tune).count()
     if request.user.is_authenticated:
         tune.other_tunebook_count = TunebookEntry.objects.filter(tune=tune).exclude(user=request.user).count()
@@ -239,9 +235,6 @@ def tune_page(request, tune_id=None):
     
     settings = tune.setting_set.all()
     for setting in settings:
-        abc_trimmed = ABCModel(abc = setting.abc)
-        abc_trimmed.title = None
-        setting.abc_trimmed = abc_trimmed.abc
         setting.tunebook_count = TunebookEntry.objects.filter(setting=setting).count()
         if request.user.is_authenticated:
             setting.other_tunebook_count = TunebookEntry.objects.filter(setting=setting).exclude(user=request.user).count()
