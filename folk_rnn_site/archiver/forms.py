@@ -6,7 +6,7 @@ from embed_video.fields import EmbedVideoFormField
 
 from folk_rnn_site.models import conform_abc
 from archiver import YEAR_CHOICES
-from archiver.models import User, Setting
+from archiver.models import User, Tune, TuneAttribution, Setting
 
 class AttributionForm(forms.Form):
     text = forms.CharField(required=False)
@@ -27,17 +27,18 @@ class ContactForm(forms.Form):
     text = forms.CharField(widget=forms.Textarea())
     email = forms.EmailField(required=False)
 
-class TuneForm(forms.Form):
-    abc = forms.CharField(widget=forms.Textarea())
-    text = forms.CharField(widget=forms.Textarea())
-    url = forms.URLField(required=False)
-    
-    def clean_abc(self):
-        try:
-            abc = conform_abc(self.cleaned_data['abc'])
-        except AttributeError as e:
-            raise forms.ValidationError(e)
-        return abc
+class TuneForm(forms.ModelForm):
+    class Meta:
+        model = Tune
+        fields = ['abc']        
+        # abc = forms.CharField(widget=forms.Textarea())
+        # text = forms.CharField(widget=forms.Textarea())
+        # url = forms.URLField(required=False)
+
+class TuneAttributionForm(forms.ModelForm):
+    class Meta:
+        model = TuneAttribution
+        fields = ['text', 'url']
 
 class RecordingForm(forms.Form):
     title = forms.CharField()

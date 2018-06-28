@@ -21,7 +21,8 @@ from archiver.forms import (
                             SettingForm, 
                             CommentForm, 
                             ContactForm, 
-                            TuneForm, 
+                            TuneForm,
+                            TuneAttributionForm, 
                             RecordingForm, 
                             EventForm, 
                             TunebookForm,
@@ -412,20 +413,18 @@ def tunebook_download(request, user_id):
 
 def submit_page(request):
     if request.method == 'POST' and 'submit-tune' in request.POST:
-            tune_form = TuneForm(request.POST)
-            if tune_form.is_valid():
-                tune = Tune.objects.create(
-                        abc=tune_form.cleaned_data['abc'], 
-                        author=request.user,
-                        )
-                TuneAttribution.objects.create(
-                                        tune=tune,
-                                        text=tune_form.cleaned_data['text'],
-                                        url=tune_form.cleaned_data['url'],
-                                        )
+            tune = Tune(author=request.user)
+            tune_form = TuneForm(request.POST, instance=tune)
+            tune_attribution_form = TuneAttributionForm(request.POST)
+            if tune_form.is_valid() and tune_attribution_form.is_valid():
+                tune_form.save()
+                tune_attribution = TuneAttribution(tune=tune) # tune now has pk
+                tune_attribution_form = TuneAttributionForm(request.POST, instance=tune_attribution) 
+                tune_attribution_form.save()
                 return redirect(reverse('tune', kwargs={"tune_id": tune.id}))
     else:
         tune_form = TuneForm()
+        tune_attribution_form = TuneAttributionForm()
 
     if request.method == 'POST' and 'submit-recording' in request.POST:
             recording_form = RecordingForm(request.POST)
@@ -456,6 +455,7 @@ def submit_page(request):
     
     return render(request, 'archiver/submit.html', {
                             'tune_form': tune_form,
+                            'tune_attribution_form': tune_attribution_form,
                             'recording_form': recording_form,
                             'event_form': event_form,
     })

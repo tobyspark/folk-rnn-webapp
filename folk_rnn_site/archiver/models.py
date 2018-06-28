@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.exceptions import ValidationError
 from embed_video.fields import EmbedVideoField
 
 from folk_rnn_site.models import ABCModel, conform_abc
@@ -67,6 +68,18 @@ class Tune(ABCModel):
             info += [f'FolkRNN {self.rnn_tune.id}']
         return f'Tune: {self.title} ({", ".join(info)})'
     
+    def clean(self):
+        # Ensure an X: header is present, needed for conform_abc
+        self.header_x = 0
+        # Validate ABC
+        try:
+            conform_abc(self.abc)
+        except AttributeError as e:
+            raise ValidationError({'abc': e})
+        # Check there isn't already a tune with this abc body
+        if any(x.body == self.body for x in Tune.objects.exclude(id=self.id)):
+            raise ValidationError({'abc': 'This tune is not a variation of another.'})
+        
     class Meta:
         ordering = ['id']
     
