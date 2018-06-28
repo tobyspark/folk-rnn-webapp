@@ -16,10 +16,10 @@
                 {% csrf_token %}
                 {{ tune_form.abc.errors }}
                 {% render_field tune_form.abc class+="pure-input-1" rows="6" placeholder="Tune in ABC notation, e.g. M:4/4..."%}
-                {{ tune_form.text.errors }}
-                {% render_field tune_form.text class+="pure-input-1" rows="2" placeholder="Tell the story of the tune, e.g. how was it (co-)composed by a machine?"%}
-                {{ tune_form.url.errors }}
-                {% render_field tune_form.url class+="pure-input-1" placeholder="Link (optional), e.g. to a page describing the process further"%}
+                {{ tune_attribution_form.text.errors }}
+                {% render_field tune_attribution_form.text class+="pure-input-1" rows="2" placeholder="Tell the story of the tune, e.g. how was it (co-)composed by a machine?"%}
+                {{ tune_attribution_form.url.errors }}
+                {% render_field tune_attribution_form.url class+="pure-input-1" placeholder="Link (optional), e.g. to a page describing the process further"%}
                 <div class="pure-control-group pure-u-1">
                     <input id="tune_button" type="submit" name="submit-tune" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
                 </div>
