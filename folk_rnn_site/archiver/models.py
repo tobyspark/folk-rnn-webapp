@@ -108,29 +108,27 @@ class TuneAttribution(models.Model):
     text = models.TextField(null=True, blank=True)
     url = models.URLField(null=True, blank=True)
     
-class SettingManager(models.Manager):
-    def create_setting(self, tune, abc, author):
-        # Create but don't add to db
-        setting = Setting(tune=tune, abc=abc, author=author)
-        setting.header_x = self.filter(tune=tune).count() + 1
-        # Validate ABC
-        conform_abc(setting.abc)
-        # Check the abc body is new
-        if tune.body == setting.body:
-            raise ValueError('This setting is not a variation on the main tune.')
-        # Check there isn't already a setting with this abc body
-        if any(x.body == setting.body for x in self.all()):
-            raise ValueError('This setting is not a variation on another setting’s tune.')
-        # Now verified, add to db
-        setting.save()
-        return setting
-
 class Setting(ABCModel):
     def __str__(self):
         info = [f'X {self.header_x}', f'MachineFolk {self.tune.id}']
         if self.tune.rnn_tune:
             info += [f'FolkRNN {self.tune.rnn_tune.id}']
         return f'Setting: {self.title} ({", ".join(info)})'
+    
+    def clean(self):
+        # Ensure an X: header is present, needed for conform_abc
+        self.header_x = 0
+        # Validate ABC
+        try:
+            conform_abc(self.abc)
+        except AttributeError as e:
+            raise ValidationError({'abc': e})
+        # Check the abc body is new
+        if self.tune.body == self.body:
+            raise ValidationError({'abc': 'This setting’s tune is not a variation on the main tune.'})
+        # Check there isn't already a setting with this abc body
+        if any(x.body == self.body for x in Setting.objects.exclude(id=self.id)):
+            raise ValidationError({'abc': 'This setting is not a variation of another.'})
     
     class Meta:
         ordering = ['id']
@@ -139,7 +137,6 @@ class Setting(ABCModel):
     author = models.ForeignKey(User)
     submitted = models.DateTimeField(auto_now_add=True)
 
-    objects = SettingManager()
 @receiver(post_save, sender=Setting)
 def auto_x(sender, **kwargs):
     '''

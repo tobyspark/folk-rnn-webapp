@@ -160,18 +160,13 @@ def tune_page(request, tune_id=None):
                     attribution.url = attribution_form.cleaned_data['url']
                     attribution.save()
             elif 'submit-setting' in request.POST:
-                form = SettingForm(request.POST)
-                if form.is_valid():
-                    try:
-                        print(request.user)
-                        Setting.objects.create_setting(
+                setting = Setting(
                             tune=tune,
-                            abc=form.cleaned_data['abc'],
                             author=request.user,
                             )
-                    except Exception as e:
-                        setting_form = form
-                        setting_form.add_error('abc', e) 
+                form = SettingForm(request.POST, instance=setting)
+                if form.is_valid():
+                    form.save() 
                 else:
                     setting_form = form
             elif 'submit-comment' in request.POST:

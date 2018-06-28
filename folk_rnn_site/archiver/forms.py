@@ -6,14 +6,19 @@ from embed_video.fields import EmbedVideoFormField
 
 from folk_rnn_site.models import conform_abc
 from archiver import YEAR_CHOICES
-from archiver.models import User
+from archiver.models import User, Setting
 
 class AttributionForm(forms.Form):
     text = forms.CharField(required=False)
     url = forms.URLField(required=False)
         
-class SettingForm(forms.Form):
-    abc = forms.CharField(label='', widget=forms.Textarea(attrs={'id': 'abc'}))
+class SettingForm(forms.ModelForm):
+    class Meta:
+        model = Setting
+        fields = ['abc']
+        widgets = {
+            'abc': forms.Textarea(attrs={'id': 'abc'})
+        }
     
 class CommentForm(forms.Form):
     text = forms.CharField(label='Comment:', widget=forms.Textarea(attrs={'id': 'new_comment'}))
