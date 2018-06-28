@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from embed_video.fields import EmbedVideoField
 
@@ -84,6 +86,17 @@ class Tune(ABCModel):
     rnn_tune = models.ForeignKey(RNNTune, null=True, blank=True)
     submitted = models.DateTimeField(auto_now_add=True)
 
+@receiver(post_save, sender=Tune)
+def auto_x(sender, **kwargs):
+    '''
+    Update a tune's X: header to it's Machine Folk ID
+    '''
+    if kwargs['created']:
+        instance = kwargs['instance']
+        instance.header_x = instance.id
+        # update db without recursive save signal
+        sender.objects.filter(id=instance.id).update(abc=instance.abc)
+
 class TuneAttribution(models.Model):
     def __str__(self):
         return f'Tune Meta: {self.text[:30]} (MachineFolk {self.tune.id})'
@@ -127,6 +140,17 @@ class Setting(ABCModel):
     submitted = models.DateTimeField(auto_now_add=True)
 
     objects = SettingManager()
+@receiver(post_save, sender=Setting)
+def auto_x(sender, **kwargs):
+    '''
+    Update a setting's X: header to it's creation order
+    '''
+    if kwargs['created']:
+        instance = kwargs['instance']
+        settings = list(Setting.objects.filter(tune=instance.tune).order_by('id'))
+        instance.header_x = settings.index(instance) + 1
+        # update db without recursive save signal
+        sender.objects.filter(id=instance.id).update(abc=instance.abc)
 
 class Comment(models.Model):
     def __str__(self):
