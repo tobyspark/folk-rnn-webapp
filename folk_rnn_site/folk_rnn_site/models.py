@@ -77,8 +77,13 @@ class ABCModel(models.Model):
 
     @header_x.setter
     def header_x(self, value):
-        self.abc = header_x_regex.sub(f'X:{value}\n', self.abc)
-
+        if header_x_regex.search(self.abc):
+            # update X: value
+            self.abc = header_x_regex.sub(f'X:{value}\n', self.abc)
+        else:
+            # add X: line at beginning
+            self.abc = f'X: {value}\n{self.abc}'
+    
     @property
     def header_m(self):
         return header_m_regex.search(self.abc).group(1)
@@ -106,6 +111,8 @@ class ABCModel(models.Model):
                     match = body_four_bars_regex.match(line)
                     if match:
                         abc += match.group(0)
+                    else:
+                        abc += line[:30]
                     break
             except IndexError:
                 pass
