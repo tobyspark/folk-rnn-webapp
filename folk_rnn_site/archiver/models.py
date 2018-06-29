@@ -102,7 +102,7 @@ class Tune(ABCModel):
     submitted = models.DateTimeField(auto_now_add=True)
 
 @receiver(post_save, sender=Tune)
-def auto_x(sender, **kwargs):
+def tune_auto_x(sender, **kwargs):
     '''
     Update a tune's X: header to it's Machine Folk ID
     '''
@@ -154,7 +154,7 @@ class Setting(ABCModel):
     submitted = models.DateTimeField(auto_now_add=True)
 
 @receiver(post_save, sender=Setting)
-def auto_x(sender, **kwargs):
+def setting_auto_x(sender, **kwargs):
     '''
     Update a setting's X: header to it's creation order
     '''
