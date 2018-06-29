@@ -106,11 +106,10 @@ def auto_x(sender, **kwargs):
     '''
     Update a tune's X: header to it's Machine Folk ID
     '''
-    if kwargs['created']:
-        instance = kwargs['instance']
-        instance.header_x = instance.id
-        # update db without recursive save signal
-        sender.objects.filter(id=instance.id).update(abc=instance.abc)
+    instance = kwargs['instance']
+    instance.header_x = instance.id
+    # update db without recursive save signal
+    sender.objects.filter(id=instance.id).update(abc=instance.abc)
 
 class TuneAttribution(models.Model):
     def __str__(self):
@@ -159,12 +158,11 @@ def auto_x(sender, **kwargs):
     '''
     Update a setting's X: header to it's creation order
     '''
-    if kwargs['created']:
-        instance = kwargs['instance']
-        settings = list(Setting.objects.filter(tune=instance.tune).order_by('id'))
-        instance.header_x = settings.index(instance) + 1
-        # update db without recursive save signal
-        sender.objects.filter(id=instance.id).update(abc=instance.abc)
+    instance = kwargs['instance']
+    settings = list(Setting.objects.filter(tune=instance.tune).order_by('id'))
+    instance.header_x = settings.index(instance) + 1
+    # update db without recursive save signal
+    sender.objects.filter(id=instance.id).update(abc=instance.abc)
 
 class Comment(models.Model):
     def __str__(self):
