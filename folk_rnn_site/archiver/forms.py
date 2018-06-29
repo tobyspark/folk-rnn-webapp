@@ -16,9 +16,6 @@ class SettingForm(forms.ModelForm):
     class Meta:
         model = Setting
         fields = ['abc', 'check_valid_abc']
-        widgets = {
-            'abc': forms.Textarea(attrs={'id': 'abc'})
-        }
     
 class CommentForm(forms.Form):
     text = forms.CharField(label='Comment:', widget=forms.Textarea(attrs={'id': 'new_comment'}))
