@@ -15,7 +15,7 @@ class AttributionForm(forms.Form):
 class SettingForm(forms.ModelForm):
     class Meta:
         model = Setting
-        fields = ['abc']
+        fields = ['abc', 'check_valid_abc']
         widgets = {
             'abc': forms.Textarea(attrs={'id': 'abc'})
         }
@@ -30,10 +30,7 @@ class ContactForm(forms.Form):
 class TuneForm(forms.ModelForm):
     class Meta:
         model = Tune
-        fields = ['abc']        
-        # abc = forms.CharField(widget=forms.Textarea())
-        # text = forms.CharField(widget=forms.Textarea())
-        # url = forms.URLField(required=False)
+        fields = ['abc', 'check_valid_abc']        
 
 class TuneAttributionForm(forms.ModelForm):
     class Meta:

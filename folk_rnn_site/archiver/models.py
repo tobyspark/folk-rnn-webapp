@@ -69,13 +69,14 @@ class Tune(ABCModel):
         return f'Tune: {self.title} ({", ".join(info)})'
     
     def clean(self):
-        # Ensure an X: header is present, needed for conform_abc
-        self.header_x = 0
-        # Validate ABC
-        try:
-            conform_abc(self.abc)
-        except AttributeError as e:
-            raise ValidationError({'abc': e})
+        if self.check_valid_abc:
+            # Ensure an X: header is present, needed for conform_abc
+            self.header_x = 0
+            # Validate ABC
+            try:
+                conform_abc(self.abc)
+            except AttributeError as e:
+                raise ValidationError({'abc': e})
         # Check there isn't already a tune with this abc body
         if any(x.body == self.body for x in Tune.objects.exclude(id=self.id)):
             raise ValidationError({'abc': 'This tune is not a variation of another.'})
@@ -97,6 +98,7 @@ class Tune(ABCModel):
     
     author = models.ForeignKey(User, default=1)
     rnn_tune = models.ForeignKey(RNNTune, null=True, blank=True)
+    check_valid_abc = models.BooleanField(default=True)
     submitted = models.DateTimeField(auto_now_add=True)
 
 @receiver(post_save, sender=Tune)
@@ -129,13 +131,14 @@ class Setting(ABCModel):
         return f'Setting: {self.title} ({", ".join(info)})'
     
     def clean(self):
-        # Ensure an X: header is present, needed for conform_abc
-        self.header_x = 0
-        # Validate ABC
-        try:
-            conform_abc(self.abc)
-        except AttributeError as e:
-            raise ValidationError({'abc': e})
+        if self.check_valid_abc:
+            # Ensure an X: header is present, needed for conform_abc
+            self.header_x = 0
+            # Validate ABC
+            try:
+                conform_abc(self.abc)
+            except AttributeError as e:
+                raise ValidationError({'abc': e})
         # Check the abc body is new
         if self.tune.body == self.body:
             raise ValidationError({'abc': 'This setting’s tune is not a variation on the main tune.'})
@@ -148,6 +151,7 @@ class Setting(ABCModel):
     
     tune = models.ForeignKey(Tune)
     author = models.ForeignKey(User)
+    check_valid_abc = models.BooleanField(default=True)
     submitted = models.DateTimeField(auto_now_add=True)
 
 @receiver(post_save, sender=Setting)
