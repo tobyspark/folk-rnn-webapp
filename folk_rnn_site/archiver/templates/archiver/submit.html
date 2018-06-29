@@ -11,10 +11,10 @@
     </div>
     <div class="section-body">
         {% if user.is_authenticated %}
-            <form method="POST" class="pure-form pure-g">
+            <form method="POST" class="pure-form">
             {% with WIDGET_ERROR_CLASS='error' %}
                 {% csrf_token %}
-                {{ tune_form.abc.errors }}
+                <div id="tune-form-error-list">{{ tune_form.abc.errors }}</div>
                 {% render_field tune_form.abc class+="pure-input-1" rows="6" placeholder="Tune in ABC notation, e.g. M:4/4..."%}
                 {{ tune_attribution_form.text.errors }}
                 {% render_field tune_attribution_form.text class+="pure-input-1" rows="2" placeholder="Tell the story of the tune, e.g. how was it (co-)composed by a machine?"%}
@@ -37,7 +37,7 @@
     </div>
     <div class="section-body">
         {% if user.is_authenticated %}
-            <form method="POST" class="pure-form pure-g">
+            <form method="POST" class="pure-form">
             {% with WIDGET_ERROR_CLASS='error' %}
                 {% csrf_token %}
                 {{ recording_form.title.errors }}
@@ -64,7 +64,7 @@
     </div>
     <div class="section-body">
         {% if user.is_authenticated %}
-            <form method="POST" class="pure-form pure-g">
+            <form method="POST" class="pure-form">
             {% with WIDGET_ERROR_CLASS='error' %}
                 {% csrf_token %}
                 {{ event_form.title.errors }}
@@ -83,4 +83,15 @@
         {% endif %}
     </div>
 </div>
+<script>
+window.addEventListener("load", function() {
+    // Valid ABC Checkbox
+    document.getElementById("id_check_valid_abc").addEventListener("change", function() {
+        if (!this.checked) {
+            document.getElementById("tune-form-error-list").setAttribute("hidden", "foo");
+            document.getElementById("id_abc").classList.remove("error");
+        }
+    }, false);
+}, false);
+</script>
 {% endblock %}

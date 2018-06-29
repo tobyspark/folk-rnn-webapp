@@ -130,11 +130,11 @@
             <form method="POST" class="pure-form">
             {% with WIDGET_ERROR_CLASS='error' %}
                 {%  csrf_token %}
-                {{ setting_form.abc.errors }}
-                {% render_field setting_form.abc class+="pure-input-1" title="Add setting ABC here."%}
+                <div id="setting-form-error-list">{{ setting_form.abc.errors }}</div>
+                {% render_field setting_form.abc id="setting-form-abc" class+="pure-input-1" title="Add setting ABC here."%}
                 <div class="pure-control-group pure-u-1">
                     <input id="setting_button" type="submit" name="submit-setting" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
-                    {% render_field setting_form.check_valid_abc %}<label for="id_check_valid" class="meta"> Check ABC notation is well formed</label>
+                    {% render_field setting_form.check_valid_abc %}<label for="id_check_valid_abc" class="meta"> Check ABC notation is well formed</label>
                 </div>
             {% endwith %}
             </form>
@@ -207,6 +207,13 @@ window.addEventListener("load", function() {
         el = document.getElementById("staff-" + i + "-checkbox");
         el.addEventListener("change", viewCheckboxHandler, false);
     }
+    // Valid ABC Checkbox
+    document.getElementById("id_check_valid_abc").addEventListener("change", function() {
+        if (!this.checked) {
+            document.getElementById("setting-form-error-list").setAttribute("hidden", "foo");
+            document.getElementById("setting-form-abc").classList.remove("error");
+        }
+    }, false);
     // abcjs
     const colorRange = function(range, color) {
         if (range && range.elements) {
