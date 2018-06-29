@@ -134,6 +134,7 @@
                 {% render_field setting_form.abc class+="pure-input-1" title="Add setting ABC here."%}
                 <div class="pure-control-group pure-u-1">
                     <input id="setting_button" type="submit" name="submit-setting" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                    {% render_field setting_form.check_valid_abc %}<label for="id_check_valid" class="meta"> Check ABC notation is well formed</label>
                 </div>
             {% endwith %}
             </form>

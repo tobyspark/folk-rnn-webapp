@@ -145,7 +145,8 @@ def tune_page(request, tune_id=None):
             else:
                 attribution_form = AttributionForm()
         setting_form = SettingForm({
-            'abc': conform_abc(tune.abc, raise_if_invalid=False)
+            'abc': tune.abc,
+            'check_valid_abc': True,
         })
         comment_form = CommentForm()
         if request.method == 'POST':
