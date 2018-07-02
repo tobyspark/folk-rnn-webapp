@@ -83,15 +83,7 @@ class Tune(ABCModel):
         
     class Meta:
         ordering = ['id']
-    
-    @property 
-    def valid_abc(self):
-        try:
-            conform_abc(self.abc)
-            return True
-        except:
-            return False
-    
+        
     @property
     def title_or_mfsession(self):
         return self.title if len(self.title) else f'Untitled (Machine Folk Session №{self.id})' 
