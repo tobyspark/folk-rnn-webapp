@@ -4,9 +4,9 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from django_hosts.resolvers import reverse
 
+from folk_rnn_site.models import conform_abc
 from composer.models import RNNTune
 from composer.forms import ComposeForm, ArchiveForm
-
 from archiver.models import Tune
 
 def home_page(request):
@@ -42,7 +42,14 @@ def archive_tune(request, tune_id=None):
             try:
                 tune_in_archive = Tune.objects.get(rnn_tune=tune)
             except Tune.DoesNotExist:
-                tune_in_archive = Tune(rnn_tune=tune, abc=tune.abc)
+                # For RNN Tunes, the manual input field check_valid_abc is redundant. 
+                # It can however serve as "is valid" flag for the tune page metadata display.
+                try:
+                    conform_abc(tune.abc)
+                    is_valid = True
+                except:
+                    is_valid = False
+                tune_in_archive = Tune(rnn_tune=tune, abc=tune.abc, check_valid_abc=is_valid)
                 tune_in_archive.title = form.cleaned_data['title']
                 tune_in_archive.save()
             return redirect(reverse('tune', host='archiver', kwargs={'tune_id': tune_in_archive.id}))

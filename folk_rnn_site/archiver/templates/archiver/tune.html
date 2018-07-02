@@ -14,7 +14,7 @@
         <p class="meta">{{ attribution.text }}{% if attribution.text and attribution.url %}<br>{% endif %}{% if attribution.url %}<a href="{{ attribution.url }}">{{ attribution.url }}</a>{% endif %}</p>
     {% endfor %}
     {% if tune.rnn_tune %}
-        <p class="meta">Machine generated.<br>ABC auto-formatted.<br>{% if tune.valid_abc %}Valid{% else %}Invalid{% endif %} ABC.</p>
+        <p class="meta">Machine generated.<br>ABC auto-formatted.<br>{% if tune.check_valid_abc %}Valid{% else %}Invalid{% endif %} ABC.</p>
         <p class="meta">Archived from <a href="{{ tune.rnn_tune.url }}{# FIXME: hardcoded domain #}" class="parameter">folkrnn.org</a>, where it was generated using the <span id="rnn_model_name" class="parameter">{{ tune.rnn_tune.rnn_model_name | cut:'.pickle' }}</span> model.</p>
         <p class="meta">The RNN seed was <span id="seed" class="parameter">{{ tune.rnn_tune.seed }}</span>, temperature was <span id="temp" class="parameter">{{ tune.rnn_tune.temp }}</span> and prime tokens were <span id="prime_tokens" class="parameter">{{ tune.rnn_tune.prime_tokens }}</span>.</p>
     {% endif %}

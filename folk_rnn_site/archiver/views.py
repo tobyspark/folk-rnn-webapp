@@ -12,7 +12,7 @@ from itertools import chain
 from datetime import timedelta
 from random import choice, choices
 
-from folk_rnn_site.models import ABCModel, conform_abc
+from folk_rnn_site.models import ABCModel
 from archiver import TUNE_SEARCH_EXAMPLES, MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
 from archiver import weightedSelectionWithoutReplacement
 from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry, TuneRecording
