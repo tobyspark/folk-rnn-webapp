@@ -1,4 +1,5 @@
 from django.db import models
+from unidecode import unidecode
 import subprocess
 import re
 
@@ -21,7 +22,8 @@ def conform_abc(abc, raise_if_invalid=True):
         raise AttributeError('Missing K header')
     # Parse through abc2abc
     try:
-        abc_bytes = abc.encode()
+        abc_safe = unidecode(abc) # convert smart quotes to ASCII straight quotes etc.
+        abc_bytes = abc_safe.encode()
         result = subprocess.run([ABC2ABC_PATH, 'stdin'], input=abc_bytes, stdout=subprocess.PIPE)
     except:
         raise AttributeError('Parsing ABC failed')
