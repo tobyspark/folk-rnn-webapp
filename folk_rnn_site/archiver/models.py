@@ -3,6 +3,7 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.exceptions import ValidationError
+from django_hosts.resolvers import reverse
 from embed_video.fields import EmbedVideoField
 
 from folk_rnn_site.models import ABCModel, conform_abc
@@ -88,6 +89,14 @@ class Tune(ABCModel):
     def title_or_mfsession(self):
         return self.title if len(self.title) else f'Untitled (Machine Folk Session №{self.id})' 
     
+    @property
+    def abc_with_attribution(self):
+        url = reverse('tune', host='archiver', kwargs={'tune_id': self.id})
+        abc_model = ABCModel(abc=self.abc)
+        abc_model.header_f = url
+        abc_model.header_s = f'Tune #{self.id} archived at The Machine Folk Session'
+        return abc_model.abc
+    
     author = models.ForeignKey(User, default=1)
     rnn_tune = models.ForeignKey(RNNTune, null=True, blank=True)
     check_valid_abc = models.BooleanField(default=True)
@@ -139,6 +148,14 @@ class Setting(ABCModel):
     
     class Meta:
         ordering = ['id']
+    
+    @property
+    def abc_with_attribution(self):
+        url = reverse('tune', host='archiver', kwargs={'tune_id': self.tune.id})
+        abc_model = ABCModel(abc=self.abc)
+        abc_model.header_f = url
+        abc_model.header_s = f'Setting #{self.header_x} of tune #{self.tune.id} archived at The Machine Folk Session'
+        return abc_model.abc
     
     tune = models.ForeignKey(Tune)
     author = models.ForeignKey(User)

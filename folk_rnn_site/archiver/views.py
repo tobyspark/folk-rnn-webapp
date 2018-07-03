@@ -256,7 +256,7 @@ def tune_download(request, tune_id=None):
     except (TypeError, Tune.DoesNotExist):
         return redirect('/')
 
-    response = HttpResponse(tune.abc, content_type='text/plain')
+    response = HttpResponse(tune.abc_with_attribution, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tune_{tune_id}"'
     return response
 
@@ -269,7 +269,7 @@ def setting_download(request, tune_id=None, setting_id=None):
 
     try:
         settings = tune.setting_set.all()
-        abc = [x.abc for x in settings if x.header_x == setting_id][0]
+        abc = [x.abc_with_attribution for x in settings if x.header_x == setting_id][0]
     except (IndexError):
         return redirect('/')
     
@@ -284,10 +284,10 @@ def tune_setting_download(request, tune_id=None):
     except (TypeError, Tune.DoesNotExist):
         return redirect('/')
     
-    tune_zeroed = ABCModel(abc=tune.abc)
+    tune_zeroed = ABCModel(abc=tune.abc_with_attribution)
     tune_zeroed.header_x = 0
     settings = tune.setting_set.all()
-    abc_tunebook = '\n\n'.join([tune_zeroed.abc] + [x.abc for x in settings])
+    abc_tunebook = '\n\n'.join([tune_zeroed.abc] + [x.abc_with_attribution for x in settings])
 
     response = HttpResponse(abc_tunebook, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tune_{tune_id}_and_settings"'
@@ -400,7 +400,7 @@ def tunebook_download(request, user_id):
         return redirect('/')
 
     tunebook_qs = TunebookEntry.objects.filter(user=user).order_by('id')
-    tunebook = [ABCModel(abc=x.abc) for x in tunebook_qs]
+    tunebook = [ABCModel(abc=x.abc_with_attribution) for x in tunebook_qs]
     for idx, tune in enumerate(tunebook):
         tune.header_x = idx
     
