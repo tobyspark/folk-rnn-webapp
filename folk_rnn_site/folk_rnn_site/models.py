@@ -151,14 +151,14 @@ class ABCModel(models.Model):
     def abc_preview(self):
         '''
         A one-line preview of the tune. 
-        Pass only meter and mode headers and the first line of the body.
+        Pass only meter, key and unit note length info fields and the first line of the body.
         '''
         abc = ''
         in_header = True
         for line in self.abc.splitlines():
             try:
                 if in_header:
-                    if line[0] in ['M', 'K'] and line[1] == ':':
+                    if line[0] in ['M', 'K', 'L'] and line[1] == ':':
                         abc += line + '\n'
                         if line[0] == 'K':
                             in_header = False
@@ -177,7 +177,7 @@ class ABCModel(models.Model):
     def abc_display(self):
         '''
         A version of the tune suitable for in-line display and staff notation.
-        Pass only 'core' headers, broadly ones needed for displaying the notes.
+        Pass only 'core' info fields, broadly ones needed for displaying the notes.
         '''
         abc = ''
         in_header = True
