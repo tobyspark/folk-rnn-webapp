@@ -17,7 +17,6 @@ from archiver import TUNE_SEARCH_EXAMPLES, MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_P
 from archiver import weightedSelectionWithoutReplacement
 from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry, TuneRecording
 from archiver.forms import (
-                            AttributionForm, 
                             SettingForm, 
                             CommentForm, 
                             ContactForm, 
@@ -138,12 +137,12 @@ def tune_page(request, tune_id=None):
         if tune.author_id in [default_author, request.user.id]:
             attribution = TuneAttribution.objects.filter(tune=tune).first()
             if attribution:
-                attribution_form = AttributionForm({
+                attribution_form = TuneAttributionForm({
                                                 'text': attribution.text,
                                                 'url': attribution.url,
                                                 })
             else:
-                attribution_form = AttributionForm()
+                attribution_form = TuneAttributionForm()
         setting_form = SettingForm({
             'abc': tune.abc,
             'check_valid_abc': True,
@@ -151,7 +150,7 @@ def tune_page(request, tune_id=None):
         comment_form = CommentForm()
         if request.method == 'POST':
             if 'submit-attribution' in request.POST:
-                attribution_form = AttributionForm(request.POST)
+                attribution_form = TuneAttributionForm(request.POST)
                 if attribution_form.is_valid():
                     tune.author = request.user
                     tune.save()
