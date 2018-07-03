@@ -6,6 +6,8 @@ import re
 from composer import ABC2ABC_PATH
 header_x_regex = re.compile(r'X:\s*([0-9]+)\s*\n')
 header_t_regex = re.compile(r'T:\s*(.*?)\s*\n')
+header_s_regex = re.compile(r'S:\s*(.*?)\s*\n')
+header_f_regex = re.compile(r'F:\s*(.*?)\s*\n')
 header_m_regex = re.compile(r'M:\s*(.*?)\s*\n')
 header_k_regex = re.compile(r'K:\s*(.*?)\s*\n')
 body_regex = re.compile(r'(K:.*?\n)(.*)',re.DOTALL) # FIXME: also ignore any final /n
@@ -85,6 +87,41 @@ class ABCModel(models.Model):
         else:
             # add X: line at beginning
             self.abc = f'X: {value}\n{self.abc}'
+    
+    @property
+    def header_s(self):
+        match = header_s_regex.search(self.abc)
+        return match.group(1)
+    
+    @header_s.setter
+    def header_s(self, value):
+        '''
+        ABC S: information field; the source
+        Multiple S headers are not handled
+        '''
+        if header_s_regex.search(self.abc):
+            # update S: value
+            self.abc = header_s_regex.sub(f'S:{value}\n', self.abc)
+        else:
+            # add S: line after X:
+            self.abc = header_x_regex.sub(f'X:{self.header_x}\nS:{value}\n', self.abc)
+
+    @property
+    def header_f(self):
+        match = header_f_regex.search(self.abc)
+        return match.group(1)
+    
+    @header_f.setter
+    def header_f(self, value):
+        '''
+        ABC F: information field; the file URL
+        '''
+        if header_f_regex.search(self.abc):
+            # update F: value
+            self.abc = header_f_regex.sub(f'F:{value}\n', self.abc)
+        else:
+            # add F: line after X:
+            self.abc = header_x_regex.sub(f'X:{self.header_x}\nF:{value}\n', self.abc)
     
     @property
     def header_m(self):
