@@ -208,12 +208,15 @@ window.addEventListener("load", function() {
         el.addEventListener("change", viewCheckboxHandler, false);
     }
     // Valid ABC Checkbox
-    document.getElementById("id_check_valid_abc").addEventListener("change", function() {
-        if (!this.checked) {
-            document.getElementById("setting-form-error-list").setAttribute("hidden", "foo");
-            document.getElementById("setting-form-abc").classList.remove("error");
-        }
-    }, false);
+    const el_check_valid = document.getElementById("id_check_valid_abc")
+    if (el_check_valid) {
+        el_check_valid.addEventListener("change", function() {
+            if (!this.checked) {
+                document.getElementById("setting-form-error-list").setAttribute("hidden", "foo");
+                document.getElementById("setting-form-abc").classList.remove("error");
+            }
+        }, false);
+    }
     // abcjs
     const colorRange = function(range, color) {
         if (range && range.elements) {
