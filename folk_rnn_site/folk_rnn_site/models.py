@@ -97,7 +97,7 @@ class ABCModel(models.Model):
             sub = f'X:{value}\n' if value != None and value != '' else ''
             self.abc = header_x_regex.sub(sub, self.abc)
         elif value != None and value != '':
-            self.abc = f'X: {value}\n{self.abc}'
+            self.abc = f'X:{value}\n{self.abc}'
     
     @property
     def header_s(self):
