@@ -91,7 +91,12 @@ K:Cmaj
         self.assertEqual(tune.header_x, '3')
         tune.header_x = 0
         self.assertEqual(tune.abc, mint_abc())
-    
+        tune = ConcreteABCTune(abc='''M:4/4
+K:Cmaj
+A B C''')
+        tune.header_x = 123
+        self.assertEqual(tune.header_x, '123')
+            
     def test_body_property(self):
         tune = ConcreteABCTune(abc=chapka_abc)
         self.assertEqual(tune.body, chapka_abc_body)
@@ -103,7 +108,7 @@ K:Cmaj
 class ABCJSTest(TestCase):
 
     def test_abcjs_available(self):
-        self.assertIsNotNone(finders.find('abcjs_midi_5.0.1-min.js'))
+        self.assertIsNotNone(finders.find('abcjs_midi_5.1.2-min.js'))
         self.assertIsNotNone(finders.find('abcjs-midi.css'))
 
     def test_soundfonts_available(self):

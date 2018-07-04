@@ -66,7 +66,9 @@ class Command(BaseCommand):
         Returns name of uploaded file
         """
         data = BytesIO()
-        call_command('dumpdata', all=True, format='json', stdout=TextIOWrapper(data, write_through=True))
+        # contenttypes and auth.Permission are auto-regenerated and not to be trusted across database instances
+        # e.g. https://stackoverflow.com/questions/853796/problems-with-contenttypes-when-loading-a-fixture-in-django
+        call_command('dumpdata', all=True, format='json', indent=4, exclude=('contenttypes', 'auth.Permission'), stdout=TextIOWrapper(data, write_through=True))
         with SpooledTemporaryFile() as f:
             # Archive to tar
             with tarfile.open(fileobj=f, mode='x:bz2') as tar:
@@ -190,7 +192,7 @@ class Command(BaseCommand):
         try:
            file_id = drive_list['files'][0]['id']
         except:
-            print('Could not find {filename}')
+            print(f'Could not find {filename}')
             raise ValueError
         self.download_file(file_id, filename)
     

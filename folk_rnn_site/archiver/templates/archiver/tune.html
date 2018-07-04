@@ -14,7 +14,7 @@
         <p class="meta">{{ attribution.text }}{% if attribution.text and attribution.url %}<br>{% endif %}{% if attribution.url %}<a href="{{ attribution.url }}">{{ attribution.url }}</a>{% endif %}</p>
     {% endfor %}
     {% if tune.rnn_tune %}
-        <p class="meta">Machine generated.<br>ABC auto-formatted.<br>{% if tune.valid_abc %}Valid{% else %}Invalid{% endif %} ABC.</p>
+        <p class="meta">Machine generated.<br>ABC auto-formatted.<br>{% if tune.check_valid_abc %}Valid{% else %}Invalid{% endif %} ABC.</p>
         <p class="meta">Archived from <a href="{{ tune.rnn_tune.url }}{# FIXME: hardcoded domain #}" class="parameter">folkrnn.org</a>, where it was generated using the <span id="rnn_model_name" class="parameter">{{ tune.rnn_tune.rnn_model_name | cut:'.pickle' }}</span> model.</p>
         <p class="meta">The RNN seed was <span id="seed" class="parameter">{{ tune.rnn_tune.seed }}</span>, temperature was <span id="temp" class="parameter">{{ tune.rnn_tune.temp }}</span> and prime tokens were <span id="prime_tokens" class="parameter">{{ tune.rnn_tune.prime_tokens }}</span>.</p>
     {% endif %}
@@ -54,7 +54,7 @@
     </div>
     <div class="section-body">
         <div id="tune">
-            <textarea class="abc" id="abc-0" hidden>{{ tune.abc_display }}</textarea>
+            <textarea class="abc" id="abc-0" spellcheck="false" readonly hidden>{{ tune.abc_display }}</textarea>
             <div id="staff-0"></div>
             <div id="midi-0"></div>
         </div>
@@ -130,15 +130,16 @@
             <form method="POST" class="pure-form">
             {% with WIDGET_ERROR_CLASS='error' %}
                 {%  csrf_token %}
-                {{ setting_form.abc.errors }}
-                {% render_field setting_form.abc class+="pure-input-1" title="Add setting ABC here."%}
+                <div id="setting-form-error-list">{{ setting_form.abc.errors }}</div>
+                {% render_field setting_form.abc id="setting-form-abc" class+="pure-input-1" title="Add setting ABC here."%}
                 <div class="pure-control-group pure-u-1">
                     <input id="setting_button" type="submit" name="submit-setting" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                    {% render_field setting_form.check_valid_abc %}<label for="id_check_valid_abc" class="meta"> Check ABC notation is well formed</label>
                 </div>
             {% endwith %}
             </form>
         {% else %}
-            <p><a href="{% url 'login' %}">Log in</a> to add setting.</p>
+            <p><a href="{% url 'login' %}?next={{ request.path }}">Log in</a> to add setting.</p>
         {% endif %}
         </div>
     </div>
@@ -177,7 +178,7 @@
                 {% endwith %}
                 </form>
             {% else %}
-                <p><a href="{% url 'login' %}">Log in</a> to comment.</p>
+                <p><a href="{% url 'login' %}?next={{ request.path }}">Log in</a> to comment.</p>
             {% endif %}
             </li>
         </ul>
@@ -187,7 +188,7 @@
 window.addEventListener("load", function() {
     // ABC textarea
     for (let i = 0; i <= {{settings.count }}; i++) {
-        el = document.getElementById("abc-" + i);
+        const el = document.getElementById("abc-" + i);
         el.setAttribute("rows", el.innerHTML.split(/\n/).length)
     }
     // View Checkbox
@@ -201,10 +202,20 @@ window.addEventListener("load", function() {
         } 
     };
     for (let i = 0; i <= {{ settings.count }}; i++){
-        el = document.getElementById("abc-" + i + "-checkbox");
-        el.addEventListener("change", viewCheckboxHandler, false);
-        el = document.getElementById("staff-" + i + "-checkbox");
-        el.addEventListener("change", viewCheckboxHandler, false);
+        const el_abc = document.getElementById("abc-" + i + "-checkbox");
+        el_abc.addEventListener("change", viewCheckboxHandler, false);
+        const el_staff = document.getElementById("staff-" + i + "-checkbox");
+        el_staff.addEventListener("change", viewCheckboxHandler, false);
+    }
+    // Valid ABC Checkbox
+    const el_check_valid = document.getElementById("id_check_valid_abc")
+    if (el_check_valid) {
+        el_check_valid.addEventListener("change", function() {
+            if (!this.checked) {
+                document.getElementById("setting-form-error-list").setAttribute("hidden", "foo");
+                document.getElementById("setting-form-abc").classList.remove("error");
+            }
+        }, false);
     }
     // abcjs
     const colorRange = function(range, color) {

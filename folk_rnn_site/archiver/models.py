@@ -1,5 +1,9 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.exceptions import ValidationError
+from django_hosts.resolvers import reverse
 from embed_video.fields import EmbedVideoField
 
 from folk_rnn_site.models import ABCModel, conform_abc
@@ -59,32 +63,74 @@ class User(AbstractUser):
     objects = UserManager()
 
 class Tune(ABCModel):
+    """
+    A tune, e.g. the core data of /tune/x
+    """
     def __str__(self):
         info = [f'MachineFolk {self.id}']
         if self.rnn_tune:
             info += [f'FolkRNN {self.rnn_tune.id}']
         return f'Tune: {self.title} ({", ".join(info)})'
     
+    def clean(self):
+        """
+        Checks ABC is valid if desired
+        Checks there isn't already a tune with this abc body
+        """
+        if self.check_valid_abc:
+            try:
+                conform_abc(self.abc)
+            except AttributeError as e:
+                raise ValidationError({'abc': e})
+        if any(x.body == self.body for x in Tune.objects.exclude(id=self.id)):
+            raise ValidationError({'abc': 'This tune is not a variation of another.'})
+        
     class Meta:
         ordering = ['id']
-    
-    @property 
-    def valid_abc(self):
-        try:
-            conform_abc(self.abc)
-            return True
-        except:
-            return False
-    
+        
     @property
     def title_or_mfsession(self):
+        """
+        Return the title found in the ABC, returning a default Machine Folk title if none.
+        """
         return self.title if len(self.title) else f'Untitled (Machine Folk Session №{self.id})' 
+    
+    @property
+    def abc_with_attribution(self):
+        """"
+        Return abc with attribution information fields
+        - Sets (replacing) F: to the machinefolk URL
+        - Sets (adding) S: to a machinefolk source message
+        """
+        url = reverse('tune', host='archiver', kwargs={'tune_id': self.id})
+        abc_model = ABCModel(abc=self.abc)
+        abc_model.header_f = url
+        s = f'Tune #{self.id} archived at The Machine Folk Session'
+        if abc_model.header_s:
+            s += '\nS:' + abc_model.header_s
+        abc_model.header_s = s
+        return abc_model.abc
     
     author = models.ForeignKey(User, default=1)
     rnn_tune = models.ForeignKey(RNNTune, null=True, blank=True)
+    check_valid_abc = models.BooleanField(default=True)
     submitted = models.DateTimeField(auto_now_add=True)
 
+@receiver(post_save, sender=Tune)
+def tune_auto_x(sender, **kwargs):
+    """"
+    Update a tune's X: header to it's Machine Folk ID
+    """
+    instance = kwargs['instance']
+    instance.header_x = instance.id
+    # update db without recursive save signal
+    sender.objects.filter(id=instance.id).update(abc=instance.abc)
+
 class TuneAttribution(models.Model):
+    """
+    An attribution item for a tune. Can record text, a URL, or both. 
+    Multiple TuneAttributions can exist for any given tune.
+    """
     def __str__(self):
         return f'Tune Meta: {self.text[:30]} (MachineFolk {self.tune.id})'
     
@@ -95,47 +141,73 @@ class TuneAttribution(models.Model):
     text = models.TextField(null=True, blank=True)
     url = models.URLField(null=True, blank=True)
     
-class SettingManager(models.Manager):
-    def create_setting(self, tune, abc, author):
-        # Create but don't add to db
-        setting = Setting(tune=tune, abc=abc, author=author)
-        setting.header_x = self.filter(tune=tune).count() + 1
-        # Validate ABC
-        conform_abc(setting.abc)
-        # Check the abc body is new
-        if tune.body == setting.body:
-            raise ValueError('This setting is not a variation on the main tune.')
-        # Check there isn't already a setting with this abc body
-        if any(x.body == setting.body for x in self.all()):
-            raise ValueError('This setting is not a variation on another setting’s tune.')
-        # Check it has a new, unique title
-        if setting.title.startswith(FOLKRNN_TUNE_TITLE_CLIENT):
-            raise ValueError('This setting still has the (machine generated) title of the original tune.')
-        if any(x.title == setting.title for x in Tune.objects.exclude(id=tune.id)):
-            raise ValueError('This setting has the title of an existing (machine generated) tune.')
-        if any(x.title == setting.title for x in self.all()):
-            raise ValueError('This setting has the title of another setting.')
-        # Now verified, add to db
-        setting.save()
-        return setting
-
 class Setting(ABCModel):
+    """
+    A setting of a tune, e.g. a (probably human) development of the (probably machine generated) source tune.
+    Multiple settings can exist for any given tune.
+    """
     def __str__(self):
         info = [f'X {self.header_x}', f'MachineFolk {self.tune.id}']
         if self.tune.rnn_tune:
             info += [f'FolkRNN {self.tune.rnn_tune.id}']
         return f'Setting: {self.title} ({", ".join(info)})'
     
+    def clean(self):
+        """
+        Checks ABC is valid if desired
+        Checks the ABC body is a variant of the original tune
+        Checks there isn't already a setting with this abc body
+        """
+        if self.check_valid_abc:
+            try:
+                conform_abc(self.abc)
+            except AttributeError as e:
+                raise ValidationError({'abc': e})
+        if self.tune.body == self.body:
+            raise ValidationError({'abc': 'This setting’s tune is not a variation on the main tune.'})
+        if any(x.body == self.body for x in Setting.objects.exclude(id=self.id)):
+            raise ValidationError({'abc': 'This setting is not a variation of another.'})
+    
     class Meta:
         ordering = ['id']
     
+    @property
+    def abc_with_attribution(self):
+        """
+        Return abc with attribution information fields
+        - Sets (replacing) F: to the machinefolk URL
+        - Sets (adding) S: to a machinefolk source message
+        """
+        url = reverse('tune', host='archiver', kwargs={'tune_id': self.tune.id})
+        abc_model = ABCModel(abc=self.abc)
+        abc_model.header_f = url
+        s = f'Setting #{self.header_x} of tune #{self.tune.id} archived at The Machine Folk Session'
+        if abc_model.header_s:
+            s += '\nS:' + abc_model.header_s
+        abc_model.header_s = s
+        return abc_model.abc
+    
     tune = models.ForeignKey(Tune)
     author = models.ForeignKey(User)
+    check_valid_abc = models.BooleanField(default=True)
     submitted = models.DateTimeField(auto_now_add=True)
 
-    objects = SettingManager()
+@receiver(post_save, sender=Setting)
+def setting_auto_x(sender, **kwargs):
+    """
+    Update a setting's X: header to it's creation order
+    """
+    instance = kwargs['instance']
+    settings = list(Setting.objects.filter(tune=instance.tune).order_by('id'))
+    instance.header_x = settings.index(instance) + 1
+    # update db without recursive save signal
+    sender.objects.filter(id=instance.id).update(abc=instance.abc)
 
 class Comment(models.Model):
+    """
+    A comment upon a tune.
+    Multiple comments can exist for any given tune.
+    """
     def __str__(self):
         return f'Comment: "{self.text[:30]}" by {self.author} on MachineFolk {self.tune.id})'
     
@@ -148,6 +220,9 @@ class Comment(models.Model):
     submitted = models.DateTimeField(auto_now_add=True)
 
 class Documentation(models.Model):
+    """
+    Abstract base class for documentation models
+    """
     class Meta:
         abstract = True
         ordering = ['date', 'id']
@@ -159,12 +234,19 @@ class Documentation(models.Model):
     author = models.ForeignKey(User)
 
 class Event(Documentation):
+    """
+    An event, e.g. a concert or session
+    """
     def __str__(self):
         return f'Event: {self.title[:30]}'
     
     image = models.ImageField(null=True, blank=True)
 
 class Recording(Documentation):
+    """
+    A recording.
+    Handles Youtube, Vimeo videos and SoundCloud audio tracks.
+    """
     def __str__(self):
         return f'Recording: {self.title[:30]}'
     
@@ -172,6 +254,9 @@ class Recording(Documentation):
     event = models.ForeignKey(Event, null=True, blank=True)
         
 class TuneRecording(models.Model):
+    """
+    Assign a recording to a tune.
+    """
     def __str__(self):
         return f'Tune Recording: {self.recording.title[:30]} (MachineFolk {self.tune.id})'
         
@@ -182,6 +267,9 @@ class TuneRecording(models.Model):
     recording = models.ForeignKey(Recording)
 
 class TuneEvent(models.Model):
+    """
+    Assign an event to a tune.
+    """
     def __str__(self):
         return f'Tune Event: {self.event.title[:30]} (MachineFolk {self.tune.id})'
     
@@ -192,12 +280,18 @@ class TuneEvent(models.Model):
     event = models.ForeignKey(Event)
 
 class TunebookEntry(models.Model):
+    """
+    Assign a tune or setting to a user, creating a tunebook.
+    """
     def __str__(self):
         tune_str = f'MachineFolk {self.tune.id}' if self.tune else f'MachineFolk {self.setting.tune.id} Setting {self.setting.header_x}'
         return f'Tunebook Entry: {tune_str} by {self.user.get_full_name()}'
     
     @property
     def abc(self):
+        """
+        Return the expected abc whether tune or setting
+        """
         if self.tune is not None:
             return self.tune.abc
         elif self.setting is not None:
