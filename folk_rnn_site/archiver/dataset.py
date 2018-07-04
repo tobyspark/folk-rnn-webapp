@@ -3,7 +3,11 @@ import csv
 
 from archiver.models import Tune, Setting
 
-Datum = namedtuple('SettingDatum', [
+"""
+Datum is a superset of (what we want out of) a tune and setting
+e.g. the columns in a CSV of tunes and settings
+"""
+Datum = namedtuple('Datum', [
                             'tune_id',
                             'setting_id', 
                             'name', 
@@ -17,6 +21,9 @@ Datum = namedtuple('SettingDatum', [
                             ])
 
 def tune_dataset():
+    """
+    Return a generator of Tune Data
+    """
     return (Datum(tune_id=x.id,
                 setting_id='',
                 name=x.title,
@@ -30,6 +37,9 @@ def tune_dataset():
             ) for x in Tune.objects.all())
 
 def setting_dataset():
+    """
+    Return a generator Setting Data
+    """
     return (Datum(tune_id=x.tune.id,
                         setting_id=x.id,
                         name=x.title,
@@ -43,6 +53,9 @@ def setting_dataset():
                     ) for x in Setting.objects.all())
     
 def dataset_as_csv(f):
+    """
+    Write tune and setting data in comma separated value format to the supplied file handle
+    """
     setting_writer = csv.writer(f)
     setting_writer.writerow(Datum._fields)
     setting_writer.writerows(tune_dataset())

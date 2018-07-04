@@ -11,17 +11,18 @@
     </div>
     <div class="section-body">
         {% if user.is_authenticated %}
-            <form method="POST" class="pure-form pure-g">
+            <form method="POST" class="pure-form">
             {% with WIDGET_ERROR_CLASS='error' %}
                 {% csrf_token %}
-                {{ tune_form.abc.errors }}
+                <div id="tune-form-error-list">{{ tune_form.abc.errors }}</div>
                 {% render_field tune_form.abc class+="pure-input-1" rows="6" placeholder="Tune in ABC notation, e.g. M:4/4..."%}
-                {{ tune_form.text.errors }}
-                {% render_field tune_form.text class+="pure-input-1" rows="2" placeholder="Tell the story of the tune, e.g. how was it (co-)composed by a machine?"%}
-                {{ tune_form.url.errors }}
-                {% render_field tune_form.url class+="pure-input-1" placeholder="Link (optional), e.g. to a page describing the process further"%}
+                {{ tune_attribution_form.text.errors }}
+                {% render_field tune_attribution_form.text class+="pure-input-1" rows="2" placeholder="Tell the story of the tune, e.g. how was it (co-)composed by a machine?"%}
+                {{ tune_attribution_form.url.errors }}
+                {% render_field tune_attribution_form.url class+="pure-input-1" placeholder="Link (optional), e.g. to a page describing the process further"%}
                 <div class="pure-control-group pure-u-1">
                     <input id="tune_button" type="submit" name="submit-tune" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                    {% render_field tune_form.check_valid_abc %}<label for="id_check_valid" class="meta"> Check ABC notation is well formed</label>
                 </div>
             {% endwith %}
             </form>
@@ -36,7 +37,7 @@
     </div>
     <div class="section-body">
         {% if user.is_authenticated %}
-            <form method="POST" class="pure-form pure-g">
+            <form method="POST" class="pure-form">
             {% with WIDGET_ERROR_CLASS='error' %}
                 {% csrf_token %}
                 {{ recording_form.title.errors }}
@@ -63,7 +64,7 @@
     </div>
     <div class="section-body">
         {% if user.is_authenticated %}
-            <form method="POST" class="pure-form pure-g">
+            <form method="POST" class="pure-form">
             {% with WIDGET_ERROR_CLASS='error' %}
                 {% csrf_token %}
                 {{ event_form.title.errors }}
@@ -82,4 +83,15 @@
         {% endif %}
     </div>
 </div>
+<script>
+window.addEventListener("load", function() {
+    // Valid ABC Checkbox
+    document.getElementById("id_check_valid_abc").addEventListener("change", function() {
+        if (!this.checked) {
+            document.getElementById("tune-form-error-list").setAttribute("hidden", "foo");
+            document.getElementById("id_abc").classList.remove("error");
+        }
+    }, false);
+}, false);
+</script>
 {% endblock %}

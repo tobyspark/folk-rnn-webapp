@@ -12,16 +12,16 @@ from itertools import chain
 from datetime import timedelta
 from random import choice, choices
 
-from folk_rnn_site.models import ABCModel, conform_abc
+from folk_rnn_site.models import ABCModel
 from archiver import TUNE_SEARCH_EXAMPLES, MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
 from archiver import weightedSelectionWithoutReplacement
 from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry, TuneRecording
 from archiver.forms import (
-                            AttributionForm, 
                             SettingForm, 
                             CommentForm, 
                             ContactForm, 
-                            TuneForm, 
+                            TuneForm,
+                            TuneAttributionForm, 
                             RecordingForm, 
                             EventForm, 
                             TunebookForm,
@@ -137,19 +137,20 @@ def tune_page(request, tune_id=None):
         if tune.author_id in [default_author, request.user.id]:
             attribution = TuneAttribution.objects.filter(tune=tune).first()
             if attribution:
-                attribution_form = AttributionForm({
+                attribution_form = TuneAttributionForm({
                                                 'text': attribution.text,
                                                 'url': attribution.url,
                                                 })
             else:
-                attribution_form = AttributionForm()
+                attribution_form = TuneAttributionForm()
         setting_form = SettingForm({
-            'abc': conform_abc(tune.abc, raise_if_invalid=False)
+            'abc': tune.abc,
+            'check_valid_abc': True,
         })
         comment_form = CommentForm()
         if request.method == 'POST':
             if 'submit-attribution' in request.POST:
-                attribution_form = AttributionForm(request.POST)
+                attribution_form = TuneAttributionForm(request.POST)
                 if attribution_form.is_valid():
                     tune.author = request.user
                     tune.save()
@@ -160,18 +161,13 @@ def tune_page(request, tune_id=None):
                     attribution.url = attribution_form.cleaned_data['url']
                     attribution.save()
             elif 'submit-setting' in request.POST:
-                form = SettingForm(request.POST)
-                if form.is_valid():
-                    try:
-                        print(request.user)
-                        Setting.objects.create_setting(
+                setting = Setting(
                             tune=tune,
-                            abc=form.cleaned_data['abc'],
                             author=request.user,
                             )
-                    except Exception as e:
-                        setting_form = form
-                        setting_form.add_error('abc', e) 
+                form = SettingForm(request.POST, instance=setting)
+                if form.is_valid():
+                    form.save() 
                 else:
                     setting_form = form
             elif 'submit-comment' in request.POST:
@@ -259,7 +255,7 @@ def tune_download(request, tune_id=None):
     except (TypeError, Tune.DoesNotExist):
         return redirect('/')
 
-    response = HttpResponse(tune.abc, content_type='text/plain')
+    response = HttpResponse(tune.abc_with_attribution, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tune_{tune_id}"'
     return response
 
@@ -272,7 +268,7 @@ def setting_download(request, tune_id=None, setting_id=None):
 
     try:
         settings = tune.setting_set.all()
-        abc = [x.abc for x in settings if x.header_x == setting_id][0]
+        abc = [x.abc_with_attribution for x in settings if x.header_x == setting_id][0]
     except (IndexError):
         return redirect('/')
     
@@ -287,10 +283,10 @@ def tune_setting_download(request, tune_id=None):
     except (TypeError, Tune.DoesNotExist):
         return redirect('/')
     
-    tune_zeroed = ABCModel(abc=tune.abc)
+    tune_zeroed = ABCModel(abc=tune.abc_with_attribution)
     tune_zeroed.header_x = 0
     settings = tune.setting_set.all()
-    abc_tunebook = '\n\n'.join([tune_zeroed.abc] + [x.abc for x in settings])
+    abc_tunebook = '\n\n'.join([tune_zeroed.abc] + [x.abc_with_attribution for x in settings])
 
     response = HttpResponse(abc_tunebook, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tune_{tune_id}_and_settings"'
@@ -403,7 +399,7 @@ def tunebook_download(request, user_id):
         return redirect('/')
 
     tunebook_qs = TunebookEntry.objects.filter(user=user).order_by('id')
-    tunebook = [ABCModel(abc=x.abc) for x in tunebook_qs]
+    tunebook = [ABCModel(abc=x.abc_with_attribution) for x in tunebook_qs]
     for idx, tune in enumerate(tunebook):
         tune.header_x = idx
     
@@ -417,20 +413,18 @@ def tunebook_download(request, user_id):
 
 def submit_page(request):
     if request.method == 'POST' and 'submit-tune' in request.POST:
-            tune_form = TuneForm(request.POST)
-            if tune_form.is_valid():
-                tune = Tune.objects.create(
-                        abc=tune_form.cleaned_data['abc'], 
-                        author=request.user,
-                        )
-                TuneAttribution.objects.create(
-                                        tune=tune,
-                                        text=tune_form.cleaned_data['text'],
-                                        url=tune_form.cleaned_data['url'],
-                                        )
+            tune = Tune(author=request.user)
+            tune_form = TuneForm(request.POST, instance=tune)
+            tune_attribution_form = TuneAttributionForm(request.POST)
+            if tune_form.is_valid() and tune_attribution_form.is_valid():
+                tune_form.save()
+                tune_attribution = TuneAttribution(tune=tune) # tune now has pk
+                tune_attribution_form = TuneAttributionForm(request.POST, instance=tune_attribution) 
+                tune_attribution_form.save()
                 return redirect(reverse('tune', kwargs={"tune_id": tune.id}))
     else:
         tune_form = TuneForm()
+        tune_attribution_form = TuneAttributionForm()
 
     if request.method == 'POST' and 'submit-recording' in request.POST:
             recording_form = RecordingForm(request.POST)
@@ -461,6 +455,7 @@ def submit_page(request):
     
     return render(request, 'archiver/submit.html', {
                             'tune_form': tune_form,
+                            'tune_attribution_form': tune_attribution_form,
                             'recording_form': recording_form,
                             'event_form': event_form,
     })
