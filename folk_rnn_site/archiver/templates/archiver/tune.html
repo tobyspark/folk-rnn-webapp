@@ -54,7 +54,7 @@
     </div>
     <div class="section-body">
         <div id="tune">
-            <textarea class="abc" id="abc-0" hidden>{{ tune.abc_display }}</textarea>
+            <textarea class="abc" id="abc-0" spellcheck="false" readonly hidden>{{ tune.abc_display }}</textarea>
             <div id="staff-0"></div>
             <div id="midi-0"></div>
         </div>
@@ -188,7 +188,7 @@
 window.addEventListener("load", function() {
     // ABC textarea
     for (let i = 0; i <= {{settings.count }}; i++) {
-        el = document.getElementById("abc-" + i);
+        const el = document.getElementById("abc-" + i);
         el.setAttribute("rows", el.innerHTML.split(/\n/).length)
     }
     // View Checkbox
@@ -202,10 +202,10 @@ window.addEventListener("load", function() {
         } 
     };
     for (let i = 0; i <= {{ settings.count }}; i++){
-        el = document.getElementById("abc-" + i + "-checkbox");
-        el.addEventListener("change", viewCheckboxHandler, false);
-        el = document.getElementById("staff-" + i + "-checkbox");
-        el.addEventListener("change", viewCheckboxHandler, false);
+        const el_abc = document.getElementById("abc-" + i + "-checkbox");
+        el_abc.addEventListener("change", viewCheckboxHandler, false);
+        const el_staff = document.getElementById("staff-" + i + "-checkbox");
+        el_staff.addEventListener("change", viewCheckboxHandler, false);
     }
     // Valid ABC Checkbox
     const el_check_valid = document.getElementById("id_check_valid_abc")
