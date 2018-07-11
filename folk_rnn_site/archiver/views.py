@@ -6,7 +6,7 @@ from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
-from django.db.models import Q, Count
+from django.db.models import Q
 from tempfile import TemporaryFile
 from itertools import chain
 from datetime import timedelta
@@ -15,7 +15,7 @@ from random import choice, choices
 from folk_rnn_site.models import ABCModel
 from archiver import TUNE_SEARCH_EXAMPLES, MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
 from archiver import weightedSelectionWithoutReplacement
-from archiver.models import User, Tune, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry, TuneRecording
+from archiver.models import User, Tune, annotate_counts, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry, TuneRecording
 from archiver.forms import (
                             SettingForm, 
                             CommentForm, 
@@ -28,15 +28,6 @@ from archiver.forms import (
                             SearchForm,
                             )
 from archiver.dataset import dataset_as_csv
-
-def add_counts(tunes):
-    # see also interesting_tunes queryset annotation
-    for result in tunes:
-        result.setting__count = result.setting_set.count()
-        result.comment__count = result.comment_set.count() 
-        result.recording__count = result.tunerecording_set.count() 
-        result.event__count = result.tuneevent_set.count()
-        result.tunebook__count = result.tunebookentry_set.count()
 
 def activity(filter_dict={}):
     qs_tune = Tune.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
@@ -53,17 +44,14 @@ def activity(filter_dict={}):
 
 def home_page(request):
     q = Q(setting__count__gt=0) | Q(comment__count__gt=0) | Q(recording__count__gt=0) | Q(event__count__gt=0) | Q(tunebook__count__gt=0)
-    interesting_tunes = Tune.objects.annotate(
-        Count('setting', distinct=True), 
-        Count('comment', distinct=True), 
-        recording__count=Count('tunerecording', distinct=True), 
-        event__count=Count('tuneevent', distinct=True),
-        tunebook__count=Count('tunebookentry', distinct=True),
-    ).filter(q)
-    tune_saliency = [x.tunebook__count*3 + x.setting__count*3 + x.recording__count*2 + x.event__count*2 + x.comment__count for x in interesting_tunes]
+    interesting_tunes = Tune.objects.all().annotate_counts().filter(q).annotate_saliency()
     
     if len(interesting_tunes) > MAX_RECENT_ITEMS:
-        tune_selection = weightedSelectionWithoutReplacement(interesting_tunes, tune_saliency, k=MAX_RECENT_ITEMS)
+        tune_selection = weightedSelectionWithoutReplacement(
+                                interesting_tunes, 
+                                [x.saliency for x in interesting_tunes], 
+                                k=MAX_RECENT_ITEMS
+                                )
     else:
         tune_selection = Tune.objects.all()[-MAX_RECENT_ITEMS:]
     
@@ -91,10 +79,17 @@ def tunes_page(request):
                 search=SearchVector('abc', 'setting__abc', 'tuneattribution__text', 'comment__text')
             ).filter(
                 search=SearchQuery(search_text)
-            ).order_by('-id').distinct('id')
+            )
     else:
         search_text = ''
-        search_results = Tune.objects.order_by('-id')
+        search_results = Tune.objects.all()
+    
+    if 'order_by' in request.GET and request.GET['order_by'] == 'popularity':
+        search_results = search_results.annotate_counts().annotate_saliency().order_by('-saliency', '-id')
+        order_by = 'popularity'
+    else:
+        search_results = search_results.order_by('-id').distinct('id')
+        order_by = 'added'
         
     paginator = Paginator(search_results, TUNE_PREVIEWS_PER_PAGE)
     page_number = request.GET.get('page')
@@ -104,11 +99,12 @@ def tunes_page(request):
         search_results_page = paginator.page(1)
     except EmptyPage:
         search_results_page = paginator.page(paginator.num_pages)
-    add_counts(search_results_page)
+    annotate_counts(search_results_page)
     
     return render(request, 'archiver/tunes.html', {
                             'search_form': SearchForm(request.GET),
                             'search_text': search_text,
+                            'order_by': order_by,
                             'search_examples': TUNE_SEARCH_EXAMPLES,
                             'search_results': search_results_page,
                             })

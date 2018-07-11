@@ -1,5 +1,7 @@
 from django.db import models
 from django.db.models.signals import post_save
+from django.db.models import F, Count
+from django.db.models.query import QuerySet
 from django.dispatch import receiver
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.exceptions import ValidationError
@@ -125,6 +127,40 @@ def tune_auto_x(sender, **kwargs):
     instance.header_x = instance.id
     # update db without recursive save signal
     sender.objects.filter(id=instance.id).update(abc=instance.abc)
+
+def tune_queryset_annotate_counts(self):
+    """
+    Annotate salient counts to Tune QuerySets
+    """
+    return self.annotate(
+        Count('setting', distinct=True), 
+        Count('comment', distinct=True), 
+        recording__count=Count('tunerecording', distinct=True), 
+        event__count=Count('tuneevent', distinct=True),
+        tunebook__count=Count('tunebookentry', distinct=True),
+    )
+setattr(QuerySet, 'annotate_counts', tune_queryset_annotate_counts)
+
+def annotate_counts(tunes):
+    """
+    Annotate salient counts to Tune lists
+    This is the equivalent of tune_queryset_annotate_counts for when no longer a QuerySet
+    """
+    for result in tunes:
+        result.setting__count = result.setting_set.count()
+        result.comment__count = result.comment_set.count() 
+        result.recording__count = result.tunerecording_set.count() 
+        result.event__count = result.tuneevent_set.count()
+        result.tunebook__count = result.tunebookentry_set.count()
+
+def tune_queryset_annotate_saliency(self):
+    """
+    Annotate salience to Tune QuerySets that have already had salient counts annotated
+    """
+    return self.annotate(
+        saliency = F('tunebook__count')*3 + F('setting__count')*3 + F('recording__count')*2 + F('event__count')*2 + F('comment__count')
+    )
+setattr(QuerySet, 'annotate_saliency', tune_queryset_annotate_saliency)
 
 class TuneAttribution(models.Model):
     """
