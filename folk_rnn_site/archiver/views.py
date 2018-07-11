@@ -79,10 +79,17 @@ def tunes_page(request):
                 search=SearchVector('abc', 'setting__abc', 'tuneattribution__text', 'comment__text')
             ).filter(
                 search=SearchQuery(search_text)
-            ).order_by('-id').distinct('id')
+            )
     else:
         search_text = ''
-        search_results = Tune.objects.order_by('-id')
+        search_results = Tune.objects.all()
+    
+    if 'order_by' in request.GET and request.GET['order_by'] == 'popularity':
+        search_results = search_results.annotate_counts().annotate_saliency().order_by('-saliency', '-id')
+        order_by = 'popularity'
+    else:
+        search_results = search_results.order_by('-id').distinct('id')
+        order_by = 'added'
         
     paginator = Paginator(search_results, TUNE_PREVIEWS_PER_PAGE)
     page_number = request.GET.get('page')
@@ -97,6 +104,7 @@ def tunes_page(request):
     return render(request, 'archiver/tunes.html', {
                             'search_form': SearchForm(request.GET),
                             'search_text': search_text,
+                            'order_by': order_by,
                             'search_examples': TUNE_SEARCH_EXAMPLES,
                             'search_results': search_results_page,
                             })
