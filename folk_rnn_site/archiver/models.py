@@ -334,6 +334,18 @@ class TunebookEntry(models.Model):
             return self.setting.abc
         else:
             raise LookupError
+
+    @property
+    def abc_with_attribution(self):
+        """
+        Return the expected abc_with_attribution whether tune or setting
+        """
+        if self.tune is not None:
+            return self.tune.abc_with_attribution
+        elif self.setting is not None:
+            return self.setting.abc_with_attribution
+        else:
+            raise LookupError
     
     tune = models.ForeignKey(Tune, null=True)
     setting = models.ForeignKey(Setting, null=True)
