@@ -89,13 +89,6 @@ class Tune(ABCModel):
         
     class Meta:
         ordering = ['id']
-        
-    @property
-    def title_or_mfsession(self):
-        """
-        Return the title found in the ABC, returning a default Machine Folk title if none.
-        """
-        return self.title if len(self.title) else f'Untitled (Machine Folk Session №{self.id})' 
     
     @property
     def abc_with_attribution(self):
@@ -106,7 +99,7 @@ class Tune(ABCModel):
         """
         url = reverse('tune', host='archiver', kwargs={'tune_id': self.id})
         abc_model = ABCModel(abc=self.abc)
-        abc_model.headers_n = [f'{x.text} {x.url}' for x in self.tuneattribution_set]
+        abc_model.headers_n = ['{} {}'.format(x.text if x.text else '', x.url if x.url else '') for x in self.tuneattribution_set.all()]
         abc_model.header_f = url
         abc_model.header_s = f'Tune #{self.id} archived at The Machine Folk Session'
         return abc_model.abc
@@ -117,14 +110,19 @@ class Tune(ABCModel):
     submitted = models.DateTimeField(auto_now_add=True)
 
 @receiver(post_save, sender=Tune)
-def tune_auto_x(sender, **kwargs):
+def tune_post_save(sender, **kwargs):
     """"
     Update a tune's X: header to it's Machine Folk ID
+    Ensure a tune has a title
     Create TuneAttributions from relevant ABC information fields, removing them in the process.
     """
     # update X
     instance = kwargs['instance']
     instance.header_x = instance.id
+    
+    # ensure T
+    if not instance.title:
+        instance.title = f'Untitled (Machine Folk Session №{instance.id})' 
     
     # extract attributions
     for field in instance.headers_n:
