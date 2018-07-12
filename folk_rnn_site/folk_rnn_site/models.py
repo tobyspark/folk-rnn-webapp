@@ -2,12 +2,14 @@ from django.db import models
 from unidecode import unidecode
 import subprocess
 import re
+import collections
 
 from composer import ABC2ABC_PATH
 header_x_regex = re.compile(r'X:\s*(\d+)\s*\n')
 header_t_regex = re.compile(r'T:\s*(.*?)\s*\n')
 header_s_regex = re.compile(r'S:\s*(.*?)\s*\n')
 header_f_regex = re.compile(r'F:\s*(.*?)\s*\n')
+header_n_regex = re.compile(r'N:\s*(.*?)\s*\n')
 header_m_regex = re.compile(r'M:\s*(.*?)\s*\n')
 header_k_regex = re.compile(r'K:\s*(.*?)\s*\n')
 body_regex = re.compile(r'(K:.*?\n)(.*)',re.DOTALL) # FIXME: also ignore any final /n
@@ -114,6 +116,27 @@ class ABCModel(models.Model):
             self.abc = header_s_regex.sub(sub, self.abc)
         elif value:
             self.abc = header_x_regex.sub(f'X:{self.header_x}\nS:{value}\n', self.abc)
+
+    @property
+    def headers_n(self):
+        '''
+        ABC N: information fields; notes
+        Handles multiple fields
+        - getter returns list
+        - setter can accept None, single item or sequence of items
+        '''
+        matches = header_n_regex.findall(self.abc)
+        return matches if matches else []
+    
+    @headers_n.setter
+    def headers_n(self, value):
+        self.abc = header_n_regex.sub('', self.abc)
+        if value:
+            if isinstance(value, collections.abc.Sequence) and not isinstance(value, str):
+                sub = ''.join(f'N:{x}\n' for x in value)
+            else:
+                sub = f'N:{value}\n'
+            self.abc = header_x_regex.sub(f'X:{self.header_x}\n{sub}', self.abc)
 
     @property
     def header_f(self):
