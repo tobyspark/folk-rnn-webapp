@@ -103,18 +103,18 @@ A B C''')
         tune.headers_n = 'Note'
         self.assertEqual(tune.headers_n, ['Note'])
         self.assertEqual(tune.abc, f'''X:0
-N:Note
 T:{ABC_TITLE}
+N:Note
 M:4/4
 K:Cmaj
 {ABC_BODY}''')
         tune.headers_n = ('Note 1', 'Note 2', 'Note 3')
         self.assertEqual(tune.headers_n, ['Note 1', 'Note 2', 'Note 3'])
         self.assertEqual(tune.abc, f'''X:0
+T:{ABC_TITLE}
 N:Note 1
 N:Note 2
 N:Note 3
-T:{ABC_TITLE}
 M:4/4
 K:Cmaj
 {ABC_BODY}''')

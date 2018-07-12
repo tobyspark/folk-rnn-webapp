@@ -14,7 +14,7 @@
         <p class="meta">Tunes:</p>{# TODO: pluralise #}
         <ul class="meta">
         {% for tunerecording in recording.tunerecording_set.all %}
-            <li><a href="{% url 'tune' tune_id=tunerecording.tune.id %}">{{ tunerecording.tune.title_or_mfsession }}</a></li>
+            <li><a href="{% url 'tune' tune_id=tunerecording.tune.id %}">{{ tunerecording.tune.title }}</a></li>
         {% empty %}
             <li>No tunes archived here</li>
         {% endfor %}

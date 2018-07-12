@@ -115,7 +115,7 @@ class ABCModel(models.Model):
             sub = f'S:{value}\n' if value else ''
             self.abc = header_s_regex.sub(sub, self.abc, count=1)
         elif value:
-            self.abc = header_x_regex.sub(f'X:{self.header_x}\nS:{value}\n', self.abc)
+            self.abc = header_t_regex.sub(f'T:{self.title}\nS:{value}\n', self.abc)
 
     @property
     def headers_n(self):
@@ -136,7 +136,7 @@ class ABCModel(models.Model):
                 sub = ''.join(f'N:{x}\n' for x in value)
             else:
                 sub = f'N:{value}\n'
-            self.abc = header_x_regex.sub(f'X:{self.header_x}\n{sub}', self.abc)
+            self.abc = header_t_regex.sub(f'T:{self.title}\n{sub}', self.abc)
 
     @property
     def header_f(self):
@@ -152,7 +152,7 @@ class ABCModel(models.Model):
             sub = f'F:{value}\n' if value else ''
             self.abc = header_f_regex.sub(sub, self.abc, count=1)
         elif value:
-            self.abc = header_x_regex.sub(f'X:{self.header_x}\nF:{value}\n', self.abc)
+            self.abc = header_t_regex.sub(f'T:{self.title}\nF:{value}\n', self.abc)
     
     @property
     def header_m(self):

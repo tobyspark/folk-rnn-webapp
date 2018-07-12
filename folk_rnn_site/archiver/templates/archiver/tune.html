@@ -1,13 +1,13 @@
 {% extends "archiver/base.html" %}
 
-{% block title %}{{ tune.title_or_mfsession }}{% endblock %}
+{% block title %}{{ tune.title }}{% endblock %}
 
 {% block headend %}{% include "_abcjs-headend.html" %}{% endblock %}
 
 {% block content %}
 {% load humanize %}
 {% load widget_tweaks %}
-<h1>{{ tune.title_or_mfsession }}</h1>
+<h1>{{ tune.title }}</h1>
 <div id="tune" class="section">
     <div class="section-meta">
     {% for attribution in tune.tuneattribution_set.all %}
