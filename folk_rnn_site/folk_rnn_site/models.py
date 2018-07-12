@@ -163,6 +163,8 @@ class ABCModel(models.Model):
                         if line[0] == 'K':
                             in_header = False
                 else:
+                    if line.startswith('V:'):
+                        continue
                     match = body_four_bars_regex.match(line)
                     if match:
                         abc += match.group(0)
