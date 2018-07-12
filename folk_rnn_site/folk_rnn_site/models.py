@@ -97,7 +97,7 @@ class ABCModel(models.Model):
         # Note value test here has to be true for X=0
         if header_x_regex.search(self.abc):
             sub = f'X:{value}\n' if value != None and value != '' else ''
-            self.abc = header_x_regex.sub(sub, self.abc)
+            self.abc = header_x_regex.sub(sub, self.abc, count=1)
         elif value != None and value != '':
             self.abc = f'X:{value}\n{self.abc}'
     
@@ -113,7 +113,7 @@ class ABCModel(models.Model):
     def header_s(self, value):
         if header_s_regex.search(self.abc):
             sub = f'S:{value}\n' if value else ''
-            self.abc = header_s_regex.sub(sub, self.abc)
+            self.abc = header_s_regex.sub(sub, self.abc, count=1)
         elif value:
             self.abc = header_x_regex.sub(f'X:{self.header_x}\nS:{value}\n', self.abc)
 
@@ -150,7 +150,7 @@ class ABCModel(models.Model):
     def header_f(self, value):
         if header_f_regex.search(self.abc):
             sub = f'F:{value}\n' if value else ''
-            self.abc = header_f_regex.sub(sub, self.abc)
+            self.abc = header_f_regex.sub(sub, self.abc, count=1)
         elif value:
             self.abc = header_x_regex.sub(f'X:{self.header_x}\nF:{value}\n', self.abc)
     
