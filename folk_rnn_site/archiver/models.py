@@ -106,11 +106,9 @@ class Tune(ABCModel):
         """
         url = reverse('tune', host='archiver', kwargs={'tune_id': self.id})
         abc_model = ABCModel(abc=self.abc)
+        abc_model.headers_n = [f'{x.text} {x.url}' for x in self.tuneattribution_set]
         abc_model.header_f = url
-        s = f'Tune #{self.id} archived at The Machine Folk Session'
-        if abc_model.header_s:
-            s += '\nS:' + abc_model.header_s
-        abc_model.header_s = s
+        abc_model.header_s = f'Tune #{self.id} archived at The Machine Folk Session'
         return abc_model.abc
     
     author = models.ForeignKey(User, default=1)
@@ -122,9 +120,35 @@ class Tune(ABCModel):
 def tune_auto_x(sender, **kwargs):
     """"
     Update a tune's X: header to it's Machine Folk ID
+    Create TuneAttributions from relevant ABC information fields, removing them in the process.
     """
+    # update X
     instance = kwargs['instance']
     instance.header_x = instance.id
+    
+    # extract attributions
+    for field in instance.headers_n:
+        attribution = TuneAttribution.objects.create(
+                                tune = instance,
+                                text = field,
+                                url = None,
+                        )
+    instance.headers_n = None
+    while instance.header_s:
+        attribution = TuneAttribution.objects.create(
+                                tune = instance,
+                                text = instance.header_s,
+                                url = None,
+                        )
+        instance.header_s = None
+    while instance.header_f:
+        attribution = TuneAttribution.objects.create(
+                                tune = instance,
+                                text = 'As submitted:',
+                                url = instance.header_f,
+                        )
+        instance.header_f = None
+
     # update db without recursive save signal
     sender.objects.filter(id=instance.id).update(abc=instance.abc)
 
