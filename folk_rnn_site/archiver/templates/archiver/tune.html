@@ -124,7 +124,9 @@
     <div class="section">
         <div class="section-meta">
             <h2>Add a setting</h4>
+            {% if user.is_authenticated %}
             <p class="meta">View: <input id="abc-setting-form-checkbox" type="checkbox" checked><label for="abc-setting-form-checkbox">ABC</label> | <input id="staff-setting-form-checkbox" type="checkbox"><label for="staff-setting-form-checkbox">Staff</label></p>
+            {% endif %}
         </div>
         <div class="section-body">
         {% if user.is_authenticated %}
@@ -198,38 +200,16 @@ window.addEventListener("load", function() {
     for (let i = 0; i < {{settings|length }}; i++){
         names.push('setting-' + i);
     }
+    {% if user.is_authenticated %}
     names.push('setting-form');
-    // ABC textareas
-    names.forEach(function(name){
-        const el = document.getElementById("abc-" + name);
-        el.setAttribute("rows", el.innerHTML.split(/\n/).length)
-    });
-    // View Checkboxes
-    const viewCheckboxHandler = function() {
-        const content_id = this.id.replace("-checkbox", "");
-        const content_el = document.getElementById(content_id);
-        if (this.checked) {
-            content_el.removeAttribute("hidden");
-        } else {
-            content_el.setAttribute("hidden", "foo");
-        } 
-    };
-    names.forEach(function(name){
-        const el_abc = document.getElementById("abc-" + name + "-checkbox");
-        el_abc.addEventListener("change", viewCheckboxHandler, false);
-        const el_staff = document.getElementById("staff-" + name + "-checkbox");
-        el_staff.addEventListener("change", viewCheckboxHandler, false);
-    });
     // Add setting valid ABC Checkbox
     const el_check_valid = document.getElementById("id_check_valid_abc")
-    if (el_check_valid) {
-        el_check_valid.addEventListener("change", function() {
-            if (!this.checked) {
-                document.getElementById("error-list-setting-form").setAttribute("hidden", "foo");
-                document.getElementById("abc-setting-form").classList.remove("error");
-            }
-        }, false);
-    }
+    el_check_valid.addEventListener("change", function() {
+        if (!this.checked) {
+            document.getElementById("error-list-setting-form").setAttribute("hidden", "foo");
+            document.getElementById("abc-setting-form").classList.remove("error");
+        }
+    }, false);
     // Add setting title and tempo
     const abc_q_regex = RegExp('Q:\s*(.*?)\s*\n')
     const abc_t_regex = RegExp('T:\s*(.*?)\s*\n')
@@ -250,6 +230,28 @@ window.addEventListener("load", function() {
         }
         el_abc.innerHTML = abc;
         el_abc.dispatchEvent(new Event('change', { 'bubbles': true }))
+    });
+    {% endif %}
+    // ABC textareas
+    names.forEach(function(name){
+        const el = document.getElementById("abc-" + name);
+        el.setAttribute("rows", el.innerHTML.split(/\n/).length)
+    });
+    // View Checkboxes
+    const viewCheckboxHandler = function() {
+        const content_id = this.id.replace("-checkbox", "");
+        const content_el = document.getElementById(content_id);
+        if (this.checked) {
+            content_el.removeAttribute("hidden");
+        } else {
+            content_el.setAttribute("hidden", "foo");
+        } 
+    };
+    names.forEach(function(name){
+        const el_abc = document.getElementById("abc-" + name + "-checkbox");
+        el_abc.addEventListener("change", viewCheckboxHandler, false);
+        const el_staff = document.getElementById("staff-" + name + "-checkbox");
+        el_staff.addEventListener("change", viewCheckboxHandler, false);
     });
     // abcjs
     const colorRange = function(range, color) {
