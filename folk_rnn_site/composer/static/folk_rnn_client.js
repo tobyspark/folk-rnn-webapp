@@ -164,6 +164,7 @@ folkrnn.tuneManager = {
         div_tune_new.querySelector('#generated').id = 'generated-' + tune_id;
         div_tune_new.querySelector('#midi').id = 'midi-' + tune_id;
         div_tune_new.querySelector('#midi-download').id = 'midi-download-' + tune_id;
+        div_tune_new.querySelector('#bpm').id = 'bpm-' + tune_id;
         div_tune_new.querySelector('#notation').id = 'notation-' + tune_id;
         div_tune_new.querySelector('#archive_form').id = 'archive_form-' + tune_id;
         div_tune_new.querySelector('#id_title').id = 'id_title-' + tune_id;
@@ -218,9 +219,12 @@ folkrnn.tuneManager = {
                 animate: {
                     listener: folkrnn.tuneManager._enableABCJS_animateCallback, 
                     target: "notation-" + tune_id, 
-                    qpm: 120
                 },
             }
+        });
+        
+        document.getElementById('bpm-' + tune_id).addEventListener("change", function (event) {
+            folkrnn.tuneManager.tunes[tune_id].abcjs.paramChanged({"qpm": parseInt(event.target.value)}) 
         });
         
         const midi_download_link = document.body.querySelector('#midi-download-' + tune_id + ' > div > a');
