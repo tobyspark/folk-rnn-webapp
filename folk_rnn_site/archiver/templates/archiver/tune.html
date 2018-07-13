@@ -131,6 +131,10 @@
             <form method="POST" class="pure-form">
             {% with WIDGET_ERROR_CLASS='error' %}
                 {%  csrf_token %}
+                <div class="pure-control-group pure-u-1">
+                    <input type=text id="setting-form-title" class="pure-u-21-24" title="Add setting title here" placeholder="Title and tempo – e.g. Ada's rework">
+                    <input type="number" id="setting-form-bpm" value="120" min="24" max="204" class="pure-u-2-24" title="BPM">
+                </div>
                 <div id="error-list-setting-form">{{ setting_form.abc.errors }}</div>
                 {% render_field setting_form.abc id="abc-setting-form" class+="pure-input-1" title="Add setting ABC here."%}
                 <div id="staff-setting-form" hidden></div>
@@ -195,12 +199,12 @@ window.addEventListener("load", function() {
         names.push('setting-' + i);
     }
     names.push('setting-form');
-    // ABC textarea
+    // ABC textareas
     names.forEach(function(name){
         const el = document.getElementById("abc-" + name);
         el.setAttribute("rows", el.innerHTML.split(/\n/).length)
     });
-    // View Checkbox
+    // View Checkboxes
     const viewCheckboxHandler = function() {
         const content_id = this.id.replace("-checkbox", "");
         const content_el = document.getElementById(content_id);
@@ -216,7 +220,7 @@ window.addEventListener("load", function() {
         const el_staff = document.getElementById("staff-" + name + "-checkbox");
         el_staff.addEventListener("change", viewCheckboxHandler, false);
     });
-    // Valid ABC Checkbox
+    // Add setting valid ABC Checkbox
     const el_check_valid = document.getElementById("id_check_valid_abc")
     if (el_check_valid) {
         el_check_valid.addEventListener("change", function() {
@@ -226,6 +230,27 @@ window.addEventListener("load", function() {
             }
         }, false);
     }
+    // Add setting title and tempo
+    const abc_q_regex = RegExp('Q:\s*(.*?)\s*\n')
+    const abc_t_regex = RegExp('T:\s*(.*?)\s*\n')
+    document.getElementById("setting-form-title").addEventListener("input", function (event) {
+        const el_abc = document.getElementById("abc-setting-form");
+        let abc = el_abc.innerHTML;
+        abc = abc.replace(abc_t_regex, 'T:' + event.target.value + '\n')
+        el_abc.innerHTML = abc;
+        el_abc.dispatchEvent(new Event('change', { 'bubbles': true }))
+    });
+    document.getElementById("setting-form-bpm").addEventListener("change", function (event) {
+        const el_abc = document.getElementById("abc-setting-form");
+        let abc = el_abc.innerHTML;
+        if (abc_q_regex.test(abc)) {
+            abc = abc.replace(abc_q_regex, 'Q:' + event.target.value + '\n')
+        } else {
+            abc = abc.replace(abc_t_regex, 'T:$1\nQ:' + event.target.value + '\n');
+        }
+        el_abc.innerHTML = abc;
+        el_abc.dispatchEvent(new Event('change', { 'bubbles': true }))
+    });
     // abcjs
     const colorRange = function(range, color) {
         if (range && range.elements) {
