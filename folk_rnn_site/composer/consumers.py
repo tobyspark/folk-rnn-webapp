@@ -240,6 +240,8 @@ class ComposerConsumer(JsonWebsocketConsumer):
                     logger.warning('(worryingly)long state_notification')
             elif content['type'] in ['midi_play', 'midi_download']:
                 self.log_use(f"{content['type']} of tune {content['tune_id']}")
+            elif content['type'] in ['tempo']:
+                self.log_use(f"{content['type']} change to {content['value']} of tune {content['tune_id']}")
             else:
                 logger.warning('Unknown notification')
         

@@ -224,7 +224,13 @@ folkrnn.tuneManager = {
         });
         
         document.getElementById('bpm-' + tune_id).addEventListener("change", function (event) {
-            folkrnn.tuneManager.tunes[tune_id].abcjs.paramChanged({"qpm": parseInt(event.target.value)}) 
+            folkrnn.tuneManager.tunes[tune_id].abcjs.paramChanged({"qpm": parseInt(event.target.value)})
+            folkrnn.websocketSend({
+                command: "notification",
+                type: "tempo",
+                value: event.target.value,
+                tune_id: tune_id,
+            });
         });
         
         const midi_download_link = document.body.querySelector('#midi-download-' + tune_id + ' > div > a');
