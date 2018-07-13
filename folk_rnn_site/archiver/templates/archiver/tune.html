@@ -125,6 +125,8 @@
         <div class="section-meta">
             <h2>Add a setting</h4>
             {% if user.is_authenticated %}
+            <p class="meta">Set a tempo and title, or edit the ABC directly. A machine generated tune may warrant a more memorable title and the ABC cleaned-up. Or co-create, using the tune as a base.</p>
+            <p class="meta">To aid composition, the currently playing note is highlighted in the staff notation, and clicking on notes there will highlight the corresponding ABC (and vice-versa).</p>
             <p class="meta">View: <input id="abc-setting-form-checkbox" type="checkbox" checked><label for="abc-setting-form-checkbox">ABC</label> | <input id="staff-setting-form-checkbox" type="checkbox"><label for="staff-setting-form-checkbox">Staff</label></p>
             {% endif %}
         </div>
