@@ -213,17 +213,17 @@ class Setting(ABCModel):
     def clean(self):
         """
         Checks ABC is valid if desired
-        Checks the ABC body is a variant of the original tune
-        Checks there isn't already a setting with this abc body
+        Checks the ABC is a variant of the original tune
+        Checks there isn't already a setting with this ABC
         """
         if self.check_valid_abc:
             try:
                 conform_abc(self.abc)
             except AttributeError as e:
                 raise ValidationError({'abc': e})
-        if self.tune.body == self.body:
+        if self.tune.abc_tune_fingerprint == self.abc_tune_fingerprint:
             raise ValidationError({'abc': 'This setting’s tune is not a variation on the main tune.'})
-        if any(x.body == self.body for x in Setting.objects.exclude(id=self.id)):
+        if any(x.abc_tune_fingerprint == self.abc_tune_fingerprint for x in Setting.objects.exclude(id=self.id)):
             raise ValidationError({'abc': 'This setting is not a variation of another.'})
     
     class Meta:
