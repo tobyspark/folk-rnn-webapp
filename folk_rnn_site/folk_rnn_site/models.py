@@ -10,6 +10,7 @@ header_t_regex = re.compile(r'T:\s*(.*?)\s*\n')
 header_s_regex = re.compile(r'S:\s*(.*?)\s*\n')
 header_f_regex = re.compile(r'F:\s*(.*?)\s*\n')
 header_n_regex = re.compile(r'N:\s*(.*?)\s*\n')
+header_q_regex = re.compile(r'Q:\s*(.*?)\s*\n')
 header_m_regex = re.compile(r'M:\s*(.*?)\s*\n')
 header_k_regex = re.compile(r'K:\s*(.*?)\s*\n')
 body_regex = re.compile(r'(K:.*?\n)(.*)',re.DOTALL) # FIXME: also ignore any final /n
@@ -153,6 +154,14 @@ class ABCModel(models.Model):
             self.abc = header_f_regex.sub(sub, self.abc, count=1)
         elif value:
             self.abc = header_t_regex.sub(f'T:{self.title}\nF:{value}\n', self.abc)
+
+    @property
+    def header_q(self):
+        '''
+        ABC Q: information field; the tempo
+        '''
+        match = header_q_regex.search(self.abc)
+        return match.group(1) if match else None
     
     @property
     def header_m(self):
@@ -169,6 +178,18 @@ class ABCModel(models.Model):
         '''
         match = header_k_regex.search(self.abc)
         return match.group(1) if match else None
+    
+    @property
+    def abc_tune_fingerprint(self):
+        '''
+        Fingerprint the ABC for comparison, ignoring volatile fields such as X
+        '''
+        # can't use ''.join() as None returned. Perhaps should return ''
+        fingerprint = ''
+        for x in [self.title, self.header_q, self.header_m, self.header_k, self.body]:
+            if x:
+                fingerprint += x
+        return fingerprint
             
     @property
     def abc_preview(self):
