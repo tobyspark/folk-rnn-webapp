@@ -5,15 +5,15 @@ import re
 import collections
 
 from composer import ABC2ABC_PATH
-header_x_regex = re.compile(r'X:\s*(\d+)\s*\n')
-header_t_regex = re.compile(r'T:\s*(.*?)\s*\n')
-header_s_regex = re.compile(r'S:\s*(.*?)\s*\n')
-header_f_regex = re.compile(r'F:\s*(.*?)\s*\n')
-header_n_regex = re.compile(r'N:\s*(.*?)\s*\n')
-header_q_regex = re.compile(r'Q:\s*(.*?)\s*\n')
-header_m_regex = re.compile(r'M:\s*(.*?)\s*\n')
-header_k_regex = re.compile(r'K:\s*(.*?)\s*\n')
-body_regex = re.compile(r'(K:.*?\n)(.*)',re.DOTALL) # FIXME: also ignore any final /n
+header_x_regex = re.compile(r'^X:\s*(\d+)\s*\n', re.MULTILINE)
+header_t_regex = re.compile(r'^T:\s*(.*?)\s*\n', re.MULTILINE)
+header_s_regex = re.compile(r'^S:\s*(.*?)\s*\n', re.MULTILINE)
+header_f_regex = re.compile(r'^F:\s*(.*?)\s*\n', re.MULTILINE)
+header_n_regex = re.compile(r'^N:\s*(.*?)\s*\n', re.MULTILINE)
+header_q_regex = re.compile(r'^Q:\s*(.*?)\s*\n', re.MULTILINE)
+header_m_regex = re.compile(r'^M:\s*(.*?)\s*\n', re.MULTILINE)
+header_k_regex = re.compile(r'^K:\s*(.*?)\s*\n', re.MULTILINE)
+body_regex = re.compile(r'(\nK:.*?\n)(.*)',re.DOTALL) # FIXME: also ignore any final /n
 body_four_bars_regex = re.compile(r'(.*?[^|]\|){4}')
 
 def conform_abc(abc):
