@@ -114,7 +114,7 @@
             </div>
         </div>
         <div class="section-body">
-            <textarea class="abc" id="abc-{{ forloop.counter }}" hidden>{{ setting.abc_display }}</textarea>
+            <textarea class="abc" id="abc-setting-{{ forloop.counter }}" hidden>{{ setting.abc_display }}</textarea>
             <div id="staff-setting-{{ forloop.counter }}"></div>
             <div id="midi-setting-{{ forloop.counter }}"></div>
         </div>
@@ -199,7 +199,7 @@
 <script>
 window.addEventListener("load", function() {
     const names = ['tune'];
-    for (let i = 0; i < {{settings|length }}; i++){
+    for (let i = 1; i <= {{settings|length }}; i++){
         names.push('setting-' + i);
     }
     {% if user.is_authenticated %}
