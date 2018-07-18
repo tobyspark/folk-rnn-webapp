@@ -1,13 +1,13 @@
 {% extends "archiver/base.html" %}
 
-{% block title %}{{ tune.title_or_mfsession }}{% endblock %}
+{% block title %}{{ tune.title }}{% endblock %}
 
 {% block headend %}{% include "_abcjs-headend.html" %}{% endblock %}
 
 {% block content %}
 {% load humanize %}
 {% load widget_tweaks %}
-<h1>{{ tune.title_or_mfsession }}</h1>
+<h1>{{ tune.title }}</h1>
 <div id="tune" class="section">
     <div class="section-meta">
     {% for attribution in tune.tuneattribution_set.all %}
@@ -36,14 +36,14 @@
         </ul>
         <p class="meta">Added by <a href="{% url 'user' user_id=tune.author.id %}">{{ tune.author.get_full_name }}</a>,<br>
         {{ tune.submitted | naturalday | capfirst }}.</p>
-        <p class="meta">View: <input id="abc-0-checkbox" type="checkbox"><label for="abc-0-checkbox">ABC</label> | <input id="staff-0-checkbox" type="checkbox" checked><label for="staff-0-checkbox">Staff</label></p>
+        <p class="meta">View: <input id="abc-tune-checkbox" type="checkbox"><label for="abc-tune-checkbox">ABC</label> | <input id="staff-tune-checkbox" type="checkbox" checked><label for="staff-tune-checkbox">Staff</label></p>
         {% if not user.is_authenticated %}
         {% if tune.tunebook_count %}<p class="meta">Added to {{ tune.tunebook_count|apnumber }} tunebook{{ tune.tunebook_count|pluralize }}</p>{% endif %}
         {% else %}
         {% if tune.other_tunebook_count %}<p class="meta">Added to {{ tune.other_tunebook_count|apnumber }} other tunebook{{ tune.other_tunebook_count|pluralize }}</p>{% endif %}
-        <form method="POST" ><p class="meta">{% csrf_token %}<label for="tunebook-0-checkbox">In your tunebook: </label>{% render_field tune.tunebook_form.add id="tunebook-0-checkbox" onChange="this.form.submit()" %}<input type="hidden" name="submit-tunebook-0"></p></form>{% endif %}
-        <div id="midi-download-0" class="download-link"></div>
-        <div id="abc-download-0" class="download-link">
+        <form method="POST" ><p class="meta">{% csrf_token %}<label for="tunebook-tune-checkbox">In your tunebook: </label>{% render_field tune.tunebook_form.add id="tunebook-tune-checkbox" onChange="this.form.submit()" %}<input type="hidden" name="submit-tunebook-0"></p></form>{% endif %}
+        <div id="midi-download-tune" class="download-link"></div>
+        <div id="abc-download-tune" class="download-link">
             <a href="{% url 'tune_download' tune_id=tune.id %}">Download ABC</a>
         </div>
     {% if settings %}
@@ -54,9 +54,9 @@
     </div>
     <div class="section-body">
         <div id="tune">
-            <textarea class="abc" id="abc-0" spellcheck="false" readonly hidden>{{ tune.abc_display }}</textarea>
-            <div id="staff-0"></div>
-            <div id="midi-0"></div>
+            <textarea class="abc" id="abc-tune" spellcheck="false" readonly hidden>{{ tune.abc_display }}</textarea>
+            <div id="staff-tune"></div>
+            <div id="midi-tune"></div>
         </div>
     </div>
 </div>
@@ -101,22 +101,22 @@
             <p class="meta">Setting {{ setting.header_x|apnumber }}</br>
             Added by <a href="{% url 'user' user_id=setting.author.id %}">{{ setting.author.get_full_name }},</a><br>
             {{ setting.submitted | naturalday | capfirst }}</p>
-            <p class="meta">View: <input id="abc-{{ forloop.counter }}-checkbox" type="checkbox"><label for="abc-{{ forloop.counter }}-checkbox">ABC</label> | <input id="staff-{{ forloop.counter }}-checkbox" type="checkbox" checked><label for="staff-{{ forloop.counter }}-checkbox">Staff</label></p>
+            <p class="meta">View: <input id="abc-setting-{{ forloop.counter }}-checkbox" type="checkbox"><label for="abc-setting-{{ forloop.counter }}-checkbox">ABC</label> | <input id="staff-setting-{{ forloop.counter }}-checkbox" type="checkbox" checked><label for="staff-setting-{{ forloop.counter }}-checkbox">Staff</label></p>
             {% if not user.is_authenticated %}
             {% if setting.tunebook_count %}<p class="meta">Added to {{ setting.tunebook_count|apnumber }} tunebook{{ setting.tunebook_count|pluralize }}</p>{% endif %}
             {% else %}
             {% if setting.other_tunebook_count %}<p class="meta">Added to {{ setting.other_tunebook_count|apnumber }} other tunebook{{ setting.other_tunebook_count| pluralize }}</p>{% endif %}
-            <form method="POST" ><p class="meta">{% csrf_token %}<label for="tunebook-{{ forloop.counter }}-checkbox">In your tunebook: </label>{% render_field setting.tunebook_form.add id="tunebook-{{ forloop.counter }}-checkbox" onChange="this.form.submit()" %}<input type="hidden" name="submit-tunebook-{{ forloop.counter }}"></p></form>
+            <form method="POST" ><p class="meta">{% csrf_token %}<label for="tunebook-setting-{{ forloop.counter }}-checkbox">In your tunebook: </label>{% render_field setting.tunebook_form.add id="tunebook-setting-{{ forloop.counter }}-checkbox" onChange="this.form.submit()" %}<input type="hidden" name="submit-tunebook-{{ forloop.counter }}"></p></form>
             {% endif %}
-            <div id="midi-download-{{ forloop.counter }}" class="download-link"></div>
-            <div id="abc-download-{{ forloop.counter }}" class="download-link">
+            <div id="midi-download-setting-{{ forloop.counter }}" class="download-link"></div>
+            <div id="abc-download-setting-{{ forloop.counter }}" class="download-link">
                 <a href="{% url 'setting_download' tune_id=tune.id setting_id=setting.header_x %}">Download ABC</a>
             </div>
         </div>
         <div class="section-body">
-            <textarea class="abc" id="abc-{{ forloop.counter }}" hidden>{{ setting.abc_display }}</textarea>
-            <div id="staff-{{ forloop.counter }}"></div>
-            <div id="midi-{{ forloop.counter }}"></div>
+            <textarea class="abc" id="abc-setting-{{ forloop.counter }}" hidden>{{ setting.abc_display }}</textarea>
+            <div id="staff-setting-{{ forloop.counter }}"></div>
+            <div id="midi-setting-{{ forloop.counter }}"></div>
         </div>
     </div>
     {% endfor %}
@@ -124,14 +124,26 @@
     <div class="section">
         <div class="section-meta">
             <h2>Add a setting</h4>
+            {% if user.is_authenticated %}
+            <p class="meta">Set a tempo and title, or edit the ABC directly. A machine generated tune may warrant a more memorable title and the ABC cleaned-up. Or co-create, using the tune as a base.</p>
+            <p class="meta">To aid composition, the currently playing note is highlighted in the staff notation, and clicking on notes there will highlight the corresponding ABC (and vice-versa).</p>
+            <p class="meta">View: <input id="abc-setting-form-checkbox" type="checkbox" checked><label for="abc-setting-form-checkbox">ABC</label> | <input id="staff-setting-form-checkbox" type="checkbox"><label for="staff-setting-form-checkbox">Staff</label></p>
+            {% endif %}
         </div>
         <div class="section-body">
         {% if user.is_authenticated %}
             <form method="POST" class="pure-form">
             {% with WIDGET_ERROR_CLASS='error' %}
                 {%  csrf_token %}
-                <div id="setting-form-error-list">{{ setting_form.abc.errors }}</div>
-                {% render_field setting_form.abc id="setting-form-abc" class+="pure-input-1" title="Add setting ABC here."%}
+                <div class="pure-control-group pure-u-1">
+                    <input type=text id="setting-form-title" class="pure-u-21-24" title="Add setting title here" placeholder="Title and tempo – e.g. Ada's rework">
+                    <input type="number" id="setting-form-bpm" value="120" min="24" max="204" class="pure-u-2-24" title="BPM">
+                </div>
+                <div id="error-list-setting-form">{{ setting_form.abc.errors }}</div>
+                {% render_field setting_form.abc id="abc-setting-form" class+="pure-input-1" title="Add setting ABC here."%}
+                <div id="staff-setting-form" hidden></div>
+                <div id="midi-download-setting-form" hidden="hidden"></div>
+                <div id="midi-setting-form"></div>
                 <div class="pure-control-group pure-u-1">
                     <input id="setting_button" type="submit" name="submit-setting" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
                     {% render_field setting_form.check_valid_abc %}<label for="id_check_valid_abc" class="meta"> Check ABC notation is well formed</label>
@@ -186,12 +198,48 @@
 </div>
 <script>
 window.addEventListener("load", function() {
-    // ABC textarea
-    for (let i = 0; i <= {{settings.count }}; i++) {
-        const el = document.getElementById("abc-" + i);
-        el.setAttribute("rows", el.innerHTML.split(/\n/).length)
+    const names = ['tune'];
+    for (let i = 1; i <= {{settings|length }}; i++){
+        names.push('setting-' + i);
     }
-    // View Checkbox
+    {% if user.is_authenticated %}
+    names.push('setting-form');
+    // Add setting valid ABC Checkbox
+    const el_check_valid = document.getElementById("id_check_valid_abc")
+    el_check_valid.addEventListener("change", function() {
+        if (!this.checked) {
+            document.getElementById("error-list-setting-form").setAttribute("hidden", "foo");
+            document.getElementById("abc-setting-form").classList.remove("error");
+        }
+    }, false);
+    // Add setting title and tempo
+    const abc_q_regex = RegExp('Q:\s*(.*?)\s*\n')
+    const abc_t_regex = RegExp('T:\s*(.*?)\s*\n')
+    document.getElementById("setting-form-title").addEventListener("input", function (event) {
+        const el_abc = document.getElementById("abc-setting-form");
+        let abc = el_abc.innerHTML;
+        abc = abc.replace(abc_t_regex, 'T:' + event.target.value + '\n')
+        el_abc.innerHTML = abc;
+        el_abc.dispatchEvent(new Event('change', { 'bubbles': true }))
+    });
+    document.getElementById("setting-form-bpm").addEventListener("change", function (event) {
+        const el_abc = document.getElementById("abc-setting-form");
+        let abc = el_abc.innerHTML;
+        if (abc_q_regex.test(abc)) {
+            abc = abc.replace(abc_q_regex, 'Q:' + event.target.value + '\n')
+        } else {
+            abc = abc.replace(abc_t_regex, 'T:$1\nQ:' + event.target.value + '\n');
+        }
+        el_abc.innerHTML = abc;
+        el_abc.dispatchEvent(new Event('change', { 'bubbles': true }))
+    });
+    {% endif %}
+    // ABC textareas
+    names.forEach(function(name){
+        const el = document.getElementById("abc-" + name);
+        el.setAttribute("rows", el.innerHTML.split(/\n/).length)
+    });
+    // View Checkboxes
     const viewCheckboxHandler = function() {
         const content_id = this.id.replace("-checkbox", "");
         const content_el = document.getElementById(content_id);
@@ -201,22 +249,12 @@ window.addEventListener("load", function() {
             content_el.setAttribute("hidden", "foo");
         } 
     };
-    for (let i = 0; i <= {{ settings.count }}; i++){
-        const el_abc = document.getElementById("abc-" + i + "-checkbox");
+    names.forEach(function(name){
+        const el_abc = document.getElementById("abc-" + name + "-checkbox");
         el_abc.addEventListener("change", viewCheckboxHandler, false);
-        const el_staff = document.getElementById("staff-" + i + "-checkbox");
+        const el_staff = document.getElementById("staff-" + name + "-checkbox");
         el_staff.addEventListener("change", viewCheckboxHandler, false);
-    }
-    // Valid ABC Checkbox
-    const el_check_valid = document.getElementById("id_check_valid_abc")
-    if (el_check_valid) {
-        el_check_valid.addEventListener("change", function() {
-            if (!this.checked) {
-                document.getElementById("setting-form-error-list").setAttribute("hidden", "foo");
-                document.getElementById("setting-form-abc").classList.remove("error");
-            }
-        }, false);
-    }
+    });
     // abcjs
     const colorRange = function(range, color) {
         if (range && range.elements) {
@@ -228,16 +266,15 @@ window.addEventListener("load", function() {
         }
     };
     const animateCallback = function(lastRange, currentRange, context) {
-    console.log("animateCallback", lastRange, currentRange)
         colorRange(lastRange, "#000000");
         colorRange(currentRange, "#3D9AFC");
     };
-    for (let i = 0; i <= {{ settings|length }}; i++) {
-        new ABCJS.Editor("abc-" + i, { 
-            canvas_id: "staff-" + i,
+    names.forEach(function(name){
+        new ABCJS.Editor("abc-" + name, { 
+            canvas_id: "staff-" + name,
             generate_midi: true,
-            midi_id:"midi-" + i,
-            midi_download_id: "midi-download-" + i,
+            midi_id:"midi-" + name,
+            midi_download_id: "midi-download-" + name,
             abcjsParams: {
                 generateInline: true,
                 generateDownload: true,
@@ -247,12 +284,11 @@ window.addEventListener("load", function() {
                 responsive: "resize",
                 animate: {
                     listener: animateCallback, 
-                    target: "staff-" + i, 
-                    qpm: 120
+                    target: "staff-" + name
                 },
             }
         });
-    }            
+    });            
 }, false);
 </script>
 
