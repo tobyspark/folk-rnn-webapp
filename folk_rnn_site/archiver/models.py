@@ -6,7 +6,6 @@ from django.dispatch import receiver
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.exceptions import ValidationError
 from django_hosts.resolvers import reverse
-from django.utils.timezone import now
 from embed_video.fields import EmbedVideoField
 
 from folk_rnn_site.models import ABCModel, conform_abc
@@ -264,11 +263,8 @@ def setting_auto_x(sender, **kwargs):
 
 class Comment(models.Model):
     """
-    A comment upon a tune.
-    Multiple comments can exist for any given tune.
+    Abstract base class for comment models
     """
-    def __str__(self):
-        return f'Comment: "{self.text[:30]}" by {self.author} on MachineFolk {self.tune.id})'
     
     class Meta:
         abstract = True
@@ -276,7 +272,7 @@ class Comment(models.Model):
         
     text = models.TextField(default='')
     author = models.ForeignKey(User)
-    submitted = models.DateTimeField(default=now)
+    submitted = models.DateTimeField(auto_now_add=True)
 
 class TuneComment(Comment):
     """
