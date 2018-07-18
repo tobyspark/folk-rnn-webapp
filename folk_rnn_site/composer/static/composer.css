@@ -172,6 +172,14 @@ div .abcjs-inline-midi {
     background-color: unset;
 }
 
+.bpm-valign {
+    margin-top: 0.625em;
+}
+
+.bpm-valign-tempo {
+    margin-top: -0.5em;
+}
+
 .splash-overlay img {
     position: fixed;
     top: 10px;

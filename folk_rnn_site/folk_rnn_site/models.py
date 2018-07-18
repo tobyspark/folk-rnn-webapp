@@ -2,15 +2,18 @@ from django.db import models
 from unidecode import unidecode
 import subprocess
 import re
+import collections
 
 from composer import ABC2ABC_PATH
-header_x_regex = re.compile(r'X:\s*(\d+)\s*\n')
-header_t_regex = re.compile(r'T:\s*(.*?)\s*\n')
-header_s_regex = re.compile(r'S:\s*(.*?)\s*\n')
-header_f_regex = re.compile(r'F:\s*(.*?)\s*\n')
-header_m_regex = re.compile(r'M:\s*(.*?)\s*\n')
-header_k_regex = re.compile(r'K:\s*(.*?)\s*\n')
-body_regex = re.compile(r'(K:.*?\n)(.*)',re.DOTALL) # FIXME: also ignore any final /n
+header_x_regex = re.compile(r'^X:\s*(\d+)\s*\n', re.MULTILINE)
+header_t_regex = re.compile(r'^T:\s*(.*?)\s*\n', re.MULTILINE)
+header_s_regex = re.compile(r'^S:\s*(.*?)\s*\n', re.MULTILINE)
+header_f_regex = re.compile(r'^F:\s*(.*?)\s*\n', re.MULTILINE)
+header_n_regex = re.compile(r'^N:\s*(.*?)\s*\n', re.MULTILINE)
+header_q_regex = re.compile(r'^Q:\s*(.*?)\s*\n', re.MULTILINE)
+header_m_regex = re.compile(r'^M:\s*(.*?)\s*\n', re.MULTILINE)
+header_k_regex = re.compile(r'^K:\s*(.*?)\s*\n', re.MULTILINE)
+body_regex = re.compile(r'(\nK:.*?\n)(.*)',re.DOTALL) # FIXME: also ignore any final /n
 body_four_bars_regex = re.compile(r'(.*?[^|]\|){4}')
 
 def conform_abc(abc):
@@ -95,7 +98,7 @@ class ABCModel(models.Model):
         # Note value test here has to be true for X=0
         if header_x_regex.search(self.abc):
             sub = f'X:{value}\n' if value != None and value != '' else ''
-            self.abc = header_x_regex.sub(sub, self.abc)
+            self.abc = header_x_regex.sub(sub, self.abc, count=1)
         elif value != None and value != '':
             self.abc = f'X:{value}\n{self.abc}'
     
@@ -111,9 +114,30 @@ class ABCModel(models.Model):
     def header_s(self, value):
         if header_s_regex.search(self.abc):
             sub = f'S:{value}\n' if value else ''
-            self.abc = header_s_regex.sub(sub, self.abc)
+            self.abc = header_s_regex.sub(sub, self.abc, count=1)
         elif value:
-            self.abc = header_x_regex.sub(f'X:{self.header_x}\nS:{value}\n', self.abc)
+            self.abc = header_t_regex.sub(f'T:{self.title}\nS:{value}\n', self.abc)
+
+    @property
+    def headers_n(self):
+        '''
+        ABC N: information fields; notes
+        Handles multiple fields
+        - getter returns list
+        - setter can accept None, single item or sequence of items
+        '''
+        matches = header_n_regex.findall(self.abc)
+        return matches if matches else []
+    
+    @headers_n.setter
+    def headers_n(self, value):
+        self.abc = header_n_regex.sub('', self.abc)
+        if value:
+            if isinstance(value, collections.abc.Sequence) and not isinstance(value, str):
+                sub = ''.join(f'N:{x}\n' for x in value)
+            else:
+                sub = f'N:{value}\n'
+            self.abc = header_t_regex.sub(f'T:{self.title}\n{sub}', self.abc)
 
     @property
     def header_f(self):
@@ -127,9 +151,17 @@ class ABCModel(models.Model):
     def header_f(self, value):
         if header_f_regex.search(self.abc):
             sub = f'F:{value}\n' if value else ''
-            self.abc = header_f_regex.sub(sub, self.abc)
+            self.abc = header_f_regex.sub(sub, self.abc, count=1)
         elif value:
-            self.abc = header_x_regex.sub(f'X:{self.header_x}\nF:{value}\n', self.abc)
+            self.abc = header_t_regex.sub(f'T:{self.title}\nF:{value}\n', self.abc)
+
+    @property
+    def header_q(self):
+        '''
+        ABC Q: information field; the tempo
+        '''
+        match = header_q_regex.search(self.abc)
+        return match.group(1) if match else None
     
     @property
     def header_m(self):
@@ -146,6 +178,18 @@ class ABCModel(models.Model):
         '''
         match = header_k_regex.search(self.abc)
         return match.group(1) if match else None
+    
+    @property
+    def abc_tune_fingerprint(self):
+        '''
+        Fingerprint the ABC for comparison, ignoring volatile fields such as X
+        '''
+        # can't use ''.join() as None returned. Perhaps should return ''
+        fingerprint = ''
+        for x in [self.title, self.header_q, self.header_m, self.header_k, self.body]:
+            if x:
+                fingerprint += x
+        return fingerprint
             
     @property
     def abc_preview(self):
@@ -163,6 +207,8 @@ class ABCModel(models.Model):
                         if line[0] == 'K':
                             in_header = False
                 else:
+                    if line.startswith('V:'):
+                        continue
                     match = body_four_bars_regex.match(line)
                     if match:
                         abc += match.group(0)

@@ -89,13 +89,6 @@ class Tune(ABCModel):
         
     class Meta:
         ordering = ['id']
-        
-    @property
-    def title_or_mfsession(self):
-        """
-        Return the title found in the ABC, returning a default Machine Folk title if none.
-        """
-        return self.title if len(self.title) else f'Untitled (Machine Folk Session №{self.id})' 
     
     @property
     def abc_with_attribution(self):
@@ -106,11 +99,9 @@ class Tune(ABCModel):
         """
         url = reverse('tune', host='archiver', kwargs={'tune_id': self.id})
         abc_model = ABCModel(abc=self.abc)
+        abc_model.headers_n = ['{} {}'.format(x.text if x.text else '', x.url if x.url else '') for x in self.tuneattribution_set.all()]
         abc_model.header_f = url
-        s = f'Tune #{self.id} archived at The Machine Folk Session'
-        if abc_model.header_s:
-            s += '\nS:' + abc_model.header_s
-        abc_model.header_s = s
+        abc_model.header_s = f'Tune #{self.id} archived at The Machine Folk Session'
         return abc_model.abc
     
     author = models.ForeignKey(User, default=1)
@@ -119,12 +110,43 @@ class Tune(ABCModel):
     submitted = models.DateTimeField(auto_now_add=True)
 
 @receiver(post_save, sender=Tune)
-def tune_auto_x(sender, **kwargs):
+def tune_post_save(sender, **kwargs):
     """"
     Update a tune's X: header to it's Machine Folk ID
+    Ensure a tune has a title
+    Create TuneAttributions from relevant ABC information fields, removing them in the process.
     """
+    # update X
     instance = kwargs['instance']
     instance.header_x = instance.id
+    
+    # ensure T
+    if not instance.title:
+        instance.title = f'Untitled (Machine Folk Session №{instance.id})' 
+    
+    # extract attributions
+    for field in instance.headers_n:
+        attribution = TuneAttribution.objects.create(
+                                tune = instance,
+                                text = field,
+                                url = None,
+                        )
+    instance.headers_n = None
+    while instance.header_s:
+        attribution = TuneAttribution.objects.create(
+                                tune = instance,
+                                text = instance.header_s,
+                                url = None,
+                        )
+        instance.header_s = None
+    while instance.header_f:
+        attribution = TuneAttribution.objects.create(
+                                tune = instance,
+                                text = 'As submitted:',
+                                url = instance.header_f,
+                        )
+        instance.header_f = None
+
     # update db without recursive save signal
     sender.objects.filter(id=instance.id).update(abc=instance.abc)
 
@@ -191,17 +213,17 @@ class Setting(ABCModel):
     def clean(self):
         """
         Checks ABC is valid if desired
-        Checks the ABC body is a variant of the original tune
-        Checks there isn't already a setting with this abc body
+        Checks the ABC is a variant of the original tune
+        Checks there isn't already a setting with this ABC
         """
         if self.check_valid_abc:
             try:
                 conform_abc(self.abc)
             except AttributeError as e:
                 raise ValidationError({'abc': e})
-        if self.tune.body == self.body:
+        if self.tune.abc_tune_fingerprint == self.abc_tune_fingerprint:
             raise ValidationError({'abc': 'This setting’s tune is not a variation on the main tune.'})
-        if any(x.body == self.body for x in Setting.objects.exclude(id=self.id)):
+        if any(x.abc_tune_fingerprint == self.abc_tune_fingerprint for x in Setting.objects.exclude(id=self.id)):
             raise ValidationError({'abc': 'This setting is not a variation of another.'})
     
     class Meta:
@@ -332,6 +354,18 @@ class TunebookEntry(models.Model):
             return self.tune.abc
         elif self.setting is not None:
             return self.setting.abc
+        else:
+            raise LookupError
+
+    @property
+    def abc_with_attribution(self):
+        """
+        Return the expected abc_with_attribution whether tune or setting
+        """
+        if self.tune is not None:
+            return self.tune.abc_with_attribution
+        elif self.setting is not None:
+            return self.setting.abc_with_attribution
         else:
             raise LookupError
     

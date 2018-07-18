@@ -55,18 +55,20 @@ class FolkRNNConsumer(SyncConsumer):
             nonlocal token_count, abc, deferred_tokens
             token_count += 1
             if token_count == 1:
-                if token[0:2] != 'M:':
+                if token[0:2] != 'M:': # valid ABC: ensure M, K header
                     abc += 'M:none\n'
                     deferred_tokens += token
                 else:
                     abc += token + '\n'
-            elif token_count == 2:
+            elif token_count == 2: # valid ABC: ensure M, K header
                 if token[0:2] != 'K:':
                     abc += 'K:none\n'
                     deferred_tokens += token
                 else:
                     abc += token + '\n'
             else:
+                if token[0:2] in ['M:', 'K:']: # valid ABC: information fields in body need to be wrapped in square brackets
+                    token = f'[{ token }]'
                 abc += ' '.join(deferred_tokens) + token
             async_to_sync(self.channel_layer.group_send)(
                                     f'tune_{tune.id}',
@@ -240,6 +242,8 @@ class ComposerConsumer(JsonWebsocketConsumer):
                     logger.warning('(worryingly)long state_notification')
             elif content['type'] in ['midi_play', 'midi_download']:
                 self.log_use(f"{content['type']} of tune {content['tune_id']}")
+            elif content['type'] in ['tempo']:
+                self.log_use(f"{content['type']} change to {content['value']} of tune {content['tune_id']}")
             else:
                 logger.warning('Unknown notification')
         
