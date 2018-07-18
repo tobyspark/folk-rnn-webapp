@@ -15,7 +15,19 @@ from random import choice, choices
 from folk_rnn_site.models import ABCModel
 from archiver import TUNE_SEARCH_EXAMPLES, MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
 from archiver import weightedSelectionWithoutReplacement
-from archiver.models import User, Tune, annotate_counts, TuneAttribution, Setting, TuneComment, Recording, Event, TunebookEntry, TuneRecording
+from archiver.models import (
+                            User, 
+                            Tune, 
+                            annotate_counts, 
+                            TuneAttribution, 
+                            Setting, 
+                            TuneComment, 
+                            Recording, 
+                            Event, 
+                            TunebookEntry, 
+                            TuneRecording, 
+                            Competition,
+                            )
 from archiver.forms import (
                             SettingForm, 
                             CommentForm, 
@@ -406,6 +418,22 @@ def tunebook_download(request, user_id):
     response = HttpResponse(tunebook_abc, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tunebook_{user_id}'
     return response
+
+def competitions_page(request):
+    return render(request, 'archiver/competitions.html', {
+                            'competitions': Competition.objects.all(),
+    })
+
+def competition_page(request, competition_id):
+    try:
+        competition_id_int = int(competition_id)
+        competition = Competition.objects.get(id=competition_id_int)
+    except (TypeError, Competition.DoesNotExist):
+        return redirect('/')
+    
+    return render(request, 'archiver/competition.html', {
+                            'competitions': [competition],
+    })
 
 def submit_page(request):
     if request.method == 'POST' and 'submit-tune' in request.POST:
