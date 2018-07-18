@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
-from archiver.models import User, Tune, TuneAttribution, TuneRecording, TuneEvent, Setting, Comment, Recording, Event
+from archiver.models import User, Tune, TuneAttribution, TuneRecording, TuneEvent, Setting, TuneComment, Recording, Event
 
 admin.site.site_header = "Administration – The Machine Folk Session"
 admin.site.site_title = "Administration – The Machine Folk Session"
@@ -11,8 +11,8 @@ class TuneAttributionInline(admin.StackedInline):
 class SettingInline(admin.StackedInline):
     model = Setting
      
-class CommentInline(admin.StackedInline):
-    model = Comment
+class TuneCommentInline(admin.StackedInline):
+    model = TuneComment
 
 class TuneRecordingInline(admin.StackedInline):
     model = TuneRecording
@@ -22,7 +22,7 @@ class TuneEventInline(admin.StackedInline):
 
 @admin.register(Tune)
 class TuneAdmin(admin.ModelAdmin):
-    inlines = [ TuneAttributionInline, SettingInline, CommentInline, TuneEventInline, TuneRecordingInline ]
+    inlines = [ TuneAttributionInline, SettingInline, TuneCommentInline, TuneEventInline, TuneRecordingInline ]
 
 @admin.register(Recording)
 class RecordingAdmin(admin.ModelAdmin):
