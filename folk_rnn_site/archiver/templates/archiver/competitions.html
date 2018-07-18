@@ -1,0 +1,44 @@
+{% extends "archiver/base.html" %}
+
+{% block title %}Competitions{% endblock %}
+
+{% block headend %}{% include "_abcjs-headend.html" %}{% endblock %}
+
+{% block content %}
+{% load humanize %}
+{% load embed_video_tags %}
+{% load markdown_deux_tags %}
+{% for competition in competitions %}
+<div class="section">
+    <div class="section-meta">
+        <h2>{{ competition.title }}</h2>
+        <p class="meta">Tune selection:<br>{{ competition.tune_vote_open.lower|naturalday }}–{{ competition.tune_vote_open.upper|naturalday }}</p>
+        <p class="meta">Performance selection:<br> {{ competition.recording_vote_open.lower|naturalday }}–{{ competition.recording_vote_open.upper|naturalday }}</p>
+        <p class="meta">Tunes:</p>
+        <ul class="meta">
+        {% for tune in competition.tune_set %}
+            <li><a href="{% url 'tune' tune_id=tune.id %}">{{ tune.title }}</a></li>
+        {% empty %}
+            <li>No tunes archived here</li>
+        {% endfor %}
+        </ul>
+        <p class="meta">Added by <a href="{% url 'user' user_id=competition.author.id %}">{{ competition.author.get_full_name }}</a></p>
+    </div>
+    <div class="section-body">
+        {{ competition.text|markdown }}
+    </div>
+</div>
+<div class="section">
+    <div class="section-meta">
+        <h3>Tunes</h3>
+    </div>
+    <div class="section-body">
+        {% include "archiver/_tunepreviews.html" with tunes=competition.tune_set %}
+    </div>
+</div>
+{% for recording in competition.recording_set %}
+{% include 'archiver/_recording.html' %}
+{% endfor %}
+
+{% endfor %}
+{% endblock %}

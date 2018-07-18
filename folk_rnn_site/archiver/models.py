@@ -4,6 +4,7 @@ from django.db.models import F, Count
 from django.db.models.query import QuerySet
 from django.dispatch import receiver
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.postgres.fields import DateRangeField
 from django.core.exceptions import ValidationError
 from django_hosts.resolvers import reverse
 from embed_video.fields import EmbedVideoField
@@ -380,3 +381,69 @@ class TunebookEntry(models.Model):
     setting = models.ForeignKey(Setting, null=True)
     user = models.ForeignKey(User)
     submitted = models.DateTimeField(auto_now_add=True)
+
+class Competition(models.Model):
+    """
+    Vote upon a tune and subsequently vote on uploaded recordings of it. 
+    A community engagement, 'Tune of the Month'.
+    """
+    title = models.CharField(max_length=150)
+    text = models.TextField(help_text='This is a markdown field, e.g. *italics* and [a link](http://tobyz.net)')
+    author = models.ForeignKey(User)
+    tune_vote_open = DateRangeField(help_text='Valid from beginning of first date until end of second date; YYYY-MM-DD')
+    recording_vote_open = DateRangeField(help_text='Valid from beginning of first date until end of second date; YYYY-MM-DD')
+    
+    def __str__(self):
+        return f'Competition {self.id}: {self.title}'
+        
+    @property
+    def tune_set(self):
+        return Tune.objects.filter(competitiontune__competition=self)
+    
+    @property
+    def recording_set(self):
+        return Recording.objects.filter(competitionrecording__competition_tune__competition=self)
+        
+class CompetitionTune(models.Model):
+    """
+    A tune, one of e.g. 5, that can be voted on to select the tune people will learn and record
+    """
+    competition = models.ForeignKey(Competition)
+    tune = models.ForeignKey(Tune)
+    
+    def __str__(self):
+        return f'Competition tune {self.tune.id} for {self.competition.id}: {self.competition.title}'
+
+class CompetitionTuneVote(models.Model):
+    """
+    A vote, hopefully one of many, upon a competition tune
+    """
+    competition_tune = models.ForeignKey(CompetitionTune)
+    user = models.ForeignKey(User)
+
+class CompetitionRecording(models.Model):
+    """
+    A recording that can be voted on to select the most favoured rendition of the winning tune
+    """
+    competition_tune = models.ForeignKey(CompetitionTune)
+    recording = models.ForeignKey(Recording)
+    
+    def __str__(self):
+        return f'Competition recording {self.recording.id} for {self.competition_tune.competition.id}: {self.competition_tune.competition.title}'
+
+class CompetitionRecordingVote(models.Model):
+    """
+    A vote, hopefully one of many, upon a competition recording
+    """
+    competition_recording = models.ForeignKey(CompetitionRecording)
+    user = models.ForeignKey(User)
+
+class CompetitionComment(Comment):
+    """
+    A comment upon a competition.
+    Multiple comments can exist for any given compeition.
+    """
+    def __str__(self):
+        return f'Comment: "{self.text[:30]}" by {self.author} on Competition {self.competition.title})'
+
+    tune = models.ForeignKey(Competition, related_name='comment_set', related_query_name='comment')
