@@ -15,7 +15,7 @@ from random import choice, choices
 from folk_rnn_site.models import ABCModel
 from archiver import TUNE_SEARCH_EXAMPLES, MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
 from archiver import weightedSelectionWithoutReplacement
-from archiver.models import User, Tune, annotate_counts, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry, TuneRecording
+from archiver.models import User, Tune, annotate_counts, TuneAttribution, Setting, TuneComment, Recording, Event, TunebookEntry, TuneRecording
 from archiver.forms import (
                             SettingForm, 
                             CommentForm, 
@@ -38,7 +38,7 @@ def activity(filter_dict={}):
     tunes_settings.sort(key=lambda x: x.submitted)
     tunes_settings[:-MAX_RECENT_ITEMS] = []
     
-    comments = Comment.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
+    comments = TuneComment.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
     
     return (tunes_settings, comments)
 
@@ -169,7 +169,7 @@ def tune_page(request, tune_id=None):
             elif 'submit-comment' in request.POST:
                 form = CommentForm(request.POST)
                 if form.is_valid():
-                    comment = Comment(
+                    comment = TuneComment(
                                 tune=tune, 
                                 text=form.cleaned_data['text'], 
                                 author=request.user,

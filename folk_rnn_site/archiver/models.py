@@ -6,6 +6,7 @@ from django.dispatch import receiver
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.exceptions import ValidationError
 from django_hosts.resolvers import reverse
+from django.utils.timezone import now
 from embed_video.fields import EmbedVideoField
 
 from folk_rnn_site.models import ABCModel, conform_abc
@@ -270,12 +271,22 @@ class Comment(models.Model):
         return f'Comment: "{self.text[:30]}" by {self.author} on MachineFolk {self.tune.id})'
     
     class Meta:
+        abstract = True
         ordering = ['id']
         
-    tune = models.ForeignKey(Tune)
     text = models.TextField(default='')
     author = models.ForeignKey(User)
-    submitted = models.DateTimeField(auto_now_add=True)
+    submitted = models.DateTimeField(default=now)
+
+class TuneComment(Comment):
+    """
+    A comment upon a tune.
+    Multiple comments can exist for any given tune.
+    """
+    def __str__(self):
+        return f'Comment: "{self.text[:30]}" by {self.author} on MachineFolk {self.tune.id})'
+
+    tune = models.ForeignKey(Tune, related_name='comment_set', related_query_name='comment')
 
 class Documentation(models.Model):
     """
