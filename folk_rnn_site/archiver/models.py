@@ -447,7 +447,12 @@ class Competition(models.Model):
         """
         The Tune that received the most votes
         """
-        return self.tune_set.latest('votes')
+        return (
+                Tune.objects
+                .filter(competitiontune__competition=self)
+                .annotate(votes=Count('competitiontune__vote'))
+                .latest('votes')
+                )
 
 class CompetitionComment(Comment):
     """
