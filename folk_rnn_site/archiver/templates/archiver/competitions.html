@@ -25,7 +25,7 @@
                 {% for tune in tunes %}
                 <li>
                     <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title}}</a></h3>
-                    <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
+                    <div id="staff-{{ id_prefix }}{{ forloop.counter }}"></div>
                     <div id="midi-{{ id_prefix }}{{ forloop.counter }}"></div>
                 </li>
                 {% empty %}
@@ -41,7 +41,7 @@
                         responsive: "resize",
                     }
                     {% for tune in tunes %}
-                    ABCJS.renderAbc("notation-{{ id_prefix }}{{ forloop.counter }}", "{{ tune.abc_preview|escapejs }}", params);
+                    ABCJS.renderAbc("staff-{{ id_prefix }}{{ forloop.counter }}", "{{ tune.abc_preview|escapejs }}", params);
                     ABCJS.renderMidi("midi-{{ id_prefix }}{{ forloop.counter }}", "{{ tune.abc|escapejs }}", params);
                     {% endfor %}
                 }, false);
@@ -52,7 +52,46 @@
             <p>Voting is open to select the tune. The idea is once selected there'll then be time for people to learn this tune and share performances of it.</p>
         {% else %}
             {% with tune_won=competition.tune_won %}
-            <p>The tune chosen by the community to learn is <a href="{% url 'tune' tune_id=tune_won.id %}">{{ tune_won.title }}</a>, below. The other tunes were {% for tune in competition.tune_set %}{% if tune != tune_won %}<a href="{% url 'tune' tune_id=tune.id %}">{{ tune.title }}</a>{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}.</p>
+            <p>The tune chosen by the community to learn is <a href="{% url 'tune' tune_id=tune_won.id %}">{{ tune_won.title }}</a>, staff notation shown below. The other tunes were {% for tune in competition.tune_set %}{% if tune != tune_won %}<a href="{% url 'tune' tune_id=tune.id %}">{{ tune.title }}</a>{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}.</p>
+            <textarea class="abc" id="abc-tune-won" readonly hidden>{{ tune_won.abc }}</textarea>
+            <div id="staff-tune-won"></div>
+            <div id="midi-tune-won"></div>
+            <script>
+            window.addEventListener("load", function() {
+                const el = document.getElementById("abc-tune-won");
+                el.setAttribute("rows", el.innerHTML.split(/\n/).length)
+                // abcjs
+                const colorRange = function(range, color) {
+                    if (range && range.elements) {
+                        range.elements.forEach(function (set) {
+                            set.forEach(function (item) {
+                                item.setAttribute("fill", color);
+                            });
+                        });
+                    }
+                };
+                const animateCallback = function(lastRange, currentRange, context) {
+                    colorRange(lastRange, "#000000");
+                    colorRange(currentRange, "#3D9AFC");
+                };
+                new ABCJS.Editor("abc-tune-won", { 
+                    canvas_id: "staff-tune-won",
+                    generate_midi: true,
+                    midi_id:"midi-tune-won",
+                    abcjsParams: {
+                        generateInline: true,
+                        generateDownload: false,
+                        paddingleft:0,
+                        paddingright:0,
+                        responsive: "resize",
+                        animate: {
+                            listener: animateCallback, 
+                            target: "staff-tune-won"
+                        },
+                    }
+                });
+            }, false);
+            </script>
             {% endwith %}
         {% endif %}
         {% if competition.recording_voting_state == 'AFTER' %}
@@ -70,7 +109,7 @@
     </div>
     <div class="section-body">
         <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title}}</a></h3>
-        <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
+        <div id="staff-{{ id_prefix }}{{ forloop.counter }}"></div>
         <div id="midi-{{ id_prefix }}{{ forloop.counter }}"></div>
     </div>
 </div>
@@ -83,7 +122,7 @@ window.addEventListener("load", function() {
         responsive: "resize",
     }
     {% for tune in tunes %}
-    ABCJS.renderAbc("notation-{{ id_prefix }}{{ forloop.counter }}", "{{ tune.abc_preview|escapejs }}", params);
+    ABCJS.renderAbc("staff-{{ id_prefix }}{{ forloop.counter }}", "{{ tune.abc_preview|escapejs }}", params);
     ABCJS.renderMidi("midi-{{ id_prefix }}{{ forloop.counter }}", "{{ tune.abc|escapejs }}", params);
     {% endfor %}
 }, false);
