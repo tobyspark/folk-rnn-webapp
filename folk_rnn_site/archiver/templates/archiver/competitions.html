@@ -12,45 +12,96 @@
 <div class="section">
     <div class="section-meta">
         <h2>{{ competition.title }}</h2>
-        <p class="meta">Tune selection:<br>{{ competition.tune_vote_open.lower|naturalday }}–{{ competition.tune_vote_open.upper|naturalday }}</p>
-        <p class="meta">Performance selection:<br> {{ competition.recording_vote_open.lower|naturalday }}–{{ competition.recording_vote_open.upper|naturalday }}</p>
+        <p class="meta">Tune selection: {% if competition.tune_voting_state == 'BEFORE' %}pending.{% elif competition.tune_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.tune_vote_open|naturalday }}–{{ competition.tune_vote_close|naturalday }}</p>
+        <p class="meta">Performance selection: {% if competition.recording_voting_state == 'BEFORE' %}pending.{% elif competition.recording_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_vote_open|naturalday }}–{{ competition.recording_vote_close|naturalday }}</p>
         <p class="meta">Added by <a href="{% url 'user' user_id=competition.author.id %}">{{ competition.author.get_full_name }}</a></p>
     </div>
     <div class="section-body">
         {{ competition.text|markdown }}
+        {% if competition.tune_voting_state == 'BEFORE' %}
+            <p>Voting to select the tune to learn and perform has not started yet. In the meantime, here are the tunes we'll be selecting from.</p>
+            <ul>
+            {% with tunes=competition.tune_set %}
+                {% for tune in tunes %}
+                <li>
+                    <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title}}</a></h3>
+                    <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
+                    <div id="midi-{{ id_prefix }}{{ forloop.counter }}"></div>
+                </li>
+                {% empty %}
+                <li>
+                    <p>{{ empty_message|default:'No tunes' }}</p>
+                </li>
+                {% endfor %}
+                <script type="text/javascript">
+                window.addEventListener("load", function() {
+                    const params = {
+                        paddingleft:0,
+                        paddingright:0,
+                        responsive: "resize",
+                    }
+                    {% for tune in tunes %}
+                    ABCJS.renderAbc("notation-{{ id_prefix }}{{ forloop.counter }}", "{{ tune.abc_preview|escapejs }}", params);
+                    ABCJS.renderMidi("midi-{{ id_prefix }}{{ forloop.counter }}", "{{ tune.abc|escapejs }}", params);
+                    {% endfor %}
+                }, false);
+                </script>
+            {% endwith %}
+            </ul>
+        {% elif competition.tune_voting_state == 'IN' %}
+            <p>Voting is open to select the tune. The idea is once selected there'll then be time for people to learn this tune and share performances of it.</p>
+        {% else %}
+            <p>The tune chosen by the community to learn is {{ competition.tune_won.title }}, below. The other tunes were {% for tune in competition.tune_set %}{% if tune != competition.tune_won %}{{ tune.title }}{% endif %}{% endfor %}.</p>
+        {% endif %}
+        {% if competition.recording_voting_state == 'AFTER' %}
+            <p>The winning performance was...TODO</p>
+        {% endif %}
         <ul>
-        {% with tunes=competition.tune_set %}
-            {% for tune in tunes %}
+        
+    </div>
+</div>
+{% if competition.recording_voting_state != 'AFTER' %}
+<div class="section">
+    <div class="section-meta">
+        <h3>Vote!</h3>
+    </div>
+    <div class="section-body">
+        {% if competition.tune_voting_state == 'BEFORE' %}
+            <p>Voting to select the tune to learn and perform has not started yet...</p>
+        {% elif competition.tune_voting_state == 'IN' %}
+            {% for tune in competition.tune_set %}
+                <p>Vote on {{ tune }}</p>
+            {% endfor %}
+        {% elif competition.recording_voting_state == 'BEFORE' %}
+            <p>Voting to select the performance of the selected tune has not started yet...</p>
+        {% elif competition.recording_voting_state == 'IN' %}
+            {% for recording in competition.recording_set %}
+                <p>Vote on {{ recording }}</p>
+            {% endfor %}
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<div class="section">
+    <div class="section-meta">
+        <h3>Discuss</h3>
+    </div>
+    <div class="section-body">
+        <ul>
+            {% for comment in competition.comment_set.all %}
             <li>
-                <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title}}</a></h3>
-                <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
-                <div id="midi-{{ id_prefix }}{{ forloop.counter }}"></div>
+                <p>{{ comment.text}}</p>
+                <p class="meta">Posted by <a href="{% url 'user' user_id=comment.author.id %}">{{ comment.author.get_full_name }}</a> {{ comment.submitted|naturalday }}.</li>
             </li>
             {% empty %}
             <li>
-                <p>{{ empty_message|default:'No tunes' }}</p>
+                <p>No comments yet.</p>
             </li>
             {% endfor %}
-            <script type="text/javascript">
-            window.addEventListener("load", function() {
-                const params = {
-                    paddingleft:0,
-                    paddingright:0,
-                    responsive: "resize",
-                }
-                {% for tune in tunes %}
-                ABCJS.renderAbc("notation-{{ id_prefix }}{{ forloop.counter }}", "{{ tune.abc_preview|escapejs }}", params);
-                ABCJS.renderMidi("midi-{{ id_prefix }}{{ forloop.counter }}", "{{ tune.abc|escapejs }}", params);
-                {% endfor %}
-            }, false);
-            </script>
-        {% endwith %}
         </ul>
     </div>
 </div>
-{% for recording in competition.recording_set %}
-{% include 'archiver/_recording.html' %}
-{% endfor %}
 
 {% endfor %}
 {% endblock %}
