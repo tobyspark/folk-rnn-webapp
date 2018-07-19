@@ -398,11 +398,17 @@ class Competition(models.Model):
         
     @property
     def tune_set(self):
-        return Tune.objects.filter(competitiontune__competition=self)
+        """
+        A shuffled queryset of the tunes in this competition
+        """
+        return Tune.objects.filter(competitiontune__competition=self).order_by('?')
     
     @property
     def recording_set(self):
-        return Recording.objects.filter(competitionrecording__competition_tune__competition=self)
+        """
+        A shuffled queryset of the recordings in this competition
+        """
+        return Recording.objects.filter(competitionrecording__competition_tune__competition=self).order_by('?')
         
 class CompetitionTune(models.Model):
     """
