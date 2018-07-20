@@ -509,6 +509,34 @@ class Competition(models.Model):
         The Recording that received the most votes
         """
         return self.competition_recording_won.recording
+    
+    def tune_vote(self, user):
+        """
+        The tune the user has voted for, if any
+        """
+        try:
+            return (
+                    CompetitionTune.objects
+                    .filter(competition=self)
+                    .filter(vote__user=user)
+                    .get().tune
+                    )
+        except CompetitionTune.DoesNotExist:
+            return None
+    
+    def recording_vote(self, user):
+        """
+        The recording the user has voted for, if any
+        """
+        try:
+            return (
+                    CompetitionRecording.objects
+                    .filter(competition=self)
+                    .filter(vote__user=user)
+                    .get().recording
+                    )
+        except CompetitionRecording.DoesNotExist:
+            return None
 
 class CompetitionComment(Comment):
     """

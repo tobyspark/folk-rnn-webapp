@@ -105,7 +105,14 @@
 {% for tune in tunes %}
 <div class="section">
     <div class="section-meta">
-        <p class="meta">Vote!</p>
+        {% if user_tune_vote == tune%}
+        <h3>Your choice</h3>
+        <p class="meta">Retract your vote.</p>
+        {% elif user_tune_vote %}
+        {% else %}
+        <h3><a href="#">Vote!</a></h3>
+        {% endif %}
+        <p class="meta">{% if tune.votes == 0 %}No votes.{% else %}{{ tune.votes|apnumber|capfirst }} vote{{ tune.votes|pluralize }}.{% endif %}</p>
     </div>
     <div class="section-body">
         <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title}}</a></h3>
@@ -160,7 +167,14 @@ window.addEventListener("load", function() {
 {% for recording in competition.recording_set %}
 <div class="section">
     <div class="section-meta">
-        <p class="meta">Vote!</p>
+        {% if user_recording_vote == recording%}
+        <h3>Your choice</h3>
+        <p class="meta">Retract your vote.</p>
+        {% elif user_recording_vote %}
+        {% else %}
+        <h3><a href="#">Vote!</a></h3>
+        {% endif %}
+        <p class="meta">{% if recording.votes == 0 %}No votes.{% else %}{{ recording.votes|apnumber|capfirst }} vote{{ recording.votes|pluralize }}.{% endif %}</p>
     </div>
     <div class="section-body">
         {% video recording.video is_secure=True as my_video %}
