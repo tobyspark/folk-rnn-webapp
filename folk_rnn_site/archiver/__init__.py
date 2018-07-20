@@ -11,6 +11,10 @@ TUNE_SEARCH_EXAMPLES = [
         'G/A/G/F/ ED', 
         'dBd edc',
         ]
+COMPETITION_SEARCH_EXAMPLES = [
+        'Tune of the month', 
+        # TODO: once there are some competitions to know what might be good to search for
+        ]
 MAX_RECENT_ITEMS = 5 # e.g. how many 'popular tunes' listed on the homepage
 TUNE_PREVIEWS_PER_PAGE = 10 # e.g. how many search results are listed on the tunes page
 YEAR_CHOICES = range(date.today().year, date.today().year-20, -1)

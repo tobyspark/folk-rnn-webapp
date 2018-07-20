@@ -13,8 +13,13 @@ from datetime import timedelta
 from random import choice, choices
 
 from folk_rnn_site.models import ABCModel
-from archiver import TUNE_SEARCH_EXAMPLES, MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
-from archiver import weightedSelectionWithoutReplacement
+from archiver import (
+                            TUNE_SEARCH_EXAMPLES, 
+                            COMPETITION_SEARCH_EXAMPLES,
+                            MAX_RECENT_ITEMS, 
+                            TUNE_PREVIEWS_PER_PAGE,
+                            weightedSelectionWithoutReplacement,
+                            )
 from archiver.models import (
                             User, 
                             Tune, 
@@ -425,8 +430,35 @@ def tunebook_download(request, user_id):
     return response
 
 def competitions_page(request):
+    if 'search' in request.GET and request.GET['search'] != '':
+        search_text = request.GET['search']
+        search_results = (
+                Competition.objects
+                .annotate(search=SearchVector('title', 'text', 'competitiontune__tune__abc', 'competitionrecording__recording__title', 'competitionrecording__recording__body'))
+                .filter(search=SearchQuery(search_text))
+                .order_by('-id')
+                .distinct('id')
+                )
+    else:
+        search_text = ''
+        search_results = Competition.objects.order_by('-id')
+    
+    paginator = Paginator(search_results, TUNE_PREVIEWS_PER_PAGE)
+    page_number = request.GET.get('page')
+    try:
+        search_results_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        search_results_page = paginator.page(1)
+    except EmptyPage:
+        search_results_page = paginator.page(paginator.num_pages)
+    
+    search_placeholders = COMPETITION_SEARCH_EXAMPLES
+    search_placeholder = f'e.g. {choice(search_placeholders)}'
     return render(request, 'archiver/competitions.html', {
-                            'competitions': Competition.objects.all(),
+        'search_form': SearchForm(request.GET),
+        'search_text': search_text,
+        'search_placeholder': search_placeholder,
+        'search_results': search_results_page,
     })
 
 def competition_page(request, competition_id):
@@ -482,8 +514,8 @@ def competition_page(request, competition_id):
                 CompetitionRecordingVote.objects.create(votable=competition_recording, user=request.user)
             redirect(reverse('competition', kwargs={"competition_id": competition.id}))
     
-    return render(request, 'archiver/competitions.html', {
-                            'competitions': [competition],
+    return render(request, 'archiver/competition.html', {
+                            'competition': competition,
                             'user_tune_vote': competition.tune_vote(request.user),
                             'user_recording_vote': competition.recording_vote(request.user),
                             'recording_form': recording_form,
