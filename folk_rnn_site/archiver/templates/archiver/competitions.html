@@ -8,11 +8,13 @@
 {% load humanize %}
 {% load embed_video_tags %}
 {% load markdown_deux_tags %}
+{% load widget_tweaks %}
 {% for competition in competitions %}
 <div class="section">
     <div class="section-meta">
         <h2>{{ competition.title }}</h2>
         <p class="meta">Tune selection: {% if competition.tune_voting_state == 'BEFORE' %}pending.{% elif competition.tune_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.tune_vote_open|naturalday }}–{{ competition.tune_vote_close|naturalday }}</p>
+        <p class="meta">Performance submission: {% if competition.recording_submission_state == 'BEFORE' %}pending.{% elif competition.recording_submission_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_submit_open|naturalday }}–{{ competition.recording_submit_close|naturalday }}</p>
         <p class="meta">Performance selection: {% if competition.recording_voting_state == 'BEFORE' %}pending.{% elif competition.recording_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_vote_open|naturalday }}–{{ competition.recording_vote_close|naturalday }}</p>
         <p class="meta">Added by <a href="{% url 'user' user_id=competition.author.id %}">{{ competition.author.get_full_name }}</a></p>
     </div>
@@ -52,7 +54,8 @@
             <p>Voting is open to select the tune. The idea is once selected there'll then be time for people to learn this tune and share performances of it.</p>
         {% else %}
             {% with tune_won=competition.tune_won %}
-            <p>The tune chosen by the community to learn is <a href="{% url 'tune' tune_id=tune_won.id %}">{{ tune_won.title }}</a>, staff notation shown below. The other tunes were {% for tune in competition.tune_set %}{% if tune != tune_won %}<a href="{% url 'tune' tune_id=tune.id %}">{{ tune.title }}</a>{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}.</p>
+            <p>The tune chosen by the community to learn is <a href="{% url 'tune' tune_id=tune_won.id %}">{{ tune_won.title }}</a>. Click through that link to the tune page for full details, downloads etc.; staff notation shown below.</p>
+            <p>The other tunes were {% for tune in competition.tune_set %}{% if tune != tune_won %}<a href="{% url 'tune' tune_id=tune.id %}">{{ tune.title }}</a>{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}.</p>
             <textarea class="abc" id="abc-tune-won" readonly hidden>{{ tune_won.abc }}</textarea>
             <div id="staff-tune-won"></div>
             <div id="midi-tune-won"></div>
@@ -128,6 +131,32 @@ window.addEventListener("load", function() {
 }, false);
 </script>
 {% endwith %}
+{% endif %}
+
+{% if competition.recording_submission_state == 'IN' %}
+<div class="section">
+    <div class="section-meta">
+        <p class="meta">Submit</p>
+    </div>
+    <div class="section-body">
+        <form method="POST" class="pure-form">
+        {% with WIDGET_ERROR_CLASS='error' %}
+            {% csrf_token %}
+            {{ recording_form.title.errors }}
+            {% render_field recording_form.title class+="pure-input-1" placeholder="Title, e.g. Ada’s Reel"%}
+            {{ recording_form.url.errors }}
+            {% render_field recording_form.url class+="pure-input-1" rows="2" placeholder="Link to the video on Youtube / Vimeo or audio on Soundcloud"%}
+            {{ recording_form.body.errors }}
+            {% render_field recording_form.body class+="pure-input-1" rows="2" placeholder="Describe the recording, e.g. Ada and Charles play... at..."%}
+            {{ recording_form.date.errors }}
+            {% render_field recording_form.date class+=""%}
+            <div class="pure-control-group pure-u-1">
+                <input id="recording_button" type="submit" name="submit-recording" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+            </div>
+        {% endwith %}
+        </form>
+    </div>
+</div>
 {% endif %}
 
 {% if competition.recording_voting_state == 'IN' %}
