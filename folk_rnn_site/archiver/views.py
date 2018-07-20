@@ -484,7 +484,7 @@ def competition_page(request, competition_id):
                         recording=recording,
                         )
                 CompetitionRecording.objects.create(
-                        competition_tune=competition.competition_tune_won,
+                        competition=competition,
                         recording=recording,
                         )
                 return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
