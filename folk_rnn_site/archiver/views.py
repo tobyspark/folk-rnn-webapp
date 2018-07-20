@@ -27,7 +27,10 @@ from archiver.models import (
                             TunebookEntry, 
                             TuneRecording, 
                             Competition,
+                            CompetitionTune,
+                            CompetitionTuneVote,
                             CompetitionRecording,
+                            CompetitionRecordingVote,
                             )
 from archiver.forms import (
                             SettingForm, 
@@ -39,6 +42,7 @@ from archiver.forms import (
                             EventForm, 
                             TunebookForm,
                             SearchForm,
+                            VoteForm,
                             )
 from archiver.dataset import dataset_as_csv
 
@@ -453,6 +457,30 @@ def competition_page(request, competition_id):
                 return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
     else:
         recording_form = RecordingForm()
+    
+    if request.method == 'POST' and 'submit-tune-vote' in request.POST:
+        tune_vote_form = VoteForm(request.POST)
+        if tune_vote_form.is_valid():
+            tune_id = tune_vote_form.cleaned_data['object_id']
+            competition_tune = CompetitionTune.objects.get(tune__id=tune_id, competition=competition)
+            try:
+                vote = CompetitionTuneVote.objects.get(votable=competition_tune, user=request.user)
+                vote.delete()
+            except CompetitionTuneVote.DoesNotExist:
+                CompetitionTuneVote.objects.create(votable=competition_tune, user=request.user)
+            redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+    
+    if request.method == 'POST' and 'submit-recording-vote' in request.POST:
+        recording_vote_form = VoteForm(request.POST)
+        if recording_vote_form.is_valid():
+            recording_id = recording_vote_form.cleaned_data['object_id']
+            competition_recording = CompetitionRecording.objects.get(recording__id=recording_id, competition=competition)
+            try:
+                vote = CompetitionRecordingVote.objects.get(votable=competition_recording, user=request.user)
+                vote.delete()
+            except CompetitionRecordingVote.DoesNotExist:
+                CompetitionRecordingVote.objects.create(votable=competition_recording, user=request.user)
+            redirect(reverse('competition', kwargs={"competition_id": competition.id}))
     
     return render(request, 'archiver/competitions.html', {
                             'competitions': [competition],

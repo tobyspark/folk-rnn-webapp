@@ -106,11 +106,18 @@
 <div class="section">
     <div class="section-meta">
         {% if user_tune_vote == tune%}
-        <h3>Your choice</h3>
-        <p class="meta">Retract your vote.</p>
+        <form method="POST" class="pure-form">
+            {% csrf_token %}
+            <input type="hidden" name="object_id" value="{{ tune.id }}">
+            <input type="submit" name="submit-tune-vote" value="Retract" class="pure-button">
+        </form>
         {% elif user_tune_vote %}
-        {% else %}
-        <h3><a href="#">Vote!</a></h3>
+        {% elif user.is_authenticated %}
+        <form method="POST" class="pure-form">
+            {% csrf_token %}
+            <input type="hidden"name="object_id" value="{{ tune.id }}">
+            <input type="submit" name="submit-tune-vote" value="Vote" class="pure-button pure-button-primary">
+        </form>
         {% endif %}
         <p class="meta">{% if tune.votes == 0 %}No votes.{% else %}{{ tune.votes|apnumber|capfirst }} vote{{ tune.votes|pluralize }}.{% endif %}</p>
     </div>
@@ -168,11 +175,18 @@ window.addEventListener("load", function() {
 <div class="section">
     <div class="section-meta">
         {% if user_recording_vote == recording%}
-        <h3>Your choice</h3>
-        <p class="meta">Retract your vote.</p>
+        <form method="POST" class="pure-form">
+            {% csrf_token %}
+            <input type="hidden" name="object_id" value="{{ recording.id }}">
+            <input type="submit" name="submit-recording-vote" value="Retract" class="pure-button">
+        </form>
         {% elif user_recording_vote %}
-        {% else %}
-        <h3><a href="#">Vote!</a></h3>
+        {% elif user.is_authenticated %}
+        <form method="POST" class="pure-form">
+            {% csrf_token %}
+            <input type="hidden" name="object_id" value="{{ recording.id }}">
+            <input type="submit" name="submit-recording-vote" value="Vote" class="pure-button pure-button-primary">
+        </form>
         {% endif %}
         <p class="meta">{% if recording.votes == 0 %}No votes.{% else %}{{ recording.votes|apnumber|capfirst }} vote{{ recording.votes|pluralize }}.{% endif %}</p>
     </div>
