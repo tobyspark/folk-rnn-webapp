@@ -97,9 +97,6 @@
             </script>
             {% endwith %}
         {% endif %}
-        {% if competition.recording_voting_state == 'AFTER' %}
-            <p>The winning performance was...TODO</p>
-        {% endif %}
     </div>
 </div>
 
@@ -174,6 +171,48 @@ window.addEventListener("load", function() {
 {% endfor %}
 {% endif %}
 
+{% if competition.recording_voting_state == 'AFTER' %}
+{% with recording_won=competition.recording_won %}
+{% with recordings=competition.recording_set %}
+<div class="section">
+    <div class="section-meta">
+        <h3>Winner!</h3>
+        {% for recording in recordings %}
+        {% if recording == recording_won %}
+        <p class="meta"><a href="{% url 'recording' recording_id=recording.id %}">{{ recording.title }}</a><br>by&nbsp;<a href="{% url 'user' user_id=recording.author.id %}">{{ recording.author.get_full_name }}</a>.{% if recording.votes %}<br>{{ recording.votes|apnumber|capfirst }} votes.{% endif %}</p>
+        {% endif %}
+        {% endfor %}
+    </div>
+    <div class="section-body">
+        {% video recording_won.video is_secure=True as my_video %}
+          {% video my_video%}
+        {% endvideo %}
+    </div>
+</div>
+
+<div class="section">
+    <div class="section-meta">
+    <h3>Runners-up</h3>
+        {% for recording in recordings %}
+        {% if not recording == recording_won %}
+        <p class="meta"><a href="{% url 'recording' recording_id=recording.id %}">{{ recording.title }}</a><br>by&nbsp;<a href="{% url 'user' user_id=recording.author.id %}">{{ recording.author.get_full_name }}</a>.{% if recording.votes %}<br>{{ recording.votes|apnumber|capfirst }} votes.{% endif %}</p>
+        {% endif %}
+        {% endfor %}
+        </p>
+    </div>
+    <div class="section-body">
+    {% for recording in recordings %}
+    {% if not recording == recording_won %}
+        {% video competition.recording_won.video is_secure=True as my_video %}
+          {% video my_video%}
+        {% endvideo %}
+    {% endif %}
+    {% endfor %}
+    </div>
+</div>
+{% endwith %}
+{% endwith %}
+{% endif %}
 
 <div class="section">
     <div class="section-meta">
