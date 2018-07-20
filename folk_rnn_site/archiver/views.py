@@ -471,24 +471,24 @@ def competition_page(request, competition_id):
         return redirect('/')
     
     if request.method == 'POST' and 'submit-recording' in request.POST:
-            recording_form = RecordingForm(request.POST)
-            if recording_form.is_valid():
-                recording = Recording.objects.create(
-                        title=recording_form.cleaned_data['title'], 
-                        body=recording_form.cleaned_data['body'], 
-                        date=recording_form.cleaned_data['date'],
-                        video = recording_form.cleaned_data['url'],
-                        author=request.user,
-                        )
-                TuneRecording.objects.create(
-                        tune=competition.tune_won,
-                        recording=recording,
-                        )
-                CompetitionRecording.objects.create(
-                        competition=competition,
-                        recording=recording,
-                        )
-                return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+        recording_form = RecordingForm(request.POST)
+        if recording_form.is_valid():
+            recording = Recording.objects.create(
+                    title=recording_form.cleaned_data['title'], 
+                    body=recording_form.cleaned_data['body'], 
+                    date=recording_form.cleaned_data['date'],
+                    video = recording_form.cleaned_data['url'],
+                    author=request.user,
+                    )
+            TuneRecording.objects.create(
+                    tune=competition.tune_won,
+                    recording=recording,
+                    )
+            CompetitionRecording.objects.create(
+                    competition=competition,
+                    recording=recording,
+                    )
+            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
     else:
         recording_form = RecordingForm()
     
@@ -502,7 +502,7 @@ def competition_page(request, competition_id):
                 vote.delete()
             except CompetitionTuneVote.DoesNotExist:
                 CompetitionTuneVote.objects.create(votable=competition_tune, user=request.user)
-            redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
     
     if request.method == 'POST' and 'submit-recording-vote' in request.POST:
         recording_vote_form = VoteForm(request.POST)
@@ -514,7 +514,7 @@ def competition_page(request, competition_id):
                 vote.delete()
             except CompetitionRecordingVote.DoesNotExist:
                 CompetitionRecordingVote.objects.create(votable=competition_recording, user=request.user)
-            redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
     
     if request.method == 'POST' and 'submit-comment' in request.POST:
         comment_form = CommentForm(request.POST)
@@ -539,43 +539,43 @@ def competition_page(request, competition_id):
 
 def submit_page(request):
     if request.method == 'POST' and 'submit-tune' in request.POST:
-            tune = Tune(author=request.user)
-            tune_form = TuneForm(request.POST, instance=tune)
-            tune_attribution_form = TuneAttributionForm(request.POST)
-            if tune_form.is_valid() and tune_attribution_form.is_valid():
-                tune_form.save()
-                tune_attribution = TuneAttribution(tune=tune) # tune now has pk
-                tune_attribution_form = TuneAttributionForm(request.POST, instance=tune_attribution) 
-                tune_attribution_form.save()
-                return redirect(reverse('tune', kwargs={"tune_id": tune.id}))
+        tune = Tune(author=request.user)
+        tune_form = TuneForm(request.POST, instance=tune)
+        tune_attribution_form = TuneAttributionForm(request.POST)
+        if tune_form.is_valid() and tune_attribution_form.is_valid():
+            tune_form.save()
+            tune_attribution = TuneAttribution(tune=tune) # tune now has pk
+            tune_attribution_form = TuneAttributionForm(request.POST, instance=tune_attribution) 
+            tune_attribution_form.save()
+            return redirect(reverse('tune', kwargs={"tune_id": tune.id}))
     else:
         tune_form = TuneForm()
         tune_attribution_form = TuneAttributionForm()
 
     if request.method == 'POST' and 'submit-recording' in request.POST:
-            recording_form = RecordingForm(request.POST)
-            if recording_form.is_valid():
-                recording = Recording.objects.create(
-                        title=recording_form.cleaned_data['title'], 
-                        body=recording_form.cleaned_data['body'], 
-                        date=recording_form.cleaned_data['date'],
-                        video = recording_form.cleaned_data['url'],
-                        author=request.user,
-                        )
-                return redirect(reverse('recording', kwargs={"recording_id": recording.id}))
+        recording_form = RecordingForm(request.POST)
+        if recording_form.is_valid():
+            recording = Recording.objects.create(
+                    title=recording_form.cleaned_data['title'], 
+                    body=recording_form.cleaned_data['body'], 
+                    date=recording_form.cleaned_data['date'],
+                    video = recording_form.cleaned_data['url'],
+                    author=request.user,
+                    )
+            return redirect(reverse('recording', kwargs={"recording_id": recording.id}))
     else:
         recording_form = RecordingForm()
     
     if request.method == 'POST' and 'submit-event' in request.POST:
-            event_form = EventForm(request.POST)
-            if event_form.is_valid():
-                event = Event.objects.create(
-                        title=event_form.cleaned_data['title'], 
-                        body=event_form.cleaned_data['body'], 
-                        date=event_form.cleaned_data['date'], 
-                        author=request.user,
-                        )
-                return redirect(reverse('event', kwargs={"event_id": event.id}))
+        event_form = EventForm(request.POST)
+        if event_form.is_valid():
+            event = Event.objects.create(
+                    title=event_form.cleaned_data['title'], 
+                    body=event_form.cleaned_data['body'], 
+                    date=event_form.cleaned_data['date'], 
+                    author=request.user,
+                    )
+            return redirect(reverse('event', kwargs={"event_id": event.id}))
     else:
         event_form = EventForm()
     
