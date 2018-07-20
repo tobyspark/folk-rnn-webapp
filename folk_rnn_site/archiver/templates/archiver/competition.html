@@ -145,11 +145,13 @@ window.addEventListener("load", function() {
 
 {% if competition.recording_submission_state == 'IN' %}
 <div class="section">
+    <form method="POST" class="pure-form">
     <div class="section-meta">
         <h3>Submit a performance</h3>
+            <input id="recording_button" type="submit" name="submit-recording" value="Submit" class="pure-button pure-button-primary">
+            <input type="hidden">{# fugde for css last form element having cut-off bottom #}
     </div>
     <div class="section-body">
-        <form method="POST" class="pure-form">
         {% with WIDGET_ERROR_CLASS='error' %}
             {% csrf_token %}
             {{ recording_form.title.errors }}
@@ -160,12 +162,9 @@ window.addEventListener("load", function() {
             {% render_field recording_form.body class+="pure-input-1" rows="2" placeholder="Describe the recording, e.g. Ada and Charles play... at..."%}
             {{ recording_form.date.errors }}
             {% render_field recording_form.date class+=""%}
-            <div class="pure-control-group pure-u-1">
-                <input id="recording_button" type="submit" name="submit-recording" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
-            </div>
         {% endwith %}
-        </form>
     </div>
+    </form>
 </div>
 {% endif %}
 
