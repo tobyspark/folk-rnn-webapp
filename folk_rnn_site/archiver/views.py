@@ -27,6 +27,7 @@ from archiver.models import (
                             TunebookEntry, 
                             TuneRecording, 
                             Competition,
+                            CompetitionRecording,
                             )
 from archiver.forms import (
                             SettingForm, 
@@ -431,8 +432,31 @@ def competition_page(request, competition_id):
     except (TypeError, Competition.DoesNotExist):
         return redirect('/')
     
-    return render(request, 'archiver/competition.html', {
+    if request.method == 'POST' and 'submit-recording' in request.POST:
+            recording_form = RecordingForm(request.POST)
+            if recording_form.is_valid():
+                recording = Recording.objects.create(
+                        title=recording_form.cleaned_data['title'], 
+                        body=recording_form.cleaned_data['body'], 
+                        date=recording_form.cleaned_data['date'],
+                        video = recording_form.cleaned_data['url'],
+                        author=request.user,
+                        )
+                TuneRecording.objects.create(
+                        tune=competition.tune_won,
+                        recording=recording,
+                        )
+                CompetitionRecording.objects.create(
+                        competition_tune=competition.competition_tune_won,
+                        recording=recording,
+                        )
+                return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+    else:
+        recording_form = RecordingForm()
+    
+    return render(request, 'archiver/competitions.html', {
                             'competitions': [competition],
+                            'recording_form': recording_form,
     })
 
 def submit_page(request):

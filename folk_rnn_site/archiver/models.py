@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django_hosts.resolvers import reverse
 from embed_video.fields import EmbedVideoField
 from random import shuffle
+from datetime import timedelta
 
 from folk_rnn_site.models import ABCModel, conform_abc
 from composer.models import RNNTune
@@ -393,7 +394,7 @@ class Competition(models.Model):
     text = models.TextField(help_text='This is a markdown field, e.g. *italics* and [a link](http://tobyz.net)')
     author = models.ForeignKey(User)
     tune_vote_open = models.DateField()
-    tune_vote_close = models.DateField()
+    recording_submit_open = models.DateField()
     recording_vote_open = models.DateField()
     recording_vote_close = models.DateField()
     
@@ -401,8 +402,22 @@ class Competition(models.Model):
         return f'Competition {self.id}: {self.title}'
     
     def clean(self):
-        if self.tune_vote_close >= self.recording_vote_open:
-            raise ValidationError({'recording_vote_open': 'Recording can only start once tune vote has finished'})
+        if self.tune_vote_open >= self.recording_submit_open:
+            raise ValidationError({'recording_submit_open': 'Submission can only start after tune has been selected'})
+        if self.recording_submit_open > self.recording_vote_open:
+            raise ValidationError({'recording_vote_open': 'Voting can only start on or after the day submissions start'})
+        if self.recording_vote_open > self.recording_vote_close:
+            raise ValidationError({'recording_vote_close': 'Voting needs to finish on or after the day it starts'})
+    
+    @property
+    def tune_vote_close(self):
+        return self.recording_submit_open - timedelta(days=1)
+    
+    @property
+    def recording_submit_close(self):
+        # recording_vote_close rather than _open keeps submission open during voting 
+        # seems more in the spirit of making music vs. being on podium
+        return self.recording_vote_close 
     
     @property
     def tune_voting_state(self):
@@ -410,6 +425,15 @@ class Competition(models.Model):
         if today < self.tune_vote_open:
             return 'BEFORE'
         if today > self.tune_vote_close:
+            return 'AFTER'
+        return 'IN'
+    
+    @property
+    def recording_submission_state(self):
+        today = now().date()
+        if today < self.recording_submit_open:
+            return 'BEFORE'
+        if today > self.recording_submit_close:
             return 'AFTER'
         return 'IN'
     
@@ -443,16 +467,23 @@ class Competition(models.Model):
         return Recording.objects.filter(competitionrecording__competition_tune__competition=self).annotate(Count('competitionrecording__vote')).order_by('?')
     
     @property
+    def competition_tune_won(self):
+        """
+        The CompetitionTune that received the most votes
+        """
+        return (
+                CompetitionTune.objects
+                .filter(competition=self)
+                .annotate(votes=Count('vote'))
+                .latest('votes')
+                )
+    
+    @property
     def tune_won(self):
         """
         The Tune that received the most votes
         """
-        return (
-                Tune.objects
-                .filter(competitiontune__competition=self)
-                .annotate(votes=Count('competitiontune__vote'))
-                .latest('votes')
-                )
+        return self.competition_tune_won.tune
 
 class CompetitionComment(Comment):
     """
