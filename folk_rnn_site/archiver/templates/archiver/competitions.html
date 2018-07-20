@@ -10,9 +10,9 @@
 {% load markdown_deux_tags %}
 {% load widget_tweaks %}
 {% for competition in competitions %}
+<h1>{{ competition.title }}</h1>
 <div class="section">
     <div class="section-meta">
-        <h2>{{ competition.title }}</h2>
         <p class="meta">Tune selection: {% if competition.tune_voting_state == 'BEFORE' %}pending.{% elif competition.tune_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.tune_vote_open|naturalday }}–{{ competition.tune_vote_close|naturalday }}</p>
         <p class="meta">Performance submission: {% if competition.recording_submission_state == 'BEFORE' %}pending.{% elif competition.recording_submission_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_submit_open|naturalday }}–{{ competition.recording_submit_close|naturalday }}</p>
         <p class="meta">Performance selection: {% if competition.recording_voting_state == 'BEFORE' %}pending.{% elif competition.recording_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_vote_open|naturalday }}–{{ competition.recording_vote_close|naturalday }}</p>
@@ -105,24 +105,24 @@
 {% for tune in tunes %}
 <div class="section">
     <div class="section-meta">
+        <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title}}</a></h3>
         {% if user_tune_vote == tune%}
         <form method="POST" class="pure-form">
             {% csrf_token %}
-            <input type="hidden" name="object_id" value="{{ tune.id }}">
             <input type="submit" name="submit-tune-vote" value="Retract" class="pure-button">
+            <input type="hidden" name="object_id" value="{{ tune.id }}">
         </form>
         {% elif user_tune_vote %}
         {% elif user.is_authenticated %}
         <form method="POST" class="pure-form">
             {% csrf_token %}
-            <input type="hidden"name="object_id" value="{{ tune.id }}">
             <input type="submit" name="submit-tune-vote" value="Vote" class="pure-button pure-button-primary">
+            <input type="hidden"name="object_id" value="{{ tune.id }}">
         </form>
         {% endif %}
         <p class="meta">{% if tune.votes == 0 %}No votes.{% else %}{{ tune.votes|apnumber|capfirst }} vote{{ tune.votes|pluralize }}.{% endif %}</p>
     </div>
     <div class="section-body">
-        <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title}}</a></h3>
         <div id="staff-{{ id_prefix }}{{ forloop.counter }}"></div>
         <div id="midi-{{ id_prefix }}{{ forloop.counter }}"></div>
     </div>
@@ -147,7 +147,7 @@ window.addEventListener("load", function() {
 {% if competition.recording_submission_state == 'IN' %}
 <div class="section">
     <div class="section-meta">
-        <p class="meta">Submit</p>
+        <h3>Submit a performance</h3>
     </div>
     <div class="section-body">
         <form method="POST" class="pure-form">
@@ -174,18 +174,20 @@ window.addEventListener("load", function() {
 {% for recording in competition.recording_set %}
 <div class="section">
     <div class="section-meta">
+        <h3><a href="{% url 'recording' recording_id=recording.id %}">{{ recording.title }}</a></h3>
+        <div class="meta">{{ recording.body|markdown }}</div>
         {% if user_recording_vote == recording%}
         <form method="POST" class="pure-form">
             {% csrf_token %}
-            <input type="hidden" name="object_id" value="{{ recording.id }}">
             <input type="submit" name="submit-recording-vote" value="Retract" class="pure-button">
+            <input type="hidden" name="object_id" value="{{ recording.id }}">
         </form>
         {% elif user_recording_vote %}
         {% elif user.is_authenticated %}
         <form method="POST" class="pure-form">
             {% csrf_token %}
-            <input type="hidden" name="object_id" value="{{ recording.id }}">
             <input type="submit" name="submit-recording-vote" value="Vote" class="pure-button pure-button-primary">
+            <input type="hidden" name="object_id" value="{{ recording.id }}">
         </form>
         {% endif %}
         <p class="meta">{% if recording.votes == 0 %}No votes.{% else %}{{ recording.votes|apnumber|capfirst }} vote{{ recording.votes|pluralize }}.{% endif %}</p>
