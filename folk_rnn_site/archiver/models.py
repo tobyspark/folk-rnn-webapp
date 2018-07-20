@@ -466,7 +466,7 @@ class Competition(models.Model):
         """
         recordings = list(
                         Recording.objects
-                        .filter(competitionrecording__competition_tune__competition=self)
+                        .filter(competitionrecording__competition=self)
                         .annotate(votes=Count('competitionrecording__vote'))
                         )
         shuffle(recordings)
@@ -498,7 +498,7 @@ class Competition(models.Model):
         """
         return (
                 CompetitionRecording.objects
-                .filter(competition_tune__competition=self)
+                .filter(competition=self)
                 .annotate(votes=Count('vote'))
                 .latest('votes')
                 )
@@ -520,27 +520,19 @@ class CompetitionComment(Comment):
 
     competition = models.ForeignKey(Competition, related_name='comment_set', related_query_name='comment')
 
-class VotableModel(models.Model):
-    """
-    Abstract base class for a votable object
-    """
-    class Meta:
-        abstract = True
-
-    # ...Not needed    
-    # @property
-    # def vote_count(self):
-    #     return self.vote_set.count()
-
 class VoteModel(models.Model):
     """
     Abstract base class for a vote object. Make concrete with the following field:
     votable = models.ForeignKey(<VotableModel>, related_name='vote_set', related_query_name='vote')
     """
+    class Meta:
+        abstract = True
+        unique_together = ('user', 'votable')
+        
     user = models.ForeignKey(User)
     submitted = models.DateTimeField(auto_now_add=True)
         
-class CompetitionTune(VotableModel):
+class CompetitionTune(models.Model):
     """
     A tune, one of e.g. 5, that can be voted on to select the tune people will learn and record
     """
@@ -556,15 +548,22 @@ class CompetitionTuneVote(VoteModel):
     """
     votable = models.ForeignKey(CompetitionTune, related_name='vote_set', related_query_name='vote')
 
-class CompetitionRecording(VotableModel):
+class CompetitionRecording(models.Model):
     """
     A recording that can be voted on to select the most favoured rendition of the winning tune
     """
-    competition_tune = models.ForeignKey(CompetitionTune)
+    competition = models.ForeignKey(Competition)
     recording = models.ForeignKey(Recording)
     
     def __str__(self):
-        return f'Competition recording {self.recording.id} for {self.competition_tune.competition.id}: {self.competition_tune.competition.title}'
+        return f'Competition recording {self.recording.id} for {self.competition.id}: {self.competition.title}'
+    
+    def clean(self):
+        """
+        Check the recording is a recording of the winning tune
+        """
+        if not self.recording.tunerecording_set.filter(tune=self.competition.tune_won).exists():
+            raise ValidationError({'recording': 'This is not a recording of the winning tune'})
 
 class CompetitionRecordingVote(VoteModel):
     """
