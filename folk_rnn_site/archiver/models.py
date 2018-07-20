@@ -464,7 +464,13 @@ class Competition(models.Model):
         """
         A shuffled queryset of the recordings in this competition, with vote count
         """
-        return Recording.objects.filter(competitionrecording__competition_tune__competition=self).annotate(Count('competitionrecording__vote')).order_by('?')
+        recordings = list(
+                        Recording.objects
+                        .filter(competitionrecording__competition_tune__competition=self)
+                        .annotate(votes=Count('competitionrecording__vote'))
+                        )
+        shuffle(recordings)
+        return recordings
     
     @property
     def competition_tune_won(self):
@@ -484,6 +490,25 @@ class Competition(models.Model):
         The Tune that received the most votes
         """
         return self.competition_tune_won.tune
+    
+    @property
+    def competition_recording_won(self):
+        """
+        The CompetitionRecording that received the most votes
+        """
+        return (
+                CompetitionRecording.objects
+                .filter(competition_tune__competition=self)
+                .annotate(votes=Count('vote'))
+                .latest('votes')
+                )
+    
+    @property
+    def recording_won(self):
+        """
+        The Recording that received the most votes
+        """
+        return self.competition_recording_won.recording
 
 class CompetitionComment(Comment):
     """
