@@ -521,7 +521,7 @@ class Competition(models.Model):
                     .filter(vote__user=user)
                     .get().tune
                     )
-        except CompetitionTune.DoesNotExist:
+        except (CompetitionTune.DoesNotExist, TypeError):
             return None
     
     def recording_vote(self, user):
@@ -535,7 +535,7 @@ class Competition(models.Model):
                     .filter(vote__user=user)
                     .get().recording
                     )
-        except CompetitionRecording.DoesNotExist:
+        except (CompetitionRecording.DoesNotExist, TypeError):
             return None
 
 class CompetitionComment(Comment):

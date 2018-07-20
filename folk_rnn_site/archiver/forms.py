@@ -74,6 +74,12 @@ class SearchForm(forms.Form):
     """
     search = forms.CharField(required=False)
 
+class VoteForm(forms.Form):
+    """
+    User input to vote upon something
+    """
+    object_id = forms.IntegerField(widget=forms.HiddenInput)
+
 def validate_duplicate_email(value):
     """
     Raise if value is an existing email address
