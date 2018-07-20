@@ -456,6 +456,8 @@ def competition_page(request, competition_id):
     
     return render(request, 'archiver/competitions.html', {
                             'competitions': [competition],
+                            'user_tune_vote': competition.tune_vote(request.user),
+                            'user_recording_vote': competition.recording_vote(request.user),
                             'recording_form': recording_form,
     })
 
