@@ -37,6 +37,7 @@ from archiver.models import (
                             CompetitionTuneVote,
                             CompetitionRecording,
                             CompetitionRecordingVote,
+                            CompetitionComment,
                             )
 from archiver.forms import (
                             SettingForm, 
@@ -515,11 +516,25 @@ def competition_page(request, competition_id):
                 CompetitionRecordingVote.objects.create(votable=competition_recording, user=request.user)
             redirect(reverse('competition', kwargs={"competition_id": competition.id}))
     
+    if request.method == 'POST' and 'submit-comment' in request.POST:
+        comment_form = CommentForm(request.POST)
+        if comment_form.is_valid():
+            comment = CompetitionComment(
+                        competition=competition, 
+                        text=comment_form.cleaned_data['text'], 
+                        author=request.user,
+                        )
+            comment.save()
+            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+    else:
+        comment_form = CommentForm()
+    
     return render(request, 'archiver/competition.html', {
                             'competition': competition,
                             'user_tune_vote': competition.tune_vote(request.user),
                             'user_recording_vote': competition.recording_vote(request.user),
                             'recording_form': recording_form,
+                            'comment_form': comment_form,
     })
 
 def submit_page(request):

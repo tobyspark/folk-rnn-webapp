@@ -258,6 +258,22 @@ window.addEventListener("load", function() {
                 <p>No comments yet.</p>
             </li>
             {% endfor %}
+            <li>
+            {% if user.is_authenticated %}
+                <form method="POST" class="pure-form pure-g">
+                {% with WIDGET_ERROR_CLASS='error' %}
+                    {% csrf_token %}
+                    {{ comment_form.text.errors }}
+                    {% render_field comment_form.text class+="pure-input-1" rows="2" placeholder="Discuss the tune choice, or how it’s going learning the tune..." title="Add your comment here"%}
+                    <div class="pure-control-group pure-u-1">
+                        <input id="comment_button" type="submit" name="submit-comment" value="Submit" class="pure-button pure-button-primary pure-u-1-4">
+                    </div>
+                {% endwith %}
+                </form>
+            {% else %}
+                <p><a href="{% url 'login' %}?next={{ request.path }}">Log in</a> to comment.</p>
+            {% endif %}
+            </li>
         </ul>
     </div>
 </div>
