@@ -207,7 +207,7 @@ window.addEventListener("load", function() {
         <h3>Winner!</h3>
         {% for recording in recordings %}
         {% if recording == recording_won %}
-        <p class="meta"><a href="{% url 'recording' recording_id=recording.id %}">{{ recording.title }}</a><br>by&nbsp;<a href="{% url 'user' user_id=recording.author.id %}">{{ recording.author.get_full_name }}</a>.{% if recording.votes %}<br>{{ recording.votes|apnumber|capfirst }} votes.{% endif %}</p>
+        <p class="meta"><a href="{% url 'recording' recording_id=recording.id %}">{{ recording.title }}</a><br>by&nbsp;<a href="{% url 'user' user_id=recording.author.id %}">{{ recording.author.get_full_name }}</a>.{% if recording.votes %}<br>{{ recording.votes|apnumber|capfirst }} vote{{ recording.votes|pluralize }}.{% endif %}</p>
         {% endif %}
         {% endfor %}
     </div>
@@ -223,7 +223,7 @@ window.addEventListener("load", function() {
     <h3>Runners-up</h3>
         {% for recording in recordings %}
         {% if not recording == recording_won %}
-        <p class="meta"><a href="{% url 'recording' recording_id=recording.id %}">{{ recording.title }}</a><br>by&nbsp;<a href="{% url 'user' user_id=recording.author.id %}">{{ recording.author.get_full_name }}</a>.{% if recording.votes %}<br>{{ recording.votes|apnumber|capfirst }} votes.{% endif %}</p>
+        <p class="meta"><a href="{% url 'recording' recording_id=recording.id %}">{{ recording.title }}</a><br>by&nbsp;<a href="{% url 'user' user_id=recording.author.id %}">{{ recording.author.get_full_name }}</a>.{% if recording.votes %}<br>{{ recording.votes|apnumber|capfirst }} vote{{ recording.votes|pluralize }}.{% endif %}</p>
         {% endif %}
         {% endfor %}
         </p>
