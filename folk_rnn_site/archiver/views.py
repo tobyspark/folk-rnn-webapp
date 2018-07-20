@@ -15,6 +15,7 @@ from random import choice, choices
 from folk_rnn_site.models import ABCModel
 from archiver import (
                             TUNE_SEARCH_EXAMPLES, 
+                            RECORDING_SEARCH_EXAMPLES,
                             COMPETITION_SEARCH_EXAMPLES,
                             MAX_RECENT_ITEMS, 
                             TUNE_PREVIEWS_PER_PAGE,
@@ -331,7 +332,7 @@ def recordings_page(request):
     except EmptyPage:
         search_results_page = paginator.page(paginator.num_pages)
     
-    search_placeholders = ['Ensemble x.y', 'Partnerships', 'St. Dunstan']
+    search_placeholders = RECORDING_SEARCH_EXAMPLES
     search_placeholder = f'e.g. {choice(search_placeholders)}'
     return render(request, 'archiver/recordings.html', {
         'search_form': SearchForm(request.GET),
