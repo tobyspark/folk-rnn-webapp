@@ -11,6 +11,11 @@ TUNE_SEARCH_EXAMPLES = [
         'G/A/G/F/ ED', 
         'dBd edc',
         ]
+RECORDING_SEARCH_EXAMPLES = [
+        'Ensemble x.y', 
+        'Partnerships', 
+        'St. Dunstan',
+        ]
 COMPETITION_SEARCH_EXAMPLES = [
         'Tune of the month', 
         # TODO: once there are some competitions to know what might be good to search for
