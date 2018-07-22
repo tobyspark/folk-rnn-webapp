@@ -436,7 +436,7 @@ def competitions_page(request):
         search_text = request.GET['search']
         search_results = (
                 Competition.objects
-                .annotate(search=SearchVector('title', 'text', 'competitiontune__tune__abc', 'competitionrecording__recording__title', 'competitionrecording__recording__body'))
+                .annotate(search=SearchVector('title', 'text', 'competitiontune__tune__abc', 'competitionrecording__recording__title', 'competitionrecording__recording__body', 'comment__text'))
                 .filter(search=SearchQuery(search_text))
                 .order_by('-id')
                 .distinct('id')
