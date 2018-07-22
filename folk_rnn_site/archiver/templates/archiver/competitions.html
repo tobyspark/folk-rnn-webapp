@@ -54,8 +54,8 @@
                 {% for tune in tunes %}
                 <li>
                     <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title}}</a></h3>
-                    <div id="staff-{{ id_prefix }}{{ forloop.counter }}"></div>
-                    <div id="midi-{{ id_prefix }}{{ forloop.counter }}"></div>
+                    <div id="staff-{{ competition.id }}-{{ forloop.counter }}"></div>
+                    <div id="midi-{{ competition.id }}-{{ forloop.counter }}"></div>
                 </li>
                 {% empty %}
                 <li>
@@ -70,8 +70,8 @@
                         responsive: "resize",
                     }
                     {% for tune in tunes %}
-                    ABCJS.renderAbc("staff-{{ id_prefix }}{{ forloop.counter }}", "{{ tune.abc_preview|escapejs }}", params);
-                    ABCJS.renderMidi("midi-{{ id_prefix }}{{ forloop.counter }}", "{{ tune.abc|escapejs }}", params);
+                    ABCJS.renderAbc("staff-{{ competition.id }}-{{ forloop.counter }}", "{{ tune.abc_preview|escapejs }}", params);
+                    ABCJS.renderMidi("midi-{{ competition.id }}-{{ forloop.counter }}", "{{ tune.abc|escapejs }}", params);
                     {% endfor %}
                 }, false);
                 </script>
@@ -80,12 +80,12 @@
         {% else %}
             {% with tune_won=competition.tune_won %}
             <p>The tune chosen by the community: <a href="{% url 'tune' tune_id=tune_won.id %}">{{ tune_won.title }}</a>.</p>
-            <textarea class="abc" id="abc-tune-won" readonly hidden>{{ tune_won.abc_display }}</textarea>
-            <div id="staff-tune-won"></div>
-            <div id="midi-tune-won"></div>
+            <textarea class="abc" id="abc-tune-{{ competition.id }}" readonly hidden>{{ tune_won.abc_display }}</textarea>
+            <div id="staff-tune-{{ competition.id }}"></div>
+            <div id="midi-tune-{{ competition.id }}"></div>
             <script>
             window.addEventListener("load", function() {
-                const el = document.getElementById("abc-tune-won");
+                const el = document.getElementById("abc-tune-{{ competition.id }}");
                 el.setAttribute("rows", el.innerHTML.split(/\n/).length)
                 // abcjs
                 const colorRange = function(range, color) {
@@ -101,10 +101,10 @@
                     colorRange(lastRange, "#000000");
                     colorRange(currentRange, "#3D9AFC");
                 };
-                new ABCJS.Editor("abc-tune-won", { 
-                    canvas_id: "staff-tune-won",
+                new ABCJS.Editor("abc-tune-{{ competition.id }}", { 
+                    canvas_id: "staff-tune-{{ competition.id }}",
                     generate_midi: true,
-                    midi_id:"midi-tune-won",
+                    midi_id:"midi-tune-{{ competition.id }}",
                     abcjsParams: {
                         generateInline: true,
                         generateDownload: false,
@@ -113,7 +113,7 @@
                         responsive: "resize",
                         animate: {
                             listener: animateCallback, 
-                            target: "staff-tune-won"
+                            target: "staff-tune-{{ competition.id }}"
                         },
                     }
                 });
