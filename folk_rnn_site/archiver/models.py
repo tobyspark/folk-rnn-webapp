@@ -386,17 +386,17 @@ class TunebookEntry(models.Model):
 
 class Competition(models.Model):
     """
-    Vote upon a tune and subsequently vote on uploaded recordings of it. 
-    A community engagement, 'Tune of the Month'.
-    # FIXME: The dates are UTC, and that's misleading for UTC+1 in summer time London let alone New Zealand.
+    Vote upon a tune and upload recordings of the winning tune.
+    Optionally vote upon the recordings.
+    e.g. A community engagement, 'Tune of the Month'.
     """
     title = models.CharField(max_length=150)
     text = models.TextField(help_text='This is a markdown field, e.g. *italics* and [a link](http://tobyz.net)')
     author = models.ForeignKey(User)
     tune_vote_open = models.DateField()
     recording_submit_open = models.DateField()
-    recording_vote_open = models.DateField()
-    recording_vote_close = models.DateField()
+    recording_vote_open = models.DateField(blank=True, null=True, help_text='Optional, if voting on the recordings is desired.')
+    recording_vote_close = models.DateField(blank=True, null=True, help_text='Optional, if voting on the recordings is desired.')
     
     def __str__(self):
         return f'Competition {self.id}: {self.title}'
@@ -404,8 +404,12 @@ class Competition(models.Model):
     def clean(self):
         if self.tune_vote_open >= self.recording_submit_open:
             raise ValidationError({'recording_submit_open': 'Submission can only start after tune has been selected'})
+        if self.recording_vote_open is None:
+            return 
         if self.recording_submit_open > self.recording_vote_open:
             raise ValidationError({'recording_vote_open': 'Voting can only start on or after the day submissions start'})
+        if self.recording_vote_close is None:
+            raise ValidationError({'recording_vote_close': 'Close value is required if recordings are voted upon'})
         if self.recording_vote_open > self.recording_vote_close:
             raise ValidationError({'recording_vote_close': 'Voting needs to finish on or after the day it starts'})
     
@@ -415,9 +419,11 @@ class Competition(models.Model):
     
     @property
     def recording_submit_close(self):
-        # recording_vote_close rather than _open keeps submission open during voting 
-        # seems more in the spirit of making music vs. being on podium
-        return self.recording_vote_close 
+        if self.recording_vote_close:
+            # if there is going to be a recording vote, close submission either before recording vote opens or closes.
+            # _close rather than _open keeps submission open during voting seems more in the spirit of making music vs. being on podium
+            return self.recording_vote_close
+        return None
     
     @property
     def tune_voting_state(self):
@@ -433,13 +439,15 @@ class Competition(models.Model):
         today = now().date()
         if today < self.recording_submit_open:
             return 'BEFORE'
-        if today > self.recording_submit_close:
+        if self.recording_submit_close and today > self.recording_submit_close:
             return 'AFTER'
         return 'IN'
     
     @property
     def recording_voting_state(self):
         today = now().date()
+        if self.recording_vote_open is None:
+            return None
         if today < self.recording_vote_open:
             return 'BEFORE'
         if today > self.recording_vote_close:

@@ -13,8 +13,10 @@
 <div class="section">
     <div class="section-meta">
         <p class="meta">Tune selection: {% if competition.tune_voting_state == 'BEFORE' %}pending.{% elif competition.tune_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.tune_vote_open|naturalday }}–{{ competition.tune_vote_close|naturalday }}</p>
-        <p class="meta">Performance submission: {% if competition.recording_submission_state == 'BEFORE' %}pending.{% elif competition.recording_submission_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_submit_open|naturalday }}–{{ competition.recording_submit_close|naturalday }}</p>
+        <p class="meta">Performance submission: {% if competition.recording_submission_state == 'BEFORE' %}pending.{% elif competition.recording_submission_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_submit_open|naturalday }}{% if competition.recording_submit_close %}–{{ competition.recording_submit_close|naturalday }}{% else %} onwards.{% endif %}</p>
+        {% if competition.recording_voting_state %}
         <p class="meta">Performance selection: {% if competition.recording_voting_state == 'BEFORE' %}pending.{% elif competition.recording_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_vote_open|naturalday }}–{{ competition.recording_vote_close|naturalday }}</p>
+        {% endif %}
         <p class="meta">Added by <a href="{% url 'user' user_id=competition.author.id %}">{{ competition.author.get_full_name }}</a></p>
     </div>
     <div class="section-body">
@@ -166,6 +168,12 @@ window.addEventListener("load", function() {
     </div>
     </form>
 </div>
+{% endif %}
+
+{% if not competition.recording_voting_state %}
+{% for recording in competition.recording_set %}
+    {% include 'archiver/_recording.html' %}
+{% endfor %}
 {% endif %}
 
 {% if competition.recording_voting_state == 'IN' %}
