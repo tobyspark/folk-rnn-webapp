@@ -17,8 +17,9 @@ RECORDING_SEARCH_EXAMPLES = [
         'St. Dunstan',
         ]
 COMPETITION_SEARCH_EXAMPLES = [
-        'Tune of the month', 
-        # TODO: once there are some competitions to know what might be good to search for
+        'August',
+        date.today().year,
+        'The Humours of Time Pigeon', # TODO: once there are some competitions to know what might be good to search for
         ]
 MAX_RECENT_ITEMS = 5 # e.g. how many 'popular tunes' listed on the homepage
 TUNE_PREVIEWS_PER_PAGE = 10 # e.g. how many search results are listed on the tunes page
