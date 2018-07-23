@@ -131,12 +131,14 @@
             {% endwith %}
         {% endif %}
         {% if competition.recording_voting_state != 'AFTER' %}
-            {% with recording=competition.recording_set|random %}
-            {% if recording %}
+            {% with recording_set=competition.recording_set %}
+            {% if recording_set %}
+                {% with recording=recording_set|random %}
                 <p>One performance, picked at random. {% if competition.recording_voting_state == 'IN' %}<a href="{% url 'competition' competition_id=competition.id %}"><em>Go vote!</em></a>{% endif %}</p>
                 {% video recording.video is_secure=True as my_video %}
                   {% video my_video%}
                 {% endvideo %}
+                {% endwith %}
             {% endif %}
             {% endwith %}
         {% elif competition.recording_voting_state == 'AFTER' %}
