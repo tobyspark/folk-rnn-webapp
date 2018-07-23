@@ -47,10 +47,14 @@
 <div class="section">
     <div class="section-meta">
         <h3><a href="{% url 'competition' competition_id=competition.id %}">{{ competition.title }}</a></h3>
-        <p class="meta">Tune selection: {% if competition.tune_voting_state == 'BEFORE' %}pending.{% elif competition.tune_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.tune_vote_open|naturalday }}–{{ competition.tune_vote_close|naturalday }}</p>
-        <p class="meta">Performance submission: {% if competition.recording_submission_state == 'BEFORE' %}pending.{% elif competition.recording_submission_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_submit_open|naturalday }}{% if competition.recording_submit_close %}–{{ competition.recording_submit_close|naturalday }}{% else %} onwards.{% endif %}</p>
-        {% if competition.recording_voting_state %}
-        <p class="meta">Performance selection: {% if competition.recording_voting_state == 'BEFORE' %}pending.{% elif competition.recording_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_vote_open|naturalday }}–{{ competition.recording_vote_close|naturalday }}</p>
+        {% if competition.tune_voting_state != 'AFTER' %}
+            <p class="meta">Tune selection: {% if competition.tune_voting_state == 'BEFORE' %}pending.{% elif competition.tune_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.tune_vote_open|naturalday }}–{{ competition.tune_vote_close|naturalday }}</p>
+        {% endif %}
+        {% if competition.recording_submit_close and competition.recording_submission_state != 'AFTER' %}
+            <p class="meta">Performance submission: {% if competition.recording_submission_state == 'BEFORE' %}pending.{% elif competition.recording_submission_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_submit_open|naturalday }}{% if competition.recording_submit_close %}–{{ competition.recording_submit_close|naturalday }}{% else %} onwards.{% endif %}</p>
+        {% endif %}
+        {% if competition.recording_voting_state and competition.recording_voting_state != 'AFTER' %}
+            <p class="meta">Performance selection: {% if competition.recording_voting_state == 'BEFORE' %}pending.{% elif competition.recording_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_vote_open|naturalday }}–{{ competition.recording_vote_close|naturalday }}</p>
         {% endif %}
         <div class="meta">{{ competition.text|markdown }}</div>
         <p class="meta">Added by <a href="{% url 'user' user_id=competition.author.id %}">{{ competition.author.get_full_name }}</a></p>
