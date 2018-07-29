@@ -13,9 +13,32 @@ from datetime import timedelta
 from random import choice, choices
 
 from folk_rnn_site.models import ABCModel
-from archiver import TUNE_SEARCH_EXAMPLES, MAX_RECENT_ITEMS, TUNE_PREVIEWS_PER_PAGE
-from archiver import weightedSelectionWithoutReplacement
-from archiver.models import User, Tune, annotate_counts, TuneAttribution, Setting, Comment, Recording, Event, TunebookEntry, TuneRecording
+from archiver import (
+                            TUNE_SEARCH_EXAMPLES, 
+                            RECORDING_SEARCH_EXAMPLES,
+                            COMPETITION_SEARCH_EXAMPLES,
+                            MAX_RECENT_ITEMS, 
+                            TUNE_PREVIEWS_PER_PAGE,
+                            weightedSelectionWithoutReplacement,
+                            )
+from archiver.models import (
+                            User, 
+                            Tune, 
+                            annotate_counts, 
+                            TuneAttribution, 
+                            Setting, 
+                            TuneComment, 
+                            Recording, 
+                            Event, 
+                            TunebookEntry, 
+                            TuneRecording, 
+                            Competition,
+                            CompetitionTune,
+                            CompetitionTuneVote,
+                            CompetitionRecording,
+                            CompetitionRecordingVote,
+                            CompetitionComment,
+                            )
 from archiver.forms import (
                             SettingForm, 
                             CommentForm, 
@@ -26,6 +49,7 @@ from archiver.forms import (
                             EventForm, 
                             TunebookForm,
                             SearchForm,
+                            VoteForm,
                             )
 from archiver.dataset import dataset_as_csv
 
@@ -38,7 +62,7 @@ def activity(filter_dict={}):
     tunes_settings.sort(key=lambda x: x.submitted)
     tunes_settings[:-MAX_RECENT_ITEMS] = []
     
-    comments = Comment.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
+    comments = TuneComment.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
     
     return (tunes_settings, comments)
 
@@ -169,7 +193,7 @@ def tune_page(request, tune_id=None):
             elif 'submit-comment' in request.POST:
                 form = CommentForm(request.POST)
                 if form.is_valid():
-                    comment = Comment(
+                    comment = TuneComment(
                                 tune=tune, 
                                 text=form.cleaned_data['text'], 
                                 author=request.user,
@@ -309,7 +333,7 @@ def recordings_page(request):
     except EmptyPage:
         search_results_page = paginator.page(paginator.num_pages)
     
-    search_placeholders = ['Ensemble x.y', 'Partnerships', 'St. Dunstan']
+    search_placeholders = RECORDING_SEARCH_EXAMPLES
     search_placeholder = f'e.g. {choice(search_placeholders)}'
     return render(request, 'archiver/recordings.html', {
         'search_form': SearchForm(request.GET),
@@ -407,45 +431,151 @@ def tunebook_download(request, user_id):
     response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tunebook_{user_id}'
     return response
 
+def competitions_page(request):
+    if 'search' in request.GET and request.GET['search'] != '':
+        search_text = request.GET['search']
+        search_results = (
+                Competition.objects
+                .annotate(search=SearchVector('title', 'text', 'competitiontune__tune__abc', 'competitionrecording__recording__title', 'competitionrecording__recording__body', 'comment__text'))
+                .filter(search=SearchQuery(search_text))
+                .order_by('-id')
+                .distinct('id')
+                )
+    else:
+        search_text = ''
+        search_results = Competition.objects.order_by('-id')
+    
+    paginator = Paginator(search_results, TUNE_PREVIEWS_PER_PAGE)
+    page_number = request.GET.get('page')
+    try:
+        search_results_page = paginator.page(page_number)
+    except PageNotAnInteger:
+        search_results_page = paginator.page(1)
+    except EmptyPage:
+        search_results_page = paginator.page(paginator.num_pages)
+    
+    search_placeholders = COMPETITION_SEARCH_EXAMPLES
+    search_placeholder = f'e.g. {choice(search_placeholders)}'
+    return render(request, 'archiver/competitions.html', {
+        'search_form': SearchForm(request.GET),
+        'search_text': search_text,
+        'search_placeholder': search_placeholder,
+        'search_results': search_results_page,
+    })
+
+def competition_page(request, competition_id):
+    try:
+        competition_id_int = int(competition_id)
+        competition = Competition.objects.get(id=competition_id_int)
+    except (TypeError, Competition.DoesNotExist):
+        return redirect('/')
+    
+    if request.method == 'POST' and 'submit-recording' in request.POST:
+        recording_form = RecordingForm(request.POST)
+        if recording_form.is_valid():
+            recording = Recording.objects.create(
+                    title=recording_form.cleaned_data['title'], 
+                    body=recording_form.cleaned_data['body'], 
+                    date=recording_form.cleaned_data['date'],
+                    video = recording_form.cleaned_data['url'],
+                    author=request.user,
+                    )
+            TuneRecording.objects.create(
+                    tune=competition.tune_won,
+                    recording=recording,
+                    )
+            CompetitionRecording.objects.create(
+                    competition=competition,
+                    recording=recording,
+                    )
+            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+    else:
+        recording_form = RecordingForm()
+    
+    if request.method == 'POST' and 'submit-tune-vote' in request.POST:
+        tune_vote_form = VoteForm(request.POST)
+        if tune_vote_form.is_valid():
+            tune_id = tune_vote_form.cleaned_data['object_id']
+            competition_tune = CompetitionTune.objects.get(tune__id=tune_id, competition=competition)
+            try:
+                vote = CompetitionTuneVote.objects.get(votable=competition_tune, user=request.user)
+                vote.delete()
+            except CompetitionTuneVote.DoesNotExist:
+                CompetitionTuneVote.objects.create(votable=competition_tune, user=request.user)
+            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+    
+    if request.method == 'POST' and 'submit-recording-vote' in request.POST:
+        recording_vote_form = VoteForm(request.POST)
+        if recording_vote_form.is_valid():
+            recording_id = recording_vote_form.cleaned_data['object_id']
+            competition_recording = CompetitionRecording.objects.get(recording__id=recording_id, competition=competition)
+            try:
+                vote = CompetitionRecordingVote.objects.get(votable=competition_recording, user=request.user)
+                vote.delete()
+            except CompetitionRecordingVote.DoesNotExist:
+                CompetitionRecordingVote.objects.create(votable=competition_recording, user=request.user)
+            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+    
+    if request.method == 'POST' and 'submit-comment' in request.POST:
+        comment_form = CommentForm(request.POST)
+        if comment_form.is_valid():
+            comment = CompetitionComment(
+                        competition=competition, 
+                        text=comment_form.cleaned_data['text'], 
+                        author=request.user,
+                        )
+            comment.save()
+            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+    else:
+        comment_form = CommentForm()
+    
+    return render(request, 'archiver/competition.html', {
+                            'competition': competition,
+                            'user_tune_vote': competition.tune_vote(request.user),
+                            'user_recording_vote': competition.recording_vote(request.user),
+                            'recording_form': recording_form,
+                            'comment_form': comment_form,
+    })
+
 def submit_page(request):
     if request.method == 'POST' and 'submit-tune' in request.POST:
-            tune = Tune(author=request.user)
-            tune_form = TuneForm(request.POST, instance=tune)
-            tune_attribution_form = TuneAttributionForm(request.POST)
-            if tune_form.is_valid() and tune_attribution_form.is_valid():
-                tune_form.save()
-                tune_attribution = TuneAttribution(tune=tune) # tune now has pk
-                tune_attribution_form = TuneAttributionForm(request.POST, instance=tune_attribution) 
-                tune_attribution_form.save()
-                return redirect(reverse('tune', kwargs={"tune_id": tune.id}))
+        tune = Tune(author=request.user)
+        tune_form = TuneForm(request.POST, instance=tune)
+        tune_attribution_form = TuneAttributionForm(request.POST)
+        if tune_form.is_valid() and tune_attribution_form.is_valid():
+            tune_form.save()
+            tune_attribution = TuneAttribution(tune=tune) # tune now has pk
+            tune_attribution_form = TuneAttributionForm(request.POST, instance=tune_attribution) 
+            tune_attribution_form.save()
+            return redirect(reverse('tune', kwargs={"tune_id": tune.id}))
     else:
         tune_form = TuneForm()
         tune_attribution_form = TuneAttributionForm()
 
     if request.method == 'POST' and 'submit-recording' in request.POST:
-            recording_form = RecordingForm(request.POST)
-            if recording_form.is_valid():
-                recording = Recording.objects.create(
-                        title=recording_form.cleaned_data['title'], 
-                        body=recording_form.cleaned_data['body'], 
-                        date=recording_form.cleaned_data['date'],
-                        video = recording_form.cleaned_data['url'],
-                        author=request.user,
-                        )
-                return redirect(reverse('recording', kwargs={"recording_id": recording.id}))
+        recording_form = RecordingForm(request.POST)
+        if recording_form.is_valid():
+            recording = Recording.objects.create(
+                    title=recording_form.cleaned_data['title'], 
+                    body=recording_form.cleaned_data['body'], 
+                    date=recording_form.cleaned_data['date'],
+                    video = recording_form.cleaned_data['url'],
+                    author=request.user,
+                    )
+            return redirect(reverse('recording', kwargs={"recording_id": recording.id}))
     else:
         recording_form = RecordingForm()
     
     if request.method == 'POST' and 'submit-event' in request.POST:
-            event_form = EventForm(request.POST)
-            if event_form.is_valid():
-                event = Event.objects.create(
-                        title=event_form.cleaned_data['title'], 
-                        body=event_form.cleaned_data['body'], 
-                        date=event_form.cleaned_data['date'], 
-                        author=request.user,
-                        )
-                return redirect(reverse('event', kwargs={"event_id": event.id}))
+        event_form = EventForm(request.POST)
+        if event_form.is_valid():
+            event = Event.objects.create(
+                    title=event_form.cleaned_data['title'], 
+                    body=event_form.cleaned_data['body'], 
+                    date=event_form.cleaned_data['date'], 
+                    author=request.user,
+                    )
+            return redirect(reverse('event', kwargs={"event_id": event.id}))
     else:
         event_form = EventForm()
     

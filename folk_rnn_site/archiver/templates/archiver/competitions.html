@@ -1,0 +1,160 @@
+{% extends "archiver/base.html" %}
+
+{% block title %}Tune of the month archive{% endblock %}
+
+{% block headend %}{% include "_abcjs-headend.html" %}{% endblock %}
+
+{% block content %}
+{% load humanize %}
+{% load embed_video_tags %}
+{% load markdown_deux_tags %}
+{% load widget_tweaks %}
+<div class="section">
+    <div class="section-meta">
+        <h2>Tune of the month</h2>
+    </div>
+    <div class="section-body">
+        <p>Inspired by <a href="http://forum.melodeon.net/index.php/page,totm.html"><em>melodeon.net</em></a>, we bring you the <em>Machine Folk Tune of the Month!</em> No matter what instrument you play, whether you are an expert or beginner, let's learn to play a machine folk tune and share our recordings. Whatever tune we choose, feel free to play it as written, or change it to suit your tastes. Play it however you like. There are no restrictions.</p>
+        <p><em>What Machine Folk tune should we learn this month?</em></p>
+    </div>
+</div>
+<div id="search-tune" class="section" hidden>
+    <div class="section-meta">
+    <h3>Search</h2>
+    {% if search_results.paginator.num_pages > 1 %}
+    <p class="meta">Page {{ search_results.number }} of {{ search_results.paginator.num_pages }}<br>
+    {% if search_results.has_previous %}<a href="?search={{ search_text|urlencode:'' }}&page={{ search_results.previous_page_number }}">previous</a>{% endif %}{% if search_results.has_previous and search_results.has_next %} | {% endif %}{% if search_results.has_next %}<a href="?search={{ search_text|urlencode:'' }}&page={{ search_results.next_page_number }}">next</a>{% endif %}</p>
+    {% endif %}
+    </div>
+    <div class="section-body">
+        <form method="get" class="pure-form"> 
+        <div class="pure-u-17-24">
+            {% render_field search_form.search class+="pure-input-1" title="Add text to search recordings by" placeholder=search_placeholder %}
+        </div>
+        <div class="pure-u-1-4">
+            <input type="submit" value="Search" class="pure-button pure-button-primary pure-input-1"/>
+        </div>
+        </form>
+        {% if search_text %}
+        <p class="meta">{{ search_results.paginator.count|apnumber|capfirst }} matching tune-of-the-month{{ search_results.paginator.count|pluralize }} found</p>
+        {% else %}
+        <p class="meta">Search through the tune-of-the-months. Currently showing previews of all of them.</p>
+        {% endif %}
+    </div>
+</div>
+
+{% for competition in search_results %}
+<div class="section">
+    <div class="section-meta">
+        <h3><a href="{% url 'competition' competition_id=competition.id %}">{{ competition.title }}</a></h3>
+        {% if competition.tune_voting_state != 'AFTER' %}
+            <p class="meta">Tune selection: {% if competition.tune_voting_state == 'BEFORE' %}pending.{% elif competition.tune_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.tune_vote_open|naturalday }}–{{ competition.tune_vote_close|naturalday }}</p>
+        {% endif %}
+        {% if competition.recording_submit_close and competition.recording_submission_state != 'AFTER' %}
+            <p class="meta">Performance submission: {% if competition.recording_submission_state == 'BEFORE' %}pending.{% elif competition.recording_submission_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_submit_open|naturalday }}{% if competition.recording_submit_close %}–{{ competition.recording_submit_close|naturalday }}{% else %} onwards.{% endif %}</p>
+        {% endif %}
+        {% if competition.recording_voting_state and competition.recording_voting_state != 'AFTER' %}
+            <p class="meta">Performance selection: {% if competition.recording_voting_state == 'BEFORE' %}pending.{% elif competition.recording_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_vote_open|naturalday }}–{{ competition.recording_vote_close|naturalday }}</p>
+        {% endif %}
+        <div class="meta">{{ competition.text|markdown }}</div>
+        <p class="meta">Added by <a href="{% url 'user' user_id=competition.author.id %}">{{ competition.author.get_full_name }}</a></p>
+    </div>
+    <div class="section-body">
+        {% if competition.tune_voting_state != 'AFTER' %}
+            <p>The candidate tunes. {% if competition.tune_voting_state == 'IN' %}<a href="{% url 'competition' competition_id=competition.id %}"><em>Go vote!</em></a>{% endif %}</p>
+            <ul>
+            {% with tunes=competition.tune_set %}
+                {% for tune in tunes %}
+                <li>
+                    <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title}}</a></h3>
+                    <div id="staff-{{ competition.id }}-{{ forloop.counter }}"></div>
+                    <div id="midi-{{ competition.id }}-{{ forloop.counter }}"></div>
+                </li>
+                {% empty %}
+                <li>
+                    <p>{{ empty_message|default:'No tunes' }}</p>
+                </li>
+                {% endfor %}
+                <script type="text/javascript">
+                window.addEventListener("load", function() {
+                    const params = {
+                        paddingleft:0,
+                        paddingright:0,
+                        responsive: "resize",
+                    }
+                    {% for tune in tunes %}
+                    ABCJS.renderAbc("staff-{{ competition.id }}-{{ forloop.counter }}", "{{ tune.abc_preview|escapejs }}", params);
+                    ABCJS.renderMidi("midi-{{ competition.id }}-{{ forloop.counter }}", "{{ tune.abc|escapejs }}", params);
+                    {% endfor %}
+                }, false);
+                </script>
+            {% endwith %}
+            </ul>
+        {% else %}
+            {% with tune_won=competition.tune_won %}
+            <p>The tune chosen by the community: <a href="{% url 'tune' tune_id=tune_won.id %}">{{ tune_won.title }}</a>.</p>
+            <textarea class="abc" id="abc-tune-{{ competition.id }}" readonly hidden>{{ tune_won.abc_display }}</textarea>
+            <div id="staff-tune-{{ competition.id }}"></div>
+            <div id="midi-tune-{{ competition.id }}"></div>
+            <script>
+            window.addEventListener("load", function() {
+                const el = document.getElementById("abc-tune-{{ competition.id }}");
+                el.setAttribute("rows", el.innerHTML.split(/\n/).length)
+                // abcjs
+                const colorRange = function(range, color) {
+                    if (range && range.elements) {
+                        range.elements.forEach(function (set) {
+                            set.forEach(function (item) {
+                                item.setAttribute("fill", color);
+                            });
+                        });
+                    }
+                };
+                const animateCallback = function(lastRange, currentRange, context) {
+                    colorRange(lastRange, "#000000");
+                    colorRange(currentRange, "#3D9AFC");
+                };
+                new ABCJS.Editor("abc-tune-{{ competition.id }}", { 
+                    canvas_id: "staff-tune-{{ competition.id }}",
+                    generate_midi: true,
+                    midi_id:"midi-tune-{{ competition.id }}",
+                    abcjsParams: {
+                        generateInline: true,
+                        generateDownload: false,
+                        paddingleft:0,
+                        paddingright:0,
+                        responsive: "resize",
+                        animate: {
+                            listener: animateCallback, 
+                            target: "staff-tune-{{ competition.id }}"
+                        },
+                    }
+                });
+            }, false);
+            </script>
+            {% endwith %}
+        {% endif %}
+        {% if competition.recording_voting_state != 'AFTER' %}
+            {% with recording_set=competition.recording_set %}
+            {% if recording_set %}
+                {% with recording=recording_set|random %}
+                <p>One performance, picked at random. {% if competition.recording_voting_state == 'IN' %}<a href="{% url 'competition' competition_id=competition.id %}"><em>Go vote!</em></a>{% endif %}</p>
+                {% video recording.video is_secure=True as my_video %}
+                  {% video my_video%}
+                {% endvideo %}
+                {% endwith %}
+            {% endif %}
+            {% endwith %}
+        {% elif competition.recording_voting_state == 'AFTER' %}
+            {% with recording=competition.recording_won %}
+            <p>The winning performance: <a href="{% url 'recording' recording_id=recording.id %}">{{ recording.title }}</a> by <a href="{% url 'user' user_id=recording.author.id %}">{{ recording.author.get_full_name }}</a>.</p>
+            {% video recording.video is_secure=True as my_video %}
+              {% video my_video%}
+            {% endvideo %}
+            {% endwith %}
+        {% endif %}
+    </div>
+</div>
+
+{% endfor %}
+{% endblock %}
