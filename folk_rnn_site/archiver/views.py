@@ -99,11 +99,20 @@ def home_page(request):
 def tunes_page(request):
     if 'search' in request.GET and request.GET['search'] != '':
         search_text = request.GET['search']
-        search_results = Tune.objects.annotate(
-                search=SearchVector('abc', 'setting__abc', 'tuneattribution__text', 'comment__text')
-            ).filter(
-                search=SearchQuery(search_text)
-            )
+        search_results = (
+                Tune.objects
+                .annotate(search=SearchVector(
+                            'abc', 
+                            'setting__abc', 
+                            'tuneattribution__text',  
+                            'author__first_name', 
+                            'author__last_name',
+                            'comment__text',
+                            'comment__author__first_name',
+                            'comment__author__last_name',
+                            ))
+                .filter(search=SearchQuery(search_text))
+                )
     else:
         search_text = ''
         search_results = Tune.objects.all()
@@ -315,11 +324,20 @@ def tune_setting_download(request, tune_id=None):
 def recordings_page(request):
     if 'search' in request.GET and request.GET['search'] != '':
         search_text = request.GET['search']
-        search_results = Recording.objects.annotate(
-                search=SearchVector('title', 'body', 'event__title', 'tunerecording__tune__abc')
-            ).filter(
-                search=SearchQuery(search_text)
-            ).order_by('-id').distinct('id')
+        search_results = (
+                Recording.objects
+                .annotate(search=SearchVector(
+                                'title', 
+                                'body', 
+                                'event__title', 
+                                'tunerecording__tune__abc',
+                                'author__first_name',
+                                'author__last_name',
+                                ))
+                .filter(search=SearchQuery(search_text))
+                .order_by('-id')
+                .distinct('id')
+                )
     else:
         search_text = ''
         search_results = Recording.objects.order_by('-id')
@@ -436,7 +454,20 @@ def competitions_page(request):
         search_text = request.GET['search']
         search_results = (
                 Competition.objects
-                .annotate(search=SearchVector('title', 'text', 'competitiontune__tune__abc', 'competitionrecording__recording__title', 'competitionrecording__recording__body', 'comment__text'))
+                .annotate(search=SearchVector(
+                        'title', 
+                        'text', 
+                        'competitiontune__tune__abc',
+                        'competitiontune__tune__author__first_name',
+                        'competitiontune__tune__author__last_name', 
+                        'competitionrecording__recording__title', 
+                        'competitionrecording__recording__body', 
+                        'competitionrecording__recording__author__first_name', 
+                        'competitionrecording__recording__author__last_name',
+                        'comment__text',
+                        'comment__author__first_name',
+                        'comment__author__last_name',
+                        ))
                 .filter(search=SearchQuery(search_text))
                 .order_by('-id')
                 .distinct('id')
