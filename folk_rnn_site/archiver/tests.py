@@ -7,7 +7,7 @@ from folk_rnn_site.tests import ABC_TITLE, ABC_BODY, mint_abc, FOLKRNN_OUT
 from composer.models import RNNTune
 from composer import FOLKRNN_TUNE_TITLE
 
-from archiver.models import Tune, Setting, Comment
+from archiver.models import Tune, Setting, TuneComment
 from archiver.dataset import setting_dataset, dataset_as_csv
 
 @override_settings(DEFAULT_HOST = 'archiver')
@@ -36,7 +36,7 @@ class HomePageTest(ArchiverTestCase):
         setting = Setting(tune=tune, abc=mint_abc(body=ABC_BODY + ABC_BODY))
         setting.save()
         for i in range(1,11):
-            comment = Comment(tune=tune, text=f'{i}', author='author')
+            comment = TuneComment(tune=tune, text=f'{i}', author='author')
             comment.save()
 
         response = self.client.get('/')
@@ -103,7 +103,7 @@ class TunePageTest(ArchiverTestCase):
 
     def test_tune_page_can_save_a_comment_POST_request(self):
         self.post_comment()
-        comment = Comment.objects.first()
+        comment = TuneComment.objects.first()
         self.assertEqual(comment.text, 'My first comment.')
         self.assertEqual(comment.author, 'A. Person')
         self.assertAlmostEqual(comment.submitted, now(), delta=timedelta(seconds=0.1))

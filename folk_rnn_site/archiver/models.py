@@ -3,10 +3,13 @@ from django.db.models.signals import post_save
 from django.db.models import F, Count
 from django.db.models.query import QuerySet
 from django.dispatch import receiver
+from django.utils.timezone import now
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.exceptions import ValidationError
 from django_hosts.resolvers import reverse
 from embed_video.fields import EmbedVideoField
+from random import shuffle
+from datetime import timedelta
 
 from folk_rnn_site.models import ABCModel, conform_abc
 from composer.models import RNNTune
@@ -263,19 +266,26 @@ def setting_auto_x(sender, **kwargs):
 
 class Comment(models.Model):
     """
+    Abstract base class for comment models
+    """
+    
+    class Meta:
+        abstract = True
+        ordering = ['id']
+        
+    text = models.TextField(default='')
+    author = models.ForeignKey(User)
+    submitted = models.DateTimeField(auto_now_add=True)
+
+class TuneComment(Comment):
+    """
     A comment upon a tune.
     Multiple comments can exist for any given tune.
     """
     def __str__(self):
         return f'Comment: "{self.text[:30]}" by {self.author} on MachineFolk {self.tune.id})'
-    
-    class Meta:
-        ordering = ['id']
-        
-    tune = models.ForeignKey(Tune)
-    text = models.TextField(default='')
-    author = models.ForeignKey(User)
-    submitted = models.DateTimeField(auto_now_add=True)
+
+    tune = models.ForeignKey(Tune, related_name='comment_set', related_query_name='comment')
 
 class Documentation(models.Model):
     """
@@ -373,3 +383,226 @@ class TunebookEntry(models.Model):
     setting = models.ForeignKey(Setting, null=True)
     user = models.ForeignKey(User)
     submitted = models.DateTimeField(auto_now_add=True)
+
+class Competition(models.Model):
+    """
+    Vote upon a tune and upload recordings of the winning tune.
+    Optionally vote upon the recordings.
+    e.g. A community engagement, 'Tune of the Month'.
+    """
+    title = models.CharField(max_length=150)
+    text = models.TextField(help_text='This is a markdown field, e.g. *italics* and [a link](http://tobyz.net)')
+    author = models.ForeignKey(User)
+    tune_vote_open = models.DateField()
+    recording_submit_open = models.DateField()
+    recording_vote_open = models.DateField(blank=True, null=True, help_text='Optional, if voting on the recordings is desired.')
+    recording_vote_close = models.DateField(blank=True, null=True, help_text='Optional, if voting on the recordings is desired.')
+    
+    def __str__(self):
+        return f'Competition {self.id}: {self.title}'
+    
+    def clean(self):
+        if self.tune_vote_open >= self.recording_submit_open:
+            raise ValidationError({'recording_submit_open': 'Submission can only start after tune has been selected'})
+        if self.recording_vote_open is None:
+            return 
+        if self.recording_submit_open > self.recording_vote_open:
+            raise ValidationError({'recording_vote_open': 'Voting can only start on or after the day submissions start'})
+        if self.recording_vote_close is None:
+            raise ValidationError({'recording_vote_close': 'Close value is required if recordings are voted upon'})
+        if self.recording_vote_open > self.recording_vote_close:
+            raise ValidationError({'recording_vote_close': 'Voting needs to finish on or after the day it starts'})
+    
+    @property
+    def tune_vote_close(self):
+        return self.recording_submit_open - timedelta(days=1)
+    
+    @property
+    def recording_submit_close(self):
+        if self.recording_vote_close:
+            # if there is going to be a recording vote, close submission either before recording vote opens or closes.
+            # _close rather than _open keeps submission open during voting seems more in the spirit of making music vs. being on podium
+            return self.recording_vote_close
+        return None
+    
+    @property
+    def tune_voting_state(self):
+        today = now().date()
+        if today < self.tune_vote_open:
+            return 'BEFORE'
+        if today > self.tune_vote_close:
+            return 'AFTER'
+        return 'IN'
+    
+    @property
+    def recording_submission_state(self):
+        today = now().date()
+        if today < self.recording_submit_open:
+            return 'BEFORE'
+        if self.recording_submit_close and today > self.recording_submit_close:
+            return 'AFTER'
+        return 'IN'
+    
+    @property
+    def recording_voting_state(self):
+        today = now().date()
+        if self.recording_vote_open is None:
+            return None
+        if today < self.recording_vote_open:
+            return 'BEFORE'
+        if today > self.recording_vote_close:
+            return 'AFTER'
+        return 'IN'
+        
+    @property
+    def tune_set(self):
+        """
+        A shuffled queryset of the tunes in this competition, with vote count
+        """
+        tunes = list(
+                    Tune.objects
+                    .filter(competitiontune__competition=self)
+                    .annotate(votes=Count('competitiontune__vote'))
+                    )
+        shuffle(tunes) # Note can't use .order_by('?') with annotations, get duplicate rows
+        return tunes
+    
+    @property
+    def recording_set(self):
+        """
+        A shuffled queryset of the recordings in this competition, with vote count
+        """
+        recordings = list(
+                        Recording.objects
+                        .filter(competitionrecording__competition=self)
+                        .annotate(votes=Count('competitionrecording__vote'))
+                        )
+        shuffle(recordings)
+        return recordings
+    
+    @property
+    def competition_tune_won(self):
+        """
+        The CompetitionTune that received the most votes
+        """
+        return (
+                CompetitionTune.objects
+                .filter(competition=self)
+                .annotate(votes=Count('vote'))
+                .latest('votes')
+                )
+    
+    @property
+    def tune_won(self):
+        """
+        The Tune that received the most votes
+        """
+        return self.competition_tune_won.tune
+    
+    @property
+    def competition_recording_won(self):
+        """
+        The CompetitionRecording that received the most votes
+        """
+        return (
+                CompetitionRecording.objects
+                .filter(competition=self)
+                .annotate(votes=Count('vote'))
+                .latest('votes')
+                )
+    
+    @property
+    def recording_won(self):
+        """
+        The Recording that received the most votes
+        """
+        return self.competition_recording_won.recording
+    
+    def tune_vote(self, user):
+        """
+        The tune the user has voted for, if any
+        """
+        try:
+            return (
+                    CompetitionTune.objects
+                    .filter(competition=self)
+                    .filter(vote__user=user)
+                    .get().tune
+                    )
+        except (CompetitionTune.DoesNotExist, TypeError):
+            return None
+    
+    def recording_vote(self, user):
+        """
+        The recording the user has voted for, if any
+        """
+        try:
+            return (
+                    CompetitionRecording.objects
+                    .filter(competition=self)
+                    .filter(vote__user=user)
+                    .get().recording
+                    )
+        except (CompetitionRecording.DoesNotExist, TypeError):
+            return None
+
+class CompetitionComment(Comment):
+    """
+    A comment upon a competition.
+    Multiple comments can exist for any given compeition.
+    """
+    def __str__(self):
+        return f'Comment: "{self.text[:30]}" by {self.author} on Competition {self.competition.title})'
+
+    competition = models.ForeignKey(Competition, related_name='comment_set', related_query_name='comment')
+
+class VoteModel(models.Model):
+    """
+    Abstract base class for a vote object. Make concrete with the following field:
+    votable = models.ForeignKey(<VotableModel>, related_name='vote_set', related_query_name='vote')
+    """
+    class Meta:
+        abstract = True
+        unique_together = ('user', 'votable')
+        
+    user = models.ForeignKey(User)
+    submitted = models.DateTimeField(auto_now_add=True)
+        
+class CompetitionTune(models.Model):
+    """
+    A tune, one of e.g. 5, that can be voted on to select the tune people will learn and record
+    """
+    competition = models.ForeignKey(Competition)
+    tune = models.ForeignKey(Tune)
+    
+    def __str__(self):
+        return f'Competition tune {self.tune.id} for {self.competition.id}: {self.competition.title}'
+
+class CompetitionTuneVote(VoteModel):
+    """
+    A vote, hopefully one of many, upon a competition tune
+    """
+    votable = models.ForeignKey(CompetitionTune, related_name='vote_set', related_query_name='vote')
+
+class CompetitionRecording(models.Model):
+    """
+    A recording that can be voted on to select the most favoured rendition of the winning tune
+    """
+    competition = models.ForeignKey(Competition)
+    recording = models.ForeignKey(Recording)
+    
+    def __str__(self):
+        return f'Competition recording {self.recording.id} for {self.competition.id}: {self.competition.title}'
+    
+    def clean(self):
+        """
+        Check the recording is a recording of the winning tune
+        """
+        if not self.recording.tunerecording_set.filter(tune=self.competition.tune_won).exists():
+            raise ValidationError({'recording': 'This is not a recording of the winning tune'})
+
+class CompetitionRecordingVote(VoteModel):
+    """
+    A vote, hopefully one of many, upon a competition recording
+    """
+    votable = models.ForeignKey(CompetitionRecording, related_name='vote_set', related_query_name='vote')
