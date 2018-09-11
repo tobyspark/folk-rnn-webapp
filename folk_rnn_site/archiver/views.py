@@ -653,5 +653,5 @@ def dataset_download(request):
     with TemporaryFile(mode='w+') as f:
         dataset_as_csv(f)
         response = HttpResponse(dFile(f), content_type='text/csv')
-        response['Content-Disposition'] = 'attachment; filename="folkrnn_dataset_{}"'.format(now().strftime('%Y%m%d-%H%M%S'))
+        response['Content-Disposition'] = 'attachment; filename="machinefolksession_dataset_{}"'.format(now().strftime('%Y%m%d-%H%M%S'))
         return response
