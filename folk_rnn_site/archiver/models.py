@@ -238,7 +238,7 @@ class Setting(ABCModel):
         """
         Return abc with attribution information fields
         """
-        url = reverse('tune', host='archiver', kwargs={'tune_id': self.tune.id})
+        url = reverse('setting', host='archiver', kwargs={'tune_id': self.tune.id, 'setting_id': self.header_x})
         abc_model = ABCModel(abc=self.abc)
         if self.tune.rnn_tune:
             model = self.tune.rnn_tune.rnn_model_name.replace('.pickle', '')
