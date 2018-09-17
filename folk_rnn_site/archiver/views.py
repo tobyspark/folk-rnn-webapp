@@ -277,6 +277,22 @@ def tune_page(request, tune_id=None):
         'comment_form': comment_form,
         })
 
+def setting_redirect(request, tune_id=None, setting_id=None):
+    """
+    Redirect /tune/x/setting/y to /tune/x#setting-y
+    Note setting_id here is not db id but the setting index, i.e. incremented x within each tune
+    """
+    try:
+        tune_id_int = int(tune_id)
+        tune = Tune.objects.get(id=tune_id_int)
+    except (TypeError, Tune.DoesNotExist):
+        return redirect('/')
+    
+    if setting_id not in [x.header_x for x in tune.setting_set.all()]:
+        return redirect('/')
+    
+    return redirect(reverse('tune', kwargs={"tune_id": tune.id}) + f'#setting-{ setting_id }')
+
 def tune_download(request, tune_id=None):
     try:
         tune_id_int = int(tune_id)

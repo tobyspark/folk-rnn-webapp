@@ -24,6 +24,7 @@ urlpatterns = [
     url(r'^tune/$', RedirectView.as_view(url='/tunes', permanent=True)),
     url(r'^tunes/$', views.tunes_page, name='tunes'),
     url(r'^tune/(?P<tune_id>\d+)$', views.tune_page, name='tune'),
+    url(r'^tune/(?P<tune_id>\d+)/setting/(?P<setting_id>\d+)$', views.setting_redirect, name='setting'),
     url(r'^tune/(?P<tune_id>\d+)/download$', views.tune_download, name='tune_download'),
     url(r'^tune/(?P<tune_id>\d+)/download/setting/(?P<setting_id>\d+)$', views.setting_download, name='setting_download'),
     url(r'^tune/(?P<tune_id>\d+)/download/all$', views.tune_setting_download, name='tune_setting_download'),
