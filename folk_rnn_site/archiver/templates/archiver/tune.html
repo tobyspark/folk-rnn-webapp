@@ -173,7 +173,7 @@
         <ul id="comment_list">
             {% for comment in comments %}
             <li>
-            <p>{{ comment.text }}</p>
+            <p>{{ comment.text|urlize }}</p>
             <p class="meta"><a href="{% url 'user' user_id=comment.author.id %}">{{ comment.author.get_full_name }}</a>, {{ comment.submitted|naturalday }}</p>
             </li>
             {% endfor %}
