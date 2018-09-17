@@ -55,6 +55,8 @@ class CompetitionCommentInline(admin.StackedInline):
 class TuneAdmin(admin.ModelAdmin):
     inlines = [ TuneAttributionInline, SettingInline, TuneCommentInline, TuneEventInline, TuneRecordingInline ]
 
+admin.site.register(TuneComment)
+
 @admin.register(Recording)
 class RecordingAdmin(admin.ModelAdmin):
     inlines = [ TuneRecordingInline ]
@@ -96,3 +98,5 @@ class CompetitionTuneAdmin(admin.ModelAdmin):
 @admin.register(CompetitionRecording)
 class CompetitionRecordingAdmin(admin.ModelAdmin):
     inlines = [ CompetitionRecordingVoteInline ]
+
+admin.site.register(CompetitionComment)
