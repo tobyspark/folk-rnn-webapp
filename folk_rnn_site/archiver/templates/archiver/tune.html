@@ -98,7 +98,7 @@
     <div id="setting-{{ forloop.counter }}" class="section">
         <div class="section-meta">
             <h2>{{ setting.title }}</h2>
-            <p class="meta">Setting {{ setting.header_x|apnumber }}</br>
+            <p class="meta"><a href="{% url 'setting' tune_id=tune.id setting_id=setting.header_x %}">Setting {{ setting.header_x|apnumber }}</a></br>
             Added by <a href="{% url 'user' user_id=setting.author.id %}">{{ setting.author.get_full_name }},</a><br>
             {{ setting.submitted | naturalday | capfirst }}</p>
             <p class="meta">View: <input id="abc-setting-{{ forloop.counter }}-checkbox" type="checkbox"><label for="abc-setting-{{ forloop.counter }}-checkbox">ABC</label> | <input id="staff-setting-{{ forloop.counter }}-checkbox" type="checkbox" checked><label for="staff-setting-{{ forloop.counter }}-checkbox">Staff</label></p>
