@@ -97,12 +97,13 @@ class Tune(ABCModel):
     def abc_with_attribution(self):
         """"
         Return abc with attribution information fields
-        - Sets (replacing) F: to the machinefolk URL
-        - Sets (adding) S: to a machinefolk source message
         """
         url = reverse('tune', host='archiver', kwargs={'tune_id': self.id})
         abc_model = ABCModel(abc=self.abc)
         abc_model.headers_n = ['{} {}'.format(x.text if x.text else '', x.url if x.url else '') for x in self.tuneattribution_set.all()]
+        if self.rnn_tune:
+            model = self.rnn_tune.rnn_model_name.replace('.pickle', '')
+            abc_model.headers_n += [ f'Generated at https://folkrnn.org using the { model } model with RNN seed = { self.rnn_tune.seed }; temperature = { self.rnn_tune.temp }; prime tokens = { self.rnn_tune.prime_tokens }' ]
         abc_model.header_f = url
         abc_model.header_s = f'Tune #{self.id} archived at The Machine Folk Session'
         return abc_model.abc
@@ -236,16 +237,15 @@ class Setting(ABCModel):
     def abc_with_attribution(self):
         """
         Return abc with attribution information fields
-        - Sets (replacing) F: to the machinefolk URL
-        - Sets (adding) S: to a machinefolk source message
         """
-        url = reverse('tune', host='archiver', kwargs={'tune_id': self.tune.id})
+        url = reverse('setting', host='archiver', kwargs={'tune_id': self.tune.id, 'setting_id': self.header_x})
         abc_model = ABCModel(abc=self.abc)
+        if self.tune.rnn_tune:
+            model = self.tune.rnn_tune.rnn_model_name.replace('.pickle', '')
+            abc_model.headers_n = [ f'Original tune generated at https://folkrnn.org using the { model } model with RNN seed = { self.tune.rnn_tune.seed }; temperature = { self.tune.rnn_tune.temp }; prime tokens = { self.tune.rnn_tune.prime_tokens }' ]
         abc_model.header_f = url
-        s = f'Setting #{self.header_x} of tune #{self.tune.id} archived at The Machine Folk Session'
-        if abc_model.header_s:
-            s += '\nS:' + abc_model.header_s
-        abc_model.header_s = s
+        abc_model.header_s = f'Setting #{self.header_x} of tune #{self.tune.id} archived at The Machine Folk Session'
+        
         return abc_model.abc
     
     tune = models.ForeignKey(Tune)
