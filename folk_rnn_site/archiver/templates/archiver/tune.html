@@ -217,20 +217,20 @@ window.addEventListener("load", function() {
     const abc_t_regex = RegExp('T:\s*(.*?)\s*\n')
     document.getElementById("setting-form-title").addEventListener("input", function (event) {
         const el_abc = document.getElementById("abc-setting-form");
-        let abc = el_abc.innerHTML;
+        let abc = el_abc.value;
         abc = abc.replace(abc_t_regex, 'T:' + event.target.value + '\n')
-        el_abc.innerHTML = abc;
+        el_abc.value = abc;
         el_abc.dispatchEvent(new Event('change', { 'bubbles': true }))
     });
     document.getElementById("setting-form-bpm").addEventListener("change", function (event) {
         const el_abc = document.getElementById("abc-setting-form");
-        let abc = el_abc.innerHTML;
+        let abc = el_abc.value;
         if (abc_q_regex.test(abc)) {
             abc = abc.replace(abc_q_regex, 'Q:' + event.target.value + '\n')
         } else {
             abc = abc.replace(abc_t_regex, 'T:$1\nQ:' + event.target.value + '\n');
         }
-        el_abc.innerHTML = abc;
+        el_abc.value = abc;
         el_abc.dispatchEvent(new Event('change', { 'bubbles': true }))
     });
     {% endif %}
