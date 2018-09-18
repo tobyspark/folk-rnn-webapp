@@ -233,6 +233,17 @@ window.addEventListener("load", function() {
         el_abc.value = abc;
         el_abc.dispatchEvent(new Event('change', { 'bubbles': true }))
     });
+    document.getElementById("abc-setting-form").addEventListener("input", function (event) {
+        const abc = event.target.value;
+        const bpm = abc_q_regex.exec(abc)
+        if (bpm !== null && Number.isInteger(Number(bpm[1]))) {
+            document.getElementById("setting-form-bpm").value = bpm[1];
+        }
+        const title = abc_t_regex.exec(abc)
+        if (title !== null) {
+            document.getElementById("setting-form-title").value = title[1];
+        }
+    });
     {% endif %}
     // ABC textareas
     names.forEach(function(name){
