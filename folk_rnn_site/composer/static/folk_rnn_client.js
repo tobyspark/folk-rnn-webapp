@@ -164,7 +164,8 @@ folkrnn.tuneManager = {
         div_tune_new.querySelector('#generated').id = 'generated-' + tune_id;
         div_tune_new.querySelector('#midi').id = 'midi-' + tune_id;
         div_tune_new.querySelector('#midi-download').id = 'midi-download-' + tune_id;
-        div_tune_new.querySelector('#bpm').id = 'bpm-' + tune_id;
+        div_tune_new.querySelector('#tempo').id = 'tempo-' + tune_id;
+        div_tune_new.querySelector('#tempo_input').id = 'tempo_input-' + tune_id;
         div_tune_new.querySelector('#notation').id = 'notation-' + tune_id;
         div_tune_new.querySelector('#archive_form').id = 'archive_form-' + tune_id;
         div_tune_new.querySelector('#id_title').id = 'id_title-' + tune_id;
@@ -223,7 +224,7 @@ folkrnn.tuneManager = {
             }
         });
         
-        document.getElementById('bpm-' + tune_id).addEventListener("change", function (event) {
+        document.getElementById('tempo_input-' + tune_id).addEventListener("change", function (event) {
             folkrnn.tuneManager.tunes[tune_id].abcjs.paramChanged({"qpm": parseInt(event.target.value)})
             folkrnn.websocketSend({
                 command: "notification",
@@ -373,6 +374,7 @@ folkrnn.updateTuneDiv = function(tune) {
     const el_prime_tokens = document.getElementById("prime_tokens-" + tune.id);
     const el_requested = document.getElementById("requested-" + tune.id);
     const el_generated = document.getElementById("generated-" + tune.id);
+    const el_tempo = document.getElementById("tempo-" + tune.id);
     const el_archive_form = document.getElementById("archive_form-" + tune.id);
     const el_archive_title = document.getElementById("id_title-" + tune.id);
     
@@ -388,6 +390,8 @@ folkrnn.updateTuneDiv = function(tune) {
         el_generated.value = new Date(tune.rnn_finished).toLocaleString();
         el_requested.parentNode.setAttribute('hidden', '');
         el_generated.parentNode.removeAttribute('hidden');
+        
+        el_tempo.removeAttribute('hidden');
         
         el_archive_title.value = folkrnn.tuneTitle + tune.id;
         el_archive_form.setAttribute('action', tune.archive_url);
