@@ -237,7 +237,7 @@ window.addEventListener("load", function() {
     // ABC textareas
     names.forEach(function(name){
         const el = document.getElementById("abc-" + name);
-        el.setAttribute("rows", el.innerHTML.split(/\n/).length)
+        el.setAttribute("rows", el.value.split(/\n/).length)
     });
     // View Checkboxes
     const viewCheckboxHandler = function() {
