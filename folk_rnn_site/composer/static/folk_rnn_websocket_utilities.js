@@ -64,12 +64,12 @@ folkrnn.websocketReceive = function(action, stream) {
     if (action.command == "add_token") {
         const el_tune = folkrnn.tuneManager.tuneDiv(action.tune_id);
         const el_abc = el_tune.querySelector('#abc-'+action.tune_id);
-        if (el_abc.innerHTML == folkrnn.waitingABC)
-            el_abc.innerHTML = "";
-        el_abc.innerHTML += action.token;
+        if (el_abc.value == folkrnn.waitingABC)
+            el_abc.value = "";
+        el_abc.value += action.token;
         if (action.token.includes("|")) 
-            if (el_abc.innerHTML.split("|").length % 5 === 0)
-                el_abc.innerHTML += '\n';
-        el_abc.setAttribute('rows', el_abc.innerHTML.split(/\r\n|\r|\n/).length);
+            if (el_abc.value.split("|").length % 5 === 0)
+                el_abc.value += '\n';
+        el_abc.setAttribute('rows', el_abc.value.split(/\r\n|\r|\n/).length);
     }
 };
