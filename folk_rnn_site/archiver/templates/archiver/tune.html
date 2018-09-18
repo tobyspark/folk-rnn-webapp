@@ -217,27 +217,38 @@ window.addEventListener("load", function() {
     const abc_t_regex = RegExp('T:\s*(.*?)\s*\n')
     document.getElementById("setting-form-title").addEventListener("input", function (event) {
         const el_abc = document.getElementById("abc-setting-form");
-        let abc = el_abc.innerHTML;
+        let abc = el_abc.value;
         abc = abc.replace(abc_t_regex, 'T:' + event.target.value + '\n')
-        el_abc.innerHTML = abc;
+        el_abc.value = abc;
         el_abc.dispatchEvent(new Event('change', { 'bubbles': true }))
     });
     document.getElementById("setting-form-bpm").addEventListener("change", function (event) {
         const el_abc = document.getElementById("abc-setting-form");
-        let abc = el_abc.innerHTML;
+        let abc = el_abc.value;
         if (abc_q_regex.test(abc)) {
             abc = abc.replace(abc_q_regex, 'Q:' + event.target.value + '\n')
         } else {
             abc = abc.replace(abc_t_regex, 'T:$1\nQ:' + event.target.value + '\n');
         }
-        el_abc.innerHTML = abc;
+        el_abc.value = abc;
         el_abc.dispatchEvent(new Event('change', { 'bubbles': true }))
+    });
+    document.getElementById("abc-setting-form").addEventListener("input", function (event) {
+        const abc = event.target.value;
+        const bpm = abc_q_regex.exec(abc)
+        if (bpm !== null && Number.isInteger(Number(bpm[1]))) {
+            document.getElementById("setting-form-bpm").value = bpm[1];
+        }
+        const title = abc_t_regex.exec(abc)
+        if (title !== null) {
+            document.getElementById("setting-form-title").value = title[1];
+        }
     });
     {% endif %}
     // ABC textareas
     names.forEach(function(name){
         const el = document.getElementById("abc-" + name);
-        el.setAttribute("rows", el.innerHTML.split(/\n/).length)
+        el.setAttribute("rows", el.value.split(/\n/).length)
     });
     // View Checkboxes
     const viewCheckboxHandler = function() {

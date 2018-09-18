@@ -154,7 +154,7 @@ folkrnn.tuneManager = {
         // Add tune to manager
         const div_tune_new = folkrnn.div_tune.cloneNode(true);
         div_tune_new.id = "tune_" + tune_id;
-        div_tune_new.querySelector('h1').innerHTML = folkrnn.tuneTitle + tune_id;
+        div_tune_new.querySelector('h1').textContent = folkrnn.tuneTitle + tune_id;
         div_tune_new.querySelector('#abc').id = 'abc-' + tune_id;
         div_tune_new.querySelector('#rnn_model_name').id = 'rnn_model_name-' + tune_id;
         div_tune_new.querySelector('#seed').id = 'seed-' + tune_id;
@@ -164,7 +164,8 @@ folkrnn.tuneManager = {
         div_tune_new.querySelector('#generated').id = 'generated-' + tune_id;
         div_tune_new.querySelector('#midi').id = 'midi-' + tune_id;
         div_tune_new.querySelector('#midi-download').id = 'midi-download-' + tune_id;
-        div_tune_new.querySelector('#bpm').id = 'bpm-' + tune_id;
+        div_tune_new.querySelector('#tempo').id = 'tempo-' + tune_id;
+        div_tune_new.querySelector('#tempo_input').id = 'tempo_input-' + tune_id;
         div_tune_new.querySelector('#notation').id = 'notation-' + tune_id;
         div_tune_new.querySelector('#archive_form').id = 'archive_form-' + tune_id;
         div_tune_new.querySelector('#id_title').id = 'id_title-' + tune_id;
@@ -223,7 +224,7 @@ folkrnn.tuneManager = {
             }
         });
         
-        document.getElementById('bpm-' + tune_id).addEventListener("change", function (event) {
+        document.getElementById('tempo_input-' + tune_id).addEventListener("change", function (event) {
             folkrnn.tuneManager.tunes[tune_id].abcjs.paramChanged({"qpm": parseInt(event.target.value)})
             folkrnn.websocketSend({
                 command: "notification",
@@ -373,21 +374,24 @@ folkrnn.updateTuneDiv = function(tune) {
     const el_prime_tokens = document.getElementById("prime_tokens-" + tune.id);
     const el_requested = document.getElementById("requested-" + tune.id);
     const el_generated = document.getElementById("generated-" + tune.id);
+    const el_tempo = document.getElementById("tempo-" + tune.id);
     const el_archive_form = document.getElementById("archive_form-" + tune.id);
     const el_archive_title = document.getElementById("id_title-" + tune.id);
     
-    el_abc.innerHTML = tune.abc;
+    el_abc.value = tune.abc;
     el_abc.setAttribute('rows', tune.abc.split(/\r\n|\r|\n/).length - 1);
-    el_model.innerHTML = tune.rnn_model_name.replace('.pickle', '');
-    el_seed.innerHTML = tune.seed;
-    el_temp.innerHTML = tune.temp;
-    el_prime_tokens.innerHTML = tune.prime_tokens;
-    el_requested.innerHTML = tune.requested;
-    el_generated.innerHTML = tune.rnn_finished;
+    el_model.value = tune.rnn_model_name.replace('.pickle', '');
+    el_seed.value = tune.seed;
+    el_temp.value = tune.temp;
+    el_prime_tokens.value = tune.prime_tokens;
+    el_requested.value = tune.requested;
+    el_generated.value = tune.rnn_finished;
     if (tune.rnn_finished) {
-        el_generated.innerHTML = new Date(tune.rnn_finished).toLocaleString();
+        el_generated.value = new Date(tune.rnn_finished).toLocaleString();
         el_requested.parentNode.setAttribute('hidden', '');
         el_generated.parentNode.removeAttribute('hidden');
+        
+        el_tempo.removeAttribute('hidden');
         
         el_archive_title.value = folkrnn.tuneTitle + tune.id;
         el_archive_form.setAttribute('action', tune.archive_url);
@@ -402,14 +406,14 @@ folkrnn.updateTuneDiv = function(tune) {
             folkrnn.fieldStartABC.value = tune.start_abc;
         }
     } else {
-        el_requested.innerHTML = new Date(tune.requested).toLocaleString();
+        el_requested.value = new Date(tune.requested).toLocaleString();
         el_requested.parentNode.removeAttribute('hidden');
         el_generated.parentNode.setAttribute('hidden', '');
         
         el_archive_form.setAttribute('hidden', '');
         
         if (!tune.rnn_started) {
-            el_abc.innerHTML = folkrnn.waitingABC;
+            el_abc.value = folkrnn.waitingABC;
         }
     }
 };
