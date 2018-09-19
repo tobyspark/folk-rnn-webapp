@@ -12,10 +12,7 @@
     <div id="search-tune" class="section">
         <div class="section-meta">
         <h2>Tune search</h2>
-        {% if search_results.paginator.num_pages > 1 %}
-        <p class="meta">Page {{ search_results.number }} of {{ search_results.paginator.num_pages }}<br>
-        {% if search_results.has_previous %}<a href="?search={{ search_text|urlencode:'' }}&order_by={{ order_by }}&page={{ search_results.previous_page_number }}">previous</a>{% endif %}{% if search_results.has_previous and search_results.has_next %} | {% endif %}{% if search_results.has_next %}<a href="?search={{ search_text|urlencode:'' }}&order_by={{ order_by }}&page={{ search_results.next_page_number }}">next</a>{% endif %}</p>
-        {% endif %}
+        {% include 'archiver/_paginator.html' with paginated=search_results %}
         </div>
         <div class="section-body">
             <form method="get" class="pure-form"> 

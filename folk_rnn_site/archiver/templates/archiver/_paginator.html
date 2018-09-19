@@ -1,0 +1,28 @@
+
+{% load qurl %}
+{% if paginated.paginator.num_pages > 1 %}
+  <p class="meta">
+    Page&nbsp;
+    {% for n in paginated.paginator.page_range %}
+      {% if paginated.number|add:'-3' == n %}
+        {# First page #}
+        <a href="{% qurl request.get_full_path page=1 %}">1</a>
+        {% if n != 1 %}
+          &#8943;
+        {% endif %}
+      {% elif paginated.number == n %}
+        {# Current page #}
+        &lt;{{ n }}&gt;
+      {% elif paginated.number|add:'-3' < n and n < paginated.number|add:'3' %}
+        {# Pages around current page #}
+        <a href="{% qurl request.get_full_path page=n %}">{{ n }}</a>
+      {% elif paginated.number|add:'3' == n %}
+        {# Last page #}
+        {% if n != paginated.paginator.num_pages %}
+          &#8943;
+        {% endif %}
+        <a href="{% qurl request.get_full_path page=paginated.paginator.num_pages %}">{{ paginated.paginator.num_pages }}</a>
+      {% endif %}
+    {% endfor %}
+  </p>
+{% endif %}
