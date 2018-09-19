@@ -323,6 +323,42 @@ h1, h2, h3 {
     background-color: black;
 }
 
+.paginator .lolight {
+    background-color: #aaa;
+}
+
+.paginator .lolight:hover {
+    background-color: orange;
+}
+
+.paginator .hilight {
+    background-color: orange;
+}
+
+.paginator a {
+    text-decoration: none;
+}
+
+.paginator a:hover {
+    background-color: unset;
+}
+
+.encircle {
+  display: inline-flex;
+  justify-content: center;
+  color: white;
+  min-width: 1.5em;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.encircle:before {
+  content:'';
+  float: left;
+  width: auto;
+  padding-bottom: 100%;
+}
+
 .splash-overlay img {
     position: fixed;
     top: 10px;

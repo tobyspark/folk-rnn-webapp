@@ -1,27 +1,27 @@
 
 {% load qurl %}
 {% if paginated.paginator.num_pages > 1 %}
-  <p class="meta">
+  <p class="meta paginator">
     Page&nbsp;
     {% for n in paginated.paginator.page_range %}
-      {% if paginated.number|add:'-3' == n %}
+      {% if paginated.number|add:'-2' == n %}
         {# First page #}
-        <a href="{% qurl request.get_full_path page=1 %}">1</a>
+        <a href="{% qurl request.get_full_path page=1 %}"><span class="encircle lolight">1</span></a>
         {% if n != 1 %}
-          &#8943;
+          &middot;
         {% endif %}
       {% elif paginated.number == n %}
         {# Current page #}
-        &lt;{{ n }}&gt;
-      {% elif paginated.number|add:'-3' < n and n < paginated.number|add:'3' %}
+        <span class="encircle hilight">{{ n }}</span>
+      {% elif paginated.number|add:'-2' < n and n < paginated.number|add:'2' %}
         {# Pages around current page #}
-        <a href="{% qurl request.get_full_path page=n %}">{{ n }}</a>
-      {% elif paginated.number|add:'3' == n %}
+        <a href="{% qurl request.get_full_path page=n %}"><span class="encircle lolight">{{ n }}</span></a>
+      {% elif paginated.number|add:'2' == n %}
         {# Last page #}
         {% if n != paginated.paginator.num_pages %}
-          &#8943;
+          &middot;
         {% endif %}
-        <a href="{% qurl request.get_full_path page=paginated.paginator.num_pages %}">{{ paginated.paginator.num_pages }}</a>
+        <span class="encircle lolight"><a href="{% qurl request.get_full_path page=paginated.paginator.num_pages %}">{{ paginated.paginator.num_pages }}</a></span>
       {% endif %}
     {% endfor %}
   </p>
