@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'composer',
     'archiver',
     'backup',
+    'qurl_templatetag',
 ]
 
 MIDDLEWARE = [
