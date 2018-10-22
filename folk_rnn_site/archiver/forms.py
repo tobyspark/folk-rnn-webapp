@@ -93,6 +93,7 @@ class RegistrationForm(UserCreationForm):
     As per registration docs, this should be a minimal subclass of registration.forms.RegistrationFormUniqueEmail.
     However that wasn't working, so this instead is an equivalent, based on some of that code.
     """
+    # FIXME: Is this an artifact of django-registration 2.4.1 that is no longer necessary due to using 3.0? 
     class Meta:
         model = User
         fields = [
