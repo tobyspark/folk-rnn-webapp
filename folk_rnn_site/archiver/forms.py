@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms.extras.widgets import SelectDateWidget
-from registration import validators
+from django_registration import validators
 from embed_video.fields import EmbedVideoFormField
 
 from folk_rnn_site.models import conform_abc

@@ -54,7 +54,7 @@ pip3.6 install "channels_redis"
 pip3.6 install "pytest-django" "pytest-asyncio"
 pip3.6 install psycopg2-binary
 pip3.6 install google-api-python-client google-auth google-auth-httplib2
-pip3.6 install django-registration
+pip3.6 install django-registration~=3.0
 pip3.6 install Unidecode
 
 # See https://github.com/jazzband/django-embed-video/issues/87
