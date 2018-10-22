@@ -1,0 +1,23 @@
+{% extends "archiver/base.html" %}
+
+{% block title %}Sign-up: failed activation{% endblock %}
+
+{% block content %}
+<div id="signup" class="section">
+    <div class="section-meta">
+        <h2>Sign up</h2>
+    </div>
+    <div class="section-body">
+        <p>Thanks for signing up. Unfortunately, this activation link hasn't worked. {{ activation_error.message }}</p>
+        {% if activation_error.code == 'already_activated' %}
+        <p>As your account is already activated, just go <a href="{% url 'login' %}">log in</a>. If something has gone wrong with your account, <a href="{% url 'help' %}#contact">let us know</a>.</p>
+        {% elif activation_error.code == 'bad_username' %}
+        <p>Perhaps what ended up in your browser’s address bar isn't the exact link you received in the email. Try clicking the link in the email, or copy-and-pasting it across.</p>
+        {% elif activation_error.code == 'expired' %}
+        <p>You will have to <a href="{% url 'django_registration_register' %}">sign-up again</a>. Any problems <a href="{% url 'help' %}#contact">let us know</a>.
+        {% elif activation_error.code == 'invalid_key' %}
+        <p>Perhaps what ended up in your browser’s address bar isn't the exact link you received in the email. Try clicking the link in the email, or copy-and-pasting it across.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
