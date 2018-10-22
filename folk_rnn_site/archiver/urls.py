@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.views.generic import RedirectView
-from registration.backends.hmac.views import RegistrationView
+from django_registration.backends.activation.views import RegistrationView
 from django.contrib import admin
 from archiver import views, forms
 
@@ -43,11 +43,11 @@ urlpatterns = [
     url(r'^questions/$', views.questions_page, name='questions'),
     url(r'^help/$', views.help_page, name='help'),
     url(r'^dataset$', views.dataset_download),
-    url(r'^', include('django.contrib.auth.urls')), # per docs, registration should also provide these, but doesn't
+    url(r'^', include('django.contrib.auth.urls')),
     url(r'^register/$',
      RegistrationView.as_view(form_class=forms.RegistrationForm),
-     name='registration_register',
+     name='django_registration_register',
      ),
-    url(r'^', include('registration.backends.hmac.urls')),
+    url(r'^', include('django_registration.backends.activation.urls')),
     url(r'^admin/', admin.site.urls),
 ]
