@@ -224,7 +224,7 @@ else:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 # Registration
-# https://django-registration.readthedocs.io/en/2.4.1/hmac.html
+# https://django-registration.readthedocs.io/en/3.0/settings.html
 ACCOUNT_ACTIVATION_DAYS = 7
 REGISTRATION_OPEN = True
 REGISTRATION_SALT = 'machine_folk_registration'
