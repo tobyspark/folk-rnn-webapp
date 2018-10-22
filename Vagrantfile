@@ -19,7 +19,7 @@ Vagrant.configure("2") do |config|
     override.ssh.private_key_path = '~/.ssh/id_rsa'
     override.vm.box = 'linode'
     override.vm.box_url = 'https://github.com/displague/vagrant linode/raw/master/box/linode.box'
-    override.nfs.functional = false
+    override.vm.allowed_synced_folder_types = :rsync
     
     provider.label = 'folkmachine'
     provider.api_key = ENV['LINODE_API_KEY']
