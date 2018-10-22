@@ -67,7 +67,7 @@
         <h2>Your tune?</h2>
     </div>
     <div class="section-body">
-        <p><a href="{% url 'login' %}?next={{ request.path }}">Log-in</a> to keep track of the tunes you've archived from folk-rnn. If you don't yet have an account, <a href="{% url 'registration_register' %}" target=_blank>sign-up</a> <em>(opens in a new window)</em>.
+        <p><a href="{% url 'login' %}?next={{ request.path }}">Log-in</a> to keep track of the tunes you've archived from folk-rnn. If you don't yet have an account, <a href="{% url 'django_registration_register' %}" target=_blank>sign-up</a> <em>(opens in a new window)</em>.
     </div>
 </div>
 {% elif attribution_form %}
