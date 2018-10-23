@@ -68,6 +68,7 @@ folkrnn.parseABC = function(abc) {
             if (w.length > 0) result.push(w);
             w=c;
             flag_indur=1;
+            flag_innote=0;
         } else if (numbset.has(c)) {
             if (flag_innote) {
                 if (w.length > 0) result.push(w);
