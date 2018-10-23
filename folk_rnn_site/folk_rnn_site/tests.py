@@ -168,7 +168,7 @@ K:Cmaj
 class ABCJSTest(TestCase):
 
     def test_abcjs_available(self):
-        self.assertIsNotNone(finders.find('abcjs_midi_5.1.2-min.js'))
+        self.assertIsNotNone(finders.find('abcjs_midi_5.3.5-min.js'))
         self.assertIsNotNone(finders.find('abcjs-midi.css'))
 
     def test_soundfonts_available(self):
