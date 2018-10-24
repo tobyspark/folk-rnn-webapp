@@ -1,28 +1,6 @@
 
 {% load qurl %}
 {% if paginated.paginator.num_pages > 1 %}
-  <p class="meta paginator">
-    Page&nbsp;
-    {% for n in paginated.paginator.page_range %}
-      {% if paginated.number|add:'-2' == n %}
-        {# First page #}
-        <a href="{% qurl request.get_full_path page=1 %}"><span class="encircle lolight">1</span></a>
-        {% if n != 1 %}
-          &middot;
-        {% endif %}
-      {% elif paginated.number == n %}
-        {# Current page #}
-        <span class="encircle hilight">{{ n }}</span>
-      {% elif paginated.number|add:'-2' < n and n < paginated.number|add:'2' %}
-        {# Pages around current page #}
-        <a href="{% qurl request.get_full_path page=n %}"><span class="encircle lolight">{{ n }}</span></a>
-      {% elif paginated.number|add:'2' == n %}
-        {# Last page #}
-        {% if n != paginated.paginator.num_pages %}
-          &middot;
-        {% endif %}
-        <span class="encircle lolight"><a href="{% qurl request.get_full_path page=paginated.paginator.num_pages %}">{{ paginated.paginator.num_pages }}</a></span>
-      {% endif %}
-    {% endfor %}
-  </p>
+  <p class="meta">Page {{ paginated.number }} of {{ paginated.paginator.num_pages }}<br>
+  {% if search_results.has_previous %}<a href="{% qurl request.get_full_path page=paginated.previous_page_number %}">previous</a>{% endif %}{% if paginated.has_previous and paginated.has_next %} | {% endif %}{% if paginated.has_next %}<a href="{% qurl request.get_full_path page=search_results.next_page_number %}">next</a>{% endif %}</p>
 {% endif %}
