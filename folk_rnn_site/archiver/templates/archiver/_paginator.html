@@ -1,0 +1,22 @@
+
+{% load qurl %}
+{% if paginated.paginator.num_pages > 1 %}
+  <p class="meta">Page {{ paginated.number }} of {{ paginated.paginator.num_pages }}<br>
+  {% cycle '' '' '|' '|' '|' as itemsep %}
+  {% if search_results.has_previous %}
+    {% cycle itemsep %}
+    <a href="{% qurl request.get_full_path page=paginated.previous_page_number %}">previous</a>
+  {% endif %}
+  {% if user.is_authenticated %}
+  {% cycle itemsep %}
+  <a href="{% qurl request.get_full_path page='all' %}">all</a>
+  {% endif %}
+  {% if paginated.has_next %}
+    {% cycle itemsep %}
+    <a href="{% qurl request.get_full_path page=search_results.next_page_number %}">next</a>
+  {% endif %}
+  </p>  
+{% endif %}
+{% if 'page=all' in request.get_full_path %}
+  <p class="meta">Viewing all. <a href="{% qurl request.get_full_path page=None %}">Re-paginate.</a></p>
+{% endif %}

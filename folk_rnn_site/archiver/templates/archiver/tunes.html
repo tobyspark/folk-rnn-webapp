@@ -8,14 +8,12 @@
 {% load widget_tweaks %}
 {% load humanize %}
 {% load i18n %}
+{% load qurl %}
 <div id="search">
     <div id="search-tune" class="section">
         <div class="section-meta">
         <h2>Tune search</h2>
-        {% if search_results.paginator.num_pages > 1 %}
-        <p class="meta">Page {{ search_results.number }} of {{ search_results.paginator.num_pages }}<br>
-        {% if search_results.has_previous %}<a href="?search={{ search_text|urlencode:'' }}&order_by={{ order_by }}&page={{ search_results.previous_page_number }}">previous</a>{% endif %}{% if search_results.has_previous and search_results.has_next %} | {% endif %}{% if search_results.has_next %}<a href="?search={{ search_text|urlencode:'' }}&order_by={{ order_by }}&page={{ search_results.next_page_number }}">next</a>{% endif %}</p>
-        {% endif %}
+        {% include 'archiver/_paginator.html' with paginated=search_results %}
         </div>
         <div class="section-body">
             <form method="get" class="pure-form"> 
@@ -29,15 +27,15 @@
             </form>
             <div id="search-results">
             {% if search_text %}
-            <p class="meta">{{ search_results.paginator.count|apnumber|capfirst }} matching recording{{ search_results.paginator.count|pluralize }} found. <a href="{% url 'tunes' %}">Clear search</a>.</p>
+            <p class="meta">{{ search_results.paginator.count|apnumber|capfirst }} matching recording{{ search_results.paginator.count|pluralize }} found. <a href="{% qurl request.path %}">Clear search</a>.</p>
             {% else %}
-            <p class="meta">Search through tunes, settings of those tunes, or their notes or comments.<br>Some examples: {% for example in search_examples %}<a href="{% url 'tunes' %}?search={{ example }}">{{ example }}</a>{% if not forloop.last %}, {% else %}.{% endif %}{% endfor %}</p>
+            <p class="meta">Search through tunes, settings of those tunes, or their notes or comments.<br>Some examples: {% for example in search_examples %}<a href="{% qurl request.path search=example %}">{{ example }}</a>{% if not forloop.last %}, {% else %}.{% endif %}{% endfor %}</p>
             <p class="meta">Currently showing all tunes.</p>
             {% endif %}
             {% if order_by == 'popularity' %}
-            <p class="meta">Most popular first. <a href="?search={{ search_text|urlencode:'' }}&order_by=added&page={{ search_results.number }}">Change to most recent first</a>.</p>
+            <p class="meta">Most popular first. <a href="{% qurl request.get_full_path order_by='added' %}">Change to most recent first</a>.</p>
             {% else %}
-            <p class="meta">Most recent first. <a href="?search={{ search_text|urlencode:'' }}&order_by=popularity&page={{ search_results.number }}">Change to most popular first</a>.</p>
+            <p class="meta">Most recent first. <a href="{% qurl request.get_full_path order_by='popularity' %}">Change to most popular first</a>.</p>
             {% endif %}
             <p>&nbsp;</p>
             {% include 'archiver/_tunepreviews.html' with tunes=search_results id_prefix='search' empty_message='No matches found' %}
