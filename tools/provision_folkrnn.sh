@@ -56,6 +56,7 @@ pip3.6 install psycopg2-binary
 pip3.6 install google-api-python-client google-auth google-auth-httplib2
 pip3.6 install django-registration~=3.0
 pip3.6 install Unidecode
+pip3.6 install django-qurl-templatetag
 
 # See https://github.com/jazzband/django-embed-video/issues/87
 # pip3.6 install django-embed-video

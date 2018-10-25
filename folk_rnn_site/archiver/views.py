@@ -124,8 +124,11 @@ def tunes_page(request):
         search_results = search_results.order_by('-id').distinct('id')
         order_by = 'added'
         
-    paginator = Paginator(search_results, TUNE_PREVIEWS_PER_PAGE)
     page_number = request.GET.get('page')
+    items_per_page = TUNE_PREVIEWS_PER_PAGE
+    if page_number == 'all' and request.user.is_authenticated:
+        items_per_page = 9999
+    paginator = Paginator(search_results, items_per_page)
     try:
         search_results_page = paginator.page(page_number)
     except PageNotAnInteger:
@@ -358,8 +361,11 @@ def recordings_page(request):
         search_text = ''
         search_results = Recording.objects.order_by('-id')
     
-    paginator = Paginator(search_results, TUNE_PREVIEWS_PER_PAGE)
     page_number = request.GET.get('page')
+    items_per_page = TUNE_PREVIEWS_PER_PAGE
+    if page_number == 'all' and request.user.is_authenticated:
+        items_per_page = 9999
+    paginator = Paginator(search_results, items_per_page)
     try:
         search_results_page = paginator.page(page_number)
     except PageNotAnInteger:
@@ -431,8 +437,11 @@ def tunebook_page(request, user_id):
     
     tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')
     
-    paginator = Paginator(tunebook, TUNE_PREVIEWS_PER_PAGE)
     page_number = request.GET.get('page')
+    items_per_page = TUNE_PREVIEWS_PER_PAGE
+    if page_number == 'all' and request.user.is_authenticated:
+        items_per_page = 9999
+    paginator = Paginator(tunebook, items_per_page)
     try:
         tunebook_page = paginator.page(page_number)
     except PageNotAnInteger:
@@ -492,8 +501,11 @@ def competitions_page(request):
         search_text = ''
         search_results = Competition.objects.order_by('-id')
     
-    paginator = Paginator(search_results, TUNE_PREVIEWS_PER_PAGE)
     page_number = request.GET.get('page')
+    items_per_page = TUNE_PREVIEWS_PER_PAGE
+    if page_number == 'all' and request.user.is_authenticated:
+        items_per_page = 9999
+    paginator = Paginator(search_results, items_per_page)
     try:
         search_results_page = paginator.page(page_number)
     except PageNotAnInteger:
