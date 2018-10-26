@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.db.models import Q
+from actstream import action
 from tempfile import TemporaryFile
 from itertools import chain
 from datetime import timedelta
@@ -200,6 +201,7 @@ def tune_page(request, tune_id=None):
                 form = SettingForm(request.POST, instance=setting)
                 if form.is_valid():
                     form.save() 
+                    action.send(request.user, verb='added setting', action_object=setting, target=tune)
                 else:
                     setting_form = form
             elif 'submit-comment' in request.POST:
@@ -211,6 +213,7 @@ def tune_page(request, tune_id=None):
                                 author=request.user,
                                 )
                     comment.save()
+                    action.send(request.user, verb='commented', action_object=comment, target=tune)
                 else:
                     comment_form = form
             elif 'submit-tunebook-0' in request.POST:
@@ -221,11 +224,13 @@ def tune_page(request, tune_id=None):
                             tune=tune,
                             user=request.user,
                             )
+                        action.send(request.user, verb='added to their tunebook', target=tune)
                     else:
                         TunebookEntry.objects.filter(
                             tune=tune,
                             user=request.user,
                             ).delete()
+                        action.send(request.user, verb='removed from their tunebook', target=tune)
             else:
                 # submit-tunebook-x in request.POST where x>0
                 setting_x = None
@@ -247,11 +252,13 @@ def tune_page(request, tune_id=None):
                                 setting=setting,
                                 user=request.user,
                                 )
+                            action.send(request.user, verb='added to their tunebook', action_object=setting, target=tune)
                         else:
                             TunebookEntry.objects.filter(
                                 setting=setting,
                                 user=request.user,
                                 ).delete()
+                            action.send(request.user, verb='removed from their tunebook', action_object=setting, target=tune)
 
     tune.tunebook_count = TunebookEntry.objects.filter(tune=tune).count()
     if request.user.is_authenticated:
@@ -559,8 +566,10 @@ def competition_page(request, competition_id):
             try:
                 vote = CompetitionTuneVote.objects.get(votable=competition_tune, user=request.user)
                 vote.delete()
+                action.send(request.user, verb='retracted their vote for a tune', target=competition)
             except CompetitionTuneVote.DoesNotExist:
                 CompetitionTuneVote.objects.create(votable=competition_tune, user=request.user)
+                action.send(request.user, verb='voted for a tune', target=competition)
             return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
     
     if request.method == 'POST' and 'submit-recording-vote' in request.POST:
@@ -571,8 +580,10 @@ def competition_page(request, competition_id):
             try:
                 vote = CompetitionRecordingVote.objects.get(votable=competition_recording, user=request.user)
                 vote.delete()
+                action.send(request.user, verb='retracted their vote for a recording', target=competition)
             except CompetitionRecordingVote.DoesNotExist:
                 CompetitionRecordingVote.objects.create(votable=competition_recording, user=request.user)
+                action.send(request.user, verb='voted for a recording', target=competition)
             return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
     
     if request.method == 'POST' and 'submit-comment' in request.POST:
@@ -584,6 +595,7 @@ def competition_page(request, competition_id):
                         author=request.user,
                         )
             comment.save()
+            action.send(request.user, verb='commented', action_object=comment, target=competition)
             return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
     else:
         comment_form = CommentForm()
@@ -606,6 +618,7 @@ def submit_page(request):
             tune_attribution = TuneAttribution(tune=tune) # tune now has pk
             tune_attribution_form = TuneAttributionForm(request.POST, instance=tune_attribution) 
             tune_attribution_form.save()
+            action.send(request.user, verb='submitted a tune', action_object=tune)
             return redirect(reverse('tune', kwargs={"tune_id": tune.id}))
     else:
         tune_form = TuneForm()
@@ -621,6 +634,7 @@ def submit_page(request):
                     video = recording_form.cleaned_data['url'],
                     author=request.user,
                     )
+            action.send(request.user, verb='submitted a recording', action_object=recording)
             return redirect(reverse('recording', kwargs={"recording_id": recording.id}))
     else:
         recording_form = RecordingForm()
@@ -634,6 +648,7 @@ def submit_page(request):
                     date=event_form.cleaned_data['date'], 
                     author=request.user,
                     )
+            action.send(request.user, verb='submitted an event', action_object=event)
             return redirect(reverse('event', kwargs={"event_id": event.id}))
     else:
         event_form = EventForm()
