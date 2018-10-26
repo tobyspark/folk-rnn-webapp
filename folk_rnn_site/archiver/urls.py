@@ -49,5 +49,6 @@ urlpatterns = [
      name='django_registration_register',
      ),
     url(r'^', include('django_registration.backends.activation.urls')),
+    url('^activity/', include('actstream.urls')),
     url(r'^admin/', admin.site.urls),
 ]
