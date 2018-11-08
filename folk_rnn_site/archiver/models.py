@@ -74,6 +74,11 @@ class User(AbstractUser):
     
     def get_absolute_url(self):
         return reverse('user', host='archiver', kwargs={'user_id': self.id})
+    
+    @property
+    def tunebook(self):
+        tunebook, created = Collection.objects.get_or_create(user=self)
+        return tunebook
 
 class Tune(ABCModel):
     """
@@ -174,7 +179,7 @@ def tune_queryset_annotate_counts(self):
         Count('comment', distinct=True), 
         recording__count=Count('tunerecording', distinct=True), 
         event__count=Count('tuneevent', distinct=True),
-        tunebook__count=Count('tunebookentry', distinct=True),
+        collection__count=Count('collectionentry', distinct=True),
     )
 setattr(QuerySet, 'annotate_counts', tune_queryset_annotate_counts)
 
@@ -188,14 +193,14 @@ def annotate_counts(tunes):
         result.comment__count = result.comment_set.count() 
         result.recording__count = result.tunerecording_set.count() 
         result.event__count = result.tuneevent_set.count()
-        result.tunebook__count = result.tunebookentry_set.count()
+        result.collection__count = result.collectionentry_set.count()
 
 def tune_queryset_annotate_saliency(self):
     """
     Annotate salience to Tune QuerySets that have already had salient counts annotated
     """
     return self.annotate(
-        saliency = F('tunebook__count')*3 + F('setting__count')*3 + F('recording__count')*2 + F('event__count')*2 + F('comment__count')
+        saliency = F('collection__count')*3 + F('setting__count')*3 + F('recording__count')*2 + F('event__count')*2 + F('comment__count')
     )
 setattr(QuerySet, 'annotate_saliency', tune_queryset_annotate_saliency)
 
@@ -371,13 +376,27 @@ class TuneEvent(models.Model):
     tune = models.ForeignKey(Tune)
     event = models.ForeignKey(Event)
 
-class TunebookEntry(models.Model):
+class Collection(models.Model):
     """
-    Assign a tune or setting to a user, creating a tunebook.
+    A collection, a tunebook when user property is filled
+    """
+    def __str__(self):
+        return f'Tunebook – {self.user}' if self.user else f'Collection (mf:{self.id})'
+    
+    def get_absolute_url(self):
+        if self.user is not None:
+            return reverse('tunebook', host='archiver', kwargs={'user_id': self.user.id})
+        return None
+    
+    user = models.ForeignKey(User, null=True)
+
+class CollectionEntry(models.Model):
+    """
+    Assign a tune or setting to a collection.
     """
     def __str__(self):
         tune_str = f'{self.tune}' if self.tune else f'{self.setting}'
-        return f'Tunebook Entry: {tune_str} by {self.user.get_full_name()}'
+        return f'{tune_str} in {self.collection}'
     
     @property
     def abc(self):
@@ -405,7 +424,7 @@ class TunebookEntry(models.Model):
     
     tune = models.ForeignKey(Tune, null=True)
     setting = models.ForeignKey(Setting, null=True)
-    user = models.ForeignKey(User)
+    collection = models.ForeignKey(Collection)
     submitted = models.DateTimeField(auto_now_add=True)
 
 class Competition(models.Model):
