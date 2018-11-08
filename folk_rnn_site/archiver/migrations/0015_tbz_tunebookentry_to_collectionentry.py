@@ -6,7 +6,22 @@ from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
 
-
+def forwards_func(apps, schema_editor):
+    TunebookEntry = apps.get_model("archiver", "TunebookEntry")
+    Collection = apps.get_model("archiver", "Collection")
+    CollectionEntry = apps.get_model("archiver", "CollectionEntry")
+    entries = TunebookEntry.objects.all()
+    for tunebookentry in entries:
+        tunebook, created = Collection.objects.get_or_create(user=tunebookentry.user)
+        collectionentry = CollectionEntry(
+            id = tunebookentry.id,
+            tune = tunebookentry.tune,
+            setting = tunebookentry.setting,
+            collection = tunebook,
+            submitted = tunebookentry.submitted,
+            )
+        collectionentry.save()
+    
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -31,6 +46,7 @@ class Migration(migrations.Migration):
                 ('tune', models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='archiver.Tune')),
             ],
         ),
+        migrations.RunPython(forwards_func),
         migrations.RemoveField(
             model_name='tunebookentry',
             name='setting',
