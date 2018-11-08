@@ -8,6 +8,8 @@ from archiver.models import (
                         TuneEvent, 
                         Setting, 
                         TuneComment, 
+                        Collection,
+                        CollectionEntry,
                         Recording, 
                         Event,
                         Competition,
@@ -36,6 +38,9 @@ class TuneRecordingInline(admin.StackedInline):
 class TuneEventInline(admin.StackedInline):
     model = TuneEvent
 
+class CollectionEntryInline(admin.StackedInline):
+    model = CollectionEntry
+
 class CompetitionTuneInline(admin.StackedInline):
     model = CompetitionTune
     
@@ -56,6 +61,10 @@ class TuneAdmin(admin.ModelAdmin):
     inlines = [ TuneAttributionInline, SettingInline, TuneCommentInline, TuneEventInline, TuneRecordingInline ]
 
 admin.site.register(TuneComment)
+
+@admin.register(Collection)
+class CollectionAdmin(admin.ModelAdmin):
+    inlines = [ CollectionEntryInline ]
 
 @admin.register(Recording)
 class RecordingAdmin(admin.ModelAdmin):
