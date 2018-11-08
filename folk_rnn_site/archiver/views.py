@@ -31,7 +31,8 @@ from archiver.models import (
                             TuneComment, 
                             Recording, 
                             Event, 
-                            TunebookEntry, 
+                            Collection,
+                            CollectionEntry, 
                             TuneRecording, 
                             Competition,
                             CompetitionTune,
@@ -68,7 +69,7 @@ def activity(filter_dict={}):
     return (tunes_settings, comments)
 
 def home_page(request):
-    q = Q(setting__count__gt=0) | Q(comment__count__gt=0) | Q(recording__count__gt=0) | Q(event__count__gt=0) | Q(tunebook__count__gt=0)
+    q = Q(setting__count__gt=0) | Q(comment__count__gt=0) | Q(recording__count__gt=0) | Q(event__count__gt=0) | Q(collection__count__gt=0)
     interesting_tunes = Tune.objects.all().annotate_counts().filter(q).annotate_saliency()
     
     if len(interesting_tunes) > MAX_RECENT_ITEMS:
@@ -220,17 +221,17 @@ def tune_page(request, tune_id=None):
                 form = TunebookForm(request.POST)
                 if form.is_valid():
                     if form.cleaned_data['add']:
-                        TunebookEntry.objects.get_or_create(
+                        CollectionEntry.objects.get_or_create(
                             tune=tune,
-                            user=request.user,
+                            collection=request.user.tunebook,
                             )
-                        action.send(request.user, verb='added to their tunebook', target=tune)
+                        action.send(request.user, verb='added', action_object=tune, target=request.user.tunebook)
                     else:
-                        TunebookEntry.objects.filter(
+                        CollectionEntry.objects.filter(
                             tune=tune,
-                            user=request.user,
+                            collection=request.user.tunebook,
                             ).delete()
-                        action.send(request.user, verb='removed from their tunebook', target=tune)
+                        action.send(request.user, verb='removed', action_object=tune, target=request.user.tunebook)
             else:
                 # submit-tunebook-x in request.POST where x>0
                 setting_x = None
@@ -248,35 +249,47 @@ def tune_page(request, tune_id=None):
                     form = TunebookForm(request.POST)
                     if form.is_valid():
                         if form.cleaned_data['add']:
-                            TunebookEntry.objects.get_or_create(
+                            CollectionEntry.objects.get_or_create(
                                 setting=setting,
-                                user=request.user,
+                                collection=request.user.tunebook,
                                 )
-                            action.send(request.user, verb='added to their tunebook', action_object=setting, target=tune)
+                            action.send(request.user, verb='added', action_object=setting, target=request.user.tunebook)
                         else:
-                            TunebookEntry.objects.filter(
+                            CollectionEntry.objects.filter(
                                 setting=setting,
-                                user=request.user,
+                                collection=request.user.tunebook,
                                 ).delete()
-                            action.send(request.user, verb='removed from their tunebook', action_object=setting, target=tune)
+                            action.send(request.user, verb='removed', action_object=setting, target=request.user.tunebook)
 
-    tune.tunebook_count = TunebookEntry.objects.filter(tune=tune).count()
+    tune.tunebook_count = CollectionEntry.objects.filter(tune=tune).count() #FIXME: collection.user is not null, do when there are non-tunebook collections
     if request.user.is_authenticated:
-        tune.other_tunebook_count = TunebookEntry.objects.filter(tune=tune).exclude(user=request.user).count()
-        tune.tunebook_form = TunebookForm({'add': TunebookEntry.objects.filter(
-                                                    user=request.user, 
-                                                    tune=tune,
-                                                    ).exists()})
+        tune.other_tunebook_count = (
+                            CollectionEntry.objects
+                            .filter(tune=tune)
+                            .exclude(collection=request.user.tunebook)
+                            .count()
+                            )
+        tune.tunebook_form = TunebookForm({'add': (
+                                            CollectionEntry.objects
+                                            .filter(tune=tune, collection=request.user.tunebook)
+                                            .exists()
+                                            )})
     
     settings = tune.setting_set.all()
     for setting in settings:
-        setting.tunebook_count = TunebookEntry.objects.filter(setting=setting).count()
+        setting.tunebook_count = CollectionEntry.objects.filter(setting=setting).count()
         if request.user.is_authenticated:
-            setting.other_tunebook_count = TunebookEntry.objects.filter(setting=setting).exclude(user=request.user).count()
-            setting.tunebook_form = TunebookForm({'add': TunebookEntry.objects.filter(
-                                                        user=request.user, 
-                                                        setting=setting,
-                                                        ).exists()})
+            setting.other_tunebook_count = (
+                                            CollectionEntry.objects
+                                            .filter(setting=setting)
+                                            .exclude(collection=request.user.tunebook)
+                                            .count()
+                                            )
+            setting.tunebook_form = TunebookForm({'add': (
+                                            CollectionEntry.objects
+                                            .filter(setting=setting, collection=request.user.tunebook)
+                                            .exists()
+                                            )})
         
     return render(request, 'archiver/tune.html', {
         'tune': tune,
@@ -422,15 +435,14 @@ def user_page(request, user_id=None):
         user = User.objects.get(id=user_id_int)
     except (TypeError, User.DoesNotExist):
         return redirect('/')
-    
-    tunebook_count = TunebookEntry.objects.filter(user=user).count()
-    tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')[:MAX_RECENT_ITEMS]
+    tunebook_count = CollectionEntry.objects.filter(collection=user.tunebook).count()
+    tunebook_entries = CollectionEntry.objects.filter(collection=user.tunebook).order_by('-id')[:MAX_RECENT_ITEMS]
     
     tunes_settings, comments = activity({'author': user})
     return render(request, 'archiver/profile.html', {
                             'profile': user,
                             'tunebook_count': tunebook_count,
-                            'tunebook': tunebook,
+                            'tunebook': tunebook_entries,
                             'tunes_settings': tunes_settings,
                             'comments': comments,
                             })
@@ -442,13 +454,13 @@ def tunebook_page(request, user_id):
     except (TypeError, User.DoesNotExist):
         return redirect('/')
     
-    tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')
+    tunebook_entries = CollectionEntry.objects.filter(collection=user.tunebook).order_by('-id')
     
     page_number = request.GET.get('page')
     items_per_page = TUNE_PREVIEWS_PER_PAGE
     if page_number == 'all' and request.user.is_authenticated:
         items_per_page = 9999
-    paginator = Paginator(tunebook, items_per_page)
+    paginator = Paginator(tunebook_entries, items_per_page)
     try:
         tunebook_page = paginator.page(page_number)
     except PageNotAnInteger:
@@ -467,15 +479,15 @@ def tunebook_download(request, user_id):
         user = User.objects.get(id=user_id_int)
     except (TypeError, User.DoesNotExist):
         return redirect('/')
-
-    tunebook_qs = TunebookEntry.objects.filter(user=user).order_by('id')
-    tunebook = [ABCModel(abc=x.abc_with_attribution) for x in tunebook_qs]
-    for idx, tune in enumerate(tunebook):
+    
+    tunebook_qs = CollectionEntry.objects.filter(collection=user.tunebook).order_by('id')
+    tunebook_entries = [ABCModel(abc=x.abc_with_attribution) for x in tunebook_qs]
+    for idx, tune in enumerate(tunebook_entries):
         tune.header_x = idx
     
     tunebook_abc = f'% Tunebook – {user.get_full_name()}\n'
     tunebook_abc += f"% https://themachinefolksession.org{request.path}\n\n\n"
-    tunebook_abc += '\n\n'.join([x.abc for x in tunebook])
+    tunebook_abc += '\n\n'.join([x.abc for x in tunebook_entries])
     
     response = HttpResponse(tunebook_abc, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tunebook_{user_id}'
