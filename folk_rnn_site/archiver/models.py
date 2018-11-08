@@ -66,6 +66,9 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['first_name', 'last_name']
     
     objects = UserManager()
+    
+    def get_absolute_url(self):
+        return reverse('user', host='archiver', kwargs={'user_id': self.id})
 
 class Tune(ABCModel):
     """
@@ -93,12 +96,15 @@ class Tune(ABCModel):
     class Meta:
         ordering = ['id']
     
+    def get_absolute_url(self):
+        return reverse('tune', host='archiver', kwargs={'tune_id': self.id})
+    
     @property
     def abc_with_attribution(self):
         """"
         Return abc with attribution information fields
         """
-        url = reverse('tune', host='archiver', kwargs={'tune_id': self.id})
+        url = self.get_absolute_url()
         abc_model = ABCModel(abc=self.abc)
         abc_model.headers_n = ['{} {}'.format(x.text if x.text else '', x.url if x.url else '') for x in self.tuneattribution_set.all()]
         if self.rnn_tune:
@@ -233,12 +239,15 @@ class Setting(ABCModel):
     class Meta:
         ordering = ['id']
     
+    def get_absolute_url(self):
+        return reverse('setting', host='archiver', kwargs={'tune_id': self.tune.id, 'setting_id': self.header_x})
+    
     @property
     def abc_with_attribution(self):
         """
         Return abc with attribution information fields
         """
-        url = reverse('setting', host='archiver', kwargs={'tune_id': self.tune.id, 'setting_id': self.header_x})
+        url = self.get_absolute_url()
         abc_model = ABCModel(abc=self.abc)
         if self.tune.rnn_tune:
             model = self.tune.rnn_tune.rnn_model_name.replace('.pickle', '')
@@ -284,6 +293,10 @@ class TuneComment(Comment):
     """
     def __str__(self):
         return f'Comment: "{self.text[:30]}" by {self.author} on MachineFolk {self.tune.id})'
+    
+    def get_absolute_url(self):
+        tune_url = reverse('tune', host='archiver', kwargs={'tune_id': self.tune.id})
+        return f'{tune_url}#comments'
 
     tune = models.ForeignKey(Tune, related_name='comment_set', related_query_name='comment')
 
@@ -308,6 +321,9 @@ class Event(Documentation):
     def __str__(self):
         return f'Event: {self.title[:30]}'
     
+    def get_absolute_url(self):
+        return reverse('event', host='archiver', kwargs={'event_id': self.id})
+    
     image = models.ImageField(null=True, blank=True)
 
 class Recording(Documentation):
@@ -317,6 +333,9 @@ class Recording(Documentation):
     """
     def __str__(self):
         return f'Recording: {self.title[:30]}'
+    
+    def get_absolute_url(self):
+        return reverse('recording', host='archiver', kwargs={'recording_id': self.id})
     
     video = EmbedVideoField()
     event = models.ForeignKey(Event, null=True, blank=True)
