@@ -3,17 +3,17 @@
     {% for item in tunes_settings %}
     <li>
     {% if item.rnn_tune %}{# tune model from folk-rnn #}
-    <h3><a href="{% url 'tune' tune_id=item.id %}">{{item.title}}</a></h3>
+    <h3><a href="{{ item.get_absolute_url }}">{{item.title}}</a></h3>
     <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
     <p class="meta">Tune submitted from <a href="{{ item.rnn_tune.url }}">folkrnn.org</a> {{ item.submitted|naturalday }}</p>
     {% elif not item.tune %}{# tune model not from folk-rnn #}
-    <h3><a href="{% url 'tune' tune_id=item.id %}">{{item.title}}</a></h3>
+    <h3><a href="{{ item.get_absolute_url }}">{{item.title}}</a></h3>
     <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
     <p class="meta">Original tune submitted {{ item.submitted|naturalday }}</p>
     {% else %}{# setting model #}
-    <h3><a href="{% url 'tune' tune_id=item.tune.id %}">{{item.title}}</a></h3>
+    <h3><a href="{{ item.tune.get_absolute_url }}">{{item.title}}</a></h3>
     <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
-    <p class="meta">Setting of <a href="{% url 'tune' tune_id=item.tune.id %}">{{ item.tune.title }}</a> added by <a href="{% url 'user' user_id=item.author.id %}">{{ item.author.get_full_name }}</a> {{ item.submitted|naturalday }}.</p>
+    <p class="meta">Setting of <a href="{{ item.tune.get_absolute_url %}">{{ item.tune.title }}</a> added by <a href="{{ item.author.get_absolute_url }}">{{ item.author.get_full_name }}</a> {{ item.submitted|naturalday }}.</p>
     {% endif %}
     </li>
     {% empty %}

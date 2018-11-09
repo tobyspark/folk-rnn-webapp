@@ -3,7 +3,7 @@
 <ul>
     {% for tune in tunes %}
     <li>
-    <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title}}</a></h3>
+    <h3><a href="{{ tune.get_absolute_url }}">{{tune.title}}</a></h3>
     <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
     <p class="meta">
     {% if tune.rnn_tune %}

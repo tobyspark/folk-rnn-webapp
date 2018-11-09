@@ -1,5 +1,4 @@
 from django.shortcuts import redirect, render
-from django.urls import reverse
 from django.http import HttpResponse
 from django.core.files import File as dFile
 from django.utils.timezone import now
@@ -314,7 +313,7 @@ def setting_redirect(request, tune_id=None, setting_id=None):
     if setting_id not in [x.header_x for x in tune.setting_set.all()]:
         return redirect('/')
     
-    return redirect(reverse('tune', kwargs={"tune_id": tune.id}) + f'#setting-{ setting_id }')
+    return redirect(tune.get_absolute_url() + f'#setting-{ setting_id }')
 
 def tune_download(request, tune_id=None):
     try:
@@ -567,7 +566,7 @@ def competition_page(request, competition_id):
                     recording=recording,
                     )
             action.send(request.user, verb='submitted', action_object=recording, target=competition)
-            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+            return redirect(competition.get_absolute_url())
     else:
         recording_form = RecordingForm()
     
@@ -583,7 +582,7 @@ def competition_page(request, competition_id):
             except CompetitionTuneVote.DoesNotExist:
                 vote = CompetitionTuneVote.objects.create(votable=competition_tune, user=request.user)
                 action.send(request.user, verb='cast', action_object=vote)
-            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+            return redirect(competition.get_absolute_url())
     
     if request.method == 'POST' and 'submit-recording-vote' in request.POST:
         recording_vote_form = VoteForm(request.POST)
@@ -597,7 +596,7 @@ def competition_page(request, competition_id):
             except CompetitionRecordingVote.DoesNotExist:
                 vote = CompetitionRecordingVote.objects.create(votable=competition_recording, user=request.user)
                 action.send(request.user, verb='cast', action_object=vote)
-            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+            return redirect(competition.get_absolute_url())
     
     if request.method == 'POST' and 'submit-comment' in request.POST:
         comment_form = CommentForm(request.POST)
@@ -609,7 +608,7 @@ def competition_page(request, competition_id):
                         )
             comment.save()
             action.send(request.user, verb='made', action_object=comment, target=competition)
-            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+            return redirect(competition.get_absolute_url())
     else:
         comment_form = CommentForm()
     
@@ -632,7 +631,7 @@ def submit_page(request):
             tune_attribution_form = TuneAttributionForm(request.POST, instance=tune_attribution) 
             tune_attribution_form.save()
             action.send(request.user, verb='submitted', action_object=tune)
-            return redirect(reverse('tune', kwargs={"tune_id": tune.id}))
+            return redirect(tune.get_absolute_url())
     else:
         tune_form = TuneForm()
         tune_attribution_form = TuneAttributionForm()
@@ -648,7 +647,7 @@ def submit_page(request):
                     author=request.user,
                     )
             action.send(request.user, verb='submitted', action_object=recording)
-            return redirect(reverse('recording', kwargs={"recording_id": recording.id}))
+            return redirect(recording.get_absolute_url())
     else:
         recording_form = RecordingForm()
     
@@ -662,7 +661,7 @@ def submit_page(request):
                     author=request.user,
                     )
             action.send(request.user, verb='submitted', action_object=event)
-            return redirect(reverse('event', kwargs={"event_id": event.id}))
+            return redirect(event.get_absolute_url())
     else:
         event_form = EventForm()
     
@@ -684,7 +683,7 @@ def help_page(request):
             message = contact_form.cleaned_data['text']
             if request.user.is_authenticated():
                 from_email = request.user.email
-                from_user_url = reverse('user', kwargs={'user_id': request.user.id})
+                from_user_url = request.user.get_absolute_url()
                 message += f"\n\n--\nAuthenticated user: { request.user.get_full_name() }\n{ from_email }\n{ request.META['HTTP_ORIGIN'] }{ from_user_url }"
             elif 'email' in contact_form.cleaned_data:
                 from_email = contact_form.cleaned_data['email']
