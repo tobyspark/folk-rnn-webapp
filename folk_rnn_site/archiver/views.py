@@ -435,15 +435,18 @@ def user_page(request, user_id=None):
     except (TypeError, User.DoesNotExist):
         return redirect('/')
     tunebook_count = CollectionEntry.objects.filter(collection=user.tunebook).count()
-    tunebook_entries = CollectionEntry.objects.filter(collection=user.tunebook).order_by('-id')[:MAX_RECENT_ITEMS]
+    tunebook_entries = CollectionEntry.objects.filter(collection=user.tunebook).order_by('?')[:1]
     
-    tunes_settings, comments = activity({'author': user})
+    for item in tunebook_entries:
+        if item.tune:
+            item.tunebook_count = CollectionEntry.objects.filter(tune=item.tune).count()
+        else:
+            item.tunebook_count = CollectionEntry.objects.filter(setting=item.setting).count()
+    
     return render(request, 'archiver/profile.html', {
                             'profile': user,
                             'tunebook_count': tunebook_count,
-                            'tunebook': tunebook_entries,
-                            'tunes_settings': tunes_settings,
-                            'comments': comments,
+                            'tunebook_entries': tunebook_entries,
                             })
 
 def tunebook_page(request, user_id):
