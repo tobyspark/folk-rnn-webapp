@@ -6,7 +6,7 @@ from django.dispatch import receiver
 from django.utils.timezone import now
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.exceptions import ValidationError
-from django_hosts.resolvers import reverse
+from django.urls import reverse
 from embed_video.fields import EmbedVideoField
 from random import shuffle
 from datetime import timedelta
@@ -73,7 +73,7 @@ class User(AbstractUser):
         return f'{name} ({self.id})'
     
     def get_absolute_url(self):
-        return reverse('user', host='archiver', kwargs={'user_id': self.id})
+        return reverse('user', kwargs={'user_id': self.id})
     
     @property
     def tunebook(self):
@@ -107,7 +107,7 @@ class Tune(ABCModel):
         ordering = ['id']
     
     def get_absolute_url(self):
-        return reverse('tune', host='archiver', kwargs={'tune_id': self.id})
+        return reverse('tune', kwargs={'tune_id': self.id})
     
     @property
     def abc_with_attribution(self):
@@ -250,7 +250,7 @@ class Setting(ABCModel):
         ordering = ['id']
     
     def get_absolute_url(self):
-        return reverse('setting', host='archiver', kwargs={'tune_id': self.tune.id, 'setting_id': self.header_x})
+        return reverse('setting', kwargs={'tune_id': self.tune.id, 'setting_id': self.header_x})
     
     @property
     def abc_with_attribution(self):
@@ -305,7 +305,7 @@ class TuneComment(Comment):
         return f'"{shorten(self.text, width=30)}" by {self.author} on tune {self.tune})'
     
     def get_absolute_url(self):
-        tune_url = reverse('tune', host='archiver', kwargs={'tune_id': self.tune.id})
+        tune_url = reverse('tune', kwargs={'tune_id': self.tune.id})
         return f'{tune_url}#comments'
 
     tune = models.ForeignKey(Tune, related_name='comment_set', related_query_name='comment')
@@ -332,7 +332,7 @@ class Event(Documentation):
         return self.title
     
     def get_absolute_url(self):
-        return reverse('event', host='archiver', kwargs={'event_id': self.id})
+        return reverse('event', kwargs={'event_id': self.id})
     
     image = models.ImageField(null=True, blank=True)
 
@@ -345,7 +345,7 @@ class Recording(Documentation):
         return self.title
     
     def get_absolute_url(self):
-        return reverse('recording', host='archiver', kwargs={'recording_id': self.id})
+        return reverse('recording', kwargs={'recording_id': self.id})
     
     video = EmbedVideoField()
     event = models.ForeignKey(Event, null=True, blank=True)
@@ -385,7 +385,7 @@ class Collection(models.Model):
     
     def get_absolute_url(self):
         if self.user is not None:
-            return reverse('tunebook', host='archiver', kwargs={'user_id': self.user.id})
+            return reverse('tunebook', kwargs={'user_id': self.user.id})
         return None
     
     user = models.ForeignKey(User, null=True)
@@ -458,7 +458,7 @@ class Competition(models.Model):
     
     
     def get_absolute_url(self):
-        return reverse('competition', host='archiver', kwargs={'competition_id': self.id})
+        return reverse('competition', kwargs={'competition_id': self.id})
     
     @property
     def tune_vote_close(self):

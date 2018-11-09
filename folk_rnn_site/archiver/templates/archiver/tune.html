@@ -21,7 +21,7 @@
         <p class="meta">Events:</p>{# TODO: pluralise #}
         <ul class="meta">
         {% for tuneevent in tune.tuneevent_set.all %}
-            <li><a href="{% url 'event' event_id=tuneevent.event.id %}">{{ tuneevent.event.title }}</a></li>
+            <li><a href="{{ tuneevent.event.get_absolute_url }}">{{ tuneevent.event.title }}</a></li>
         {% empty %}
             <li>No events archived here</li>
         {% endfor %}
@@ -29,12 +29,12 @@
         <p class="meta">Recordings:</p>{# TODO: pluralise #}
         <ul class="meta">
         {% for tunerecording in tune.tunerecording_set.all %}
-            <li><a href="{% url 'recording' recording_id=tunerecording.recording.id %}">{{ tunerecording.recording.title }}</a></li>
+            <li><a href="{{ tunerecording.recording.get_absolute_url }}">{{ tunerecording.recording.title }}</a></li>
         {% empty %}
             <li>No events archived here</li>
         {% endfor %}
         </ul>
-        <p class="meta">Added by <a href="{% url 'user' user_id=tune.author.id %}">{{ tune.author.get_full_name }}</a>,<br>
+        <p class="meta">Added by <a href="{{ tune.author.get_absolute_url }}">{{ tune.author.get_full_name }}</a>,<br>
         {{ tune.submitted | naturalday | capfirst }}.</p>
         <p class="meta">View: <input id="abc-tune-checkbox" type="checkbox"><label for="abc-tune-checkbox">ABC</label> | <input id="staff-tune-checkbox" type="checkbox" checked><label for="staff-tune-checkbox">Staff</label></p>
         {% if not user.is_authenticated %}
@@ -98,8 +98,8 @@
     <div id="setting-{{ forloop.counter }}" class="section">
         <div class="section-meta">
             <h2>{{ setting.title }}</h2>
-            <p class="meta"><a href="{% url 'setting' tune_id=tune.id setting_id=setting.header_x %}">Setting {{ setting.header_x|apnumber }}</a></br>
-            Added by <a href="{% url 'user' user_id=setting.author.id %}">{{ setting.author.get_full_name }},</a><br>
+            <p class="meta"><a href="{{ setting.get_absolute_url }}">Setting {{ setting.header_x|apnumber }}</a></br>
+            Added by <a href="{{ setting.author.get_absolute_url }}">{{ setting.author.get_full_name }},</a><br>
             {{ setting.submitted | naturalday | capfirst }}</p>
             <p class="meta">View: <input id="abc-setting-{{ forloop.counter }}-checkbox" type="checkbox"><label for="abc-setting-{{ forloop.counter }}-checkbox">ABC</label> | <input id="staff-setting-{{ forloop.counter }}-checkbox" type="checkbox" checked><label for="staff-setting-{{ forloop.counter }}-checkbox">Staff</label></p>
             {% if not user.is_authenticated %}
@@ -174,7 +174,7 @@
             {% for comment in comments %}
             <li>
             <p>{{ comment.text|urlize }}</p>
-            <p class="meta"><a href="{% url 'user' user_id=comment.author.id %}">{{ comment.author.get_full_name }}</a>, {{ comment.submitted|naturalday }}</p>
+            <p class="meta"><a href="{{ comment.author.get_absolute_url }}">{{ comment.author.get_full_name }}</a>, {{ comment.submitted|naturalday }}</p>
             </li>
             {% endfor %}
             <li>

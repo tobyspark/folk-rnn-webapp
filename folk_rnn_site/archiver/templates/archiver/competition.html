@@ -17,7 +17,7 @@
         {% if competition.recording_voting_state %}
         <p class="meta">Performance selection: {% if competition.recording_voting_state == 'BEFORE' %}pending.{% elif competition.recording_voting_state == 'IN' %}open!{% else %}closed.{% endif %}<br>{{ competition.recording_vote_open|naturalday }}–{{ competition.recording_vote_close|naturalday }}</p>
         {% endif %}
-        <p class="meta">Added by <a href="{% url 'user' user_id=competition.author.id %}">{{ competition.author.get_full_name }}</a></p>
+        <p class="meta">Added by <a href="{{ competition.author.get_absolute_url }}">{{ competition.author.get_full_name }}</a></p>
     </div>
     <div class="section-body">
         {{ competition.text|markdown }}
@@ -27,7 +27,7 @@
             {% with tunes=competition.tune_set %}
                 {% for tune in tunes %}
                 <li>
-                    <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title}}</a></h3>
+                    <h3><a href="{{ tune.get_absolute_url }}">{{tune.title}}</a></h3>
                     <div id="staff-{{ id_prefix }}{{ forloop.counter }}"></div>
                     <div id="midi-{{ id_prefix }}{{ forloop.counter }}"></div>
                 </li>
@@ -55,8 +55,8 @@
             <p>Voting is open to select the tune. The idea is once selected there'll then be time for people to learn this tune and share performances of it.</p>
         {% else %}
             {% with tune_won=competition.tune_won %}
-            <p>The tune chosen by the community to learn is <a href="{% url 'tune' tune_id=tune_won.id %}">{{ tune_won.title }}</a>. Click through that link to the tune page for full details, downloads etc.; staff notation shown below.</p>
-            <p>The other tunes were {% for tune in competition.tune_set %}{% if tune != tune_won %}<a href="{% url 'tune' tune_id=tune.id %}">{{ tune.title }}</a>{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}.</p>
+            <p>The tune chosen by the community to learn is <a href="{{ tune_won.get_absolute_url }}">{{ tune_won.title }}</a>. Click through that link to the tune page for full details, downloads etc.; staff notation shown below.</p>
+            <p>The other tunes were {% for tune in competition.tune_set %}{% if tune != tune_won %}<a href="{{ tune.get_absolute_url }}">{{ tune.title }}</a>{% if not forloop.last %}, {% endif %}{% endif %}{% endfor %}.</p>
             <textarea class="abc" id="abc-tune-won" readonly hidden>{{ tune_won.abc }}</textarea>
             <div id="staff-tune-won"></div>
             <div id="midi-tune-won"></div>
@@ -106,7 +106,7 @@
 {% for tune in tunes %}
 <div class="section">
     <div class="section-meta">
-        <h3><a href="{% url 'tune' tune_id=tune.id %}">{{tune.title}}</a></h3>
+        <h3><a href="{{ tune.get_absolute_url }}">{{tune.title}}</a></h3>
         {% if user_tune_vote == tune%}
         <form method="POST" class="pure-form">
             {% csrf_token %}
@@ -180,7 +180,7 @@ window.addEventListener("load", function() {
 {% for recording in competition.recording_set %}
 <div class="section">
     <div class="section-meta">
-        <h3><a href="{% url 'recording' recording_id=recording.id %}">{{ recording.title }}</a></h3>
+        <h3><a href="{{ recording.get_absolute_url }}">{{ recording.title }}</a></h3>
         <div class="meta">{{ recording.body|markdown }}</div>
         {% if user_recording_vote == recording%}
         <form method="POST" class="pure-form">
@@ -215,7 +215,7 @@ window.addEventListener("load", function() {
         <h3>Winner!</h3>
         {% for recording in recordings %}
         {% if recording == recording_won %}
-        <p class="meta"><a href="{% url 'recording' recording_id=recording.id %}">{{ recording.title }}</a><br>by&nbsp;<a href="{% url 'user' user_id=recording.author.id %}">{{ recording.author.get_full_name }}</a>.{% if recording.votes %}<br>{{ recording.votes|apnumber|capfirst }} vote{{ recording.votes|pluralize }}.{% endif %}</p>
+        <p class="meta"><a href="{{ recording.get_absolute_url }}">{{ recording.title }}</a><br>by&nbsp;<a href="{% url 'user' user_id=recording.author.id %}">{{ recording.author.get_full_name }}</a>.{% if recording.votes %}<br>{{ recording.votes|apnumber|capfirst }} vote{{ recording.votes|pluralize }}.{% endif %}</p>
         {% endif %}
         {% endfor %}
     </div>
@@ -231,7 +231,7 @@ window.addEventListener("load", function() {
     <h3>Runners-up</h3>
         {% for recording in recordings %}
         {% if not recording == recording_won %}
-        <p class="meta"><a href="{% url 'recording' recording_id=recording.id %}">{{ recording.title }}</a><br>by&nbsp;<a href="{% url 'user' user_id=recording.author.id %}">{{ recording.author.get_full_name }}</a>.{% if recording.votes %}<br>{{ recording.votes|apnumber|capfirst }} vote{{ recording.votes|pluralize }}.{% endif %}</p>
+        <p class="meta"><a href="{{ recording.get_absolute_url }}">{{ recording.title }}</a><br>by&nbsp;<a href="{% url 'user' user_id=recording.author.id %}">{{ recording.author.get_full_name }}</a>.{% if recording.votes %}<br>{{ recording.votes|apnumber|capfirst }} vote{{ recording.votes|pluralize }}.{% endif %}</p>
         {% endif %}
         {% endfor %}
         </p>
@@ -259,7 +259,7 @@ window.addEventListener("load", function() {
             {% for comment in competition.comment_set.all %}
             <li>
                 <p>{{ comment.text|urlize }}</p>
-                <p class="meta">Posted by <a href="{% url 'user' user_id=comment.author.id %}">{{ comment.author.get_full_name }}</a> {{ comment.submitted|naturalday }}.</li>
+                <p class="meta">Posted by <a href="{{ comment.author.get_absolute_url }}">{{ comment.author.get_full_name }}</a> {{ comment.submitted|naturalday }}.</li>
             </li>
             {% empty %}
             <li>
