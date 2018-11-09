@@ -456,6 +456,10 @@ class Competition(models.Model):
         if self.recording_vote_open > self.recording_vote_close:
             raise ValidationError({'recording_vote_close': 'Voting needs to finish on or after the day it starts'})
     
+    
+    def get_absolute_url(self):
+        return reverse('competition', host='archiver', kwargs={'competition_id': self.id})
+    
     @property
     def tune_vote_close(self):
         return self.recording_submit_open - timedelta(days=1)
@@ -598,6 +602,9 @@ class CompetitionComment(Comment):
         return f'"{shorten(self.text, width=30)}" by {self.author} on {self.competition})'
 
     competition = models.ForeignKey(Competition, related_name='comment_set', related_query_name='comment')
+    
+    def get_absolute_url(self):
+        return f'{self.competition.get_absolute_url()}#comments'
 
 class VoteModel(models.Model):
     """

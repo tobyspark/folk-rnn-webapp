@@ -1,12 +1,23 @@
 {% load humanize %}
+{% load embed_video_tags %}
 <ul>
     {% for action in actions %}
     <li>
     {% if action.action_object_content_type.name == 'tune' or action.action_object_content_type.name == 'setting' %}
         <h3><a href="{{ action.action_object.get_absolute_url }}">{{ action.action_object.title }}</a></h3>
         <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
-    {% elif action.action_object_content_type.name == 'tunecomment' or action.action_object_content_type.name == 'competitioncomment' %}
+    {% elif 'comment' in action.action_object_content_type.name %}
         <p><a href="{{ action.action_object.get_absolute_url }}">{{ action.action_object.text }}</a></p>
+    {% elif action.action_object_content_type.name == 'recording' %}
+        <p>{% video action.action_object.video is_secure=True as my_video %}
+          {% video my_video%}
+        {% endvideo %}</p>
+    {% elif action.action_object_content_type.name == 'event' %}
+        <h3><a href="{{ action.action_object.get_absolute_url }}">{{ action.action_object.title }}</a></h3>
+    {% elif action.action_object_content_type.name == 'competition tune vote' or action.action_object_content_type.name == 'competition recording vote'%}
+        <h3><a href="{{ action.action_object.votable.competition.get_absolute_url }}">{{ action.action_object.votable.competition.title }}</a></h3>
+    {% elif action.action_object_content_type.name == 'competition' %}
+        <h3><a href="{{ action.action_object.get_absolute_url }}">{{ action.action_object.title }}</a></h3>
     {% else %}
         <p>TODO: implement preview of action: {{ action }}</p>
     {% endif %}
