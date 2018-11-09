@@ -10,12 +10,59 @@
 <h1>{{ profile.get_full_name }}</h1>
 <div id="tunebook" class="section">
     <div class="section-meta">
-        <h2>Recent entries</h2>
-        {% if tunebook_count %}<p class="meta"><a href="{% url 'tunebook' user_id=profile.id %}">Go to Tunebook</a></p>{% endif %}
+        <h2>Tunebook</h2>
     </div>
     <div class="section-body">
-        {% include "archiver/_tunebookentries.html" %}
+        {% if tunebook_count %}
+            <p>There are <a href="{{ profile.tunebook.get_absolute_url }}">{{ tunebook_count }} entries in this member’s tunebook</a>. Here's one –</p>
+        {% else %}
+            {% if user == profile %}
+                <p>This site allows you to collect tunes and add them to a virtual tunebook. It provides an easy way to recall the tunes you like. You can download the entire tunebook as a single ABC file.</p>
+                <p>To add a tune or setting, go to the tune’s page and you’ll find ‘In your tunebook’ in the sidebar.</p>
+            {% else %}
+                <p>{{ profile.get_full_name }} has not added any tunes to their tunebook. This site allows you to collect tunes and add them to a virtual tunebook. It provides an easy way to recall the tunes you like. You can download the entire tunebook as a single ABC file.</p>
+            {% endif %}
+        {% endif %}
     </div>
+</div>
+<div class="section">
+    {% for item in tunebook_entries %}
+    {% with item.tune|default:item.setting as tunesetting %}
+    <div class="section-meta">
+        <h3><a href="{{ tunesetting.get_absolute_url }}">{{tunesetting.title}}</a></h3>
+        {% if item.tune.rnn_tune %}
+            <p class="meta">Machine generated.<br>ABC auto-formatted.<br>{% if item.tune.check_valid_abc %}Valid{% else %}Invalid{% endif %} ABC.</p>
+            <p class="meta">Archived from <a href="{{ item.tune.rnn_tune.url }}{# FIXME: hardcoded domain #}" class="parameter">folkrnn.org</a>, where it was generated using the <span id="rnn_model_name" class="parameter">{{ item.tune.rnn_tune.rnn_model_name | cut:'.pickle' }}</span> model.</p>
+            <p class="meta">The RNN seed was <span id="seed" class="parameter">{{ item.tune.rnn_tune.seed }}</span>, temperature was <span id="temp" class="parameter">{{ item.tune.rnn_tune.temp }}</span> and prime tokens were <span id="prime_tokens" class="parameter">{{ item.tune.rnn_tune.prime_tokens }}</span>.</p>
+        {% endif %}
+        {% if item.setting %}
+            <p class="meta">Setting {{ tunesetting.header_x|apnumber }} of <a href="{{ tunesetting.tune.get_absolute_url }}">{{ tunesetting.tune.title }}</a></br>
+        {% endif %}
+        <p class="meta">Originally submitted by <a href="{{ tunesetting.author.get_absolute_url }}">{{ tunesetting.author.get_full_name }},</a><br>
+        {{ tunesetting.submitted | naturalday | capfirst }}</p>
+        {% if item.tunebook_count > 1 %}
+            <p class="meta">Added to {{ item.tunebook_count|apnumber }} tunebooks</p>
+        {% endif %}
+    </div>
+    <div class="section-body">
+        <div id="notation-tunebook-{{ forloop.counter }}"></div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+    <script type="text/javascript">
+    window.addEventListener("load", function() {
+        const params = {
+            paddingleft:0,
+            paddingright:0,
+            responsive: "resize",
+        }
+        {% for item in tunebook_entries %}
+        {% with item.tune|default:item.setting as tunesetting %}
+        ABCJS.renderAbc("notation-tunebook-{{ forloop.counter }}", "{{ tunesetting.abc_display|escapejs }}", params);
+        {% endwith %}
+        {% endfor %}
+    }, false);
+    </script>
 </div>
 <div id="activity" class="section">
         <div class="section-meta">
