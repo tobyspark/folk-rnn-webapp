@@ -1,0 +1,32 @@
+{% load humanize %}
+<ul>
+    {% for action in actions %}
+    <li>
+    {% if action.action_object_content_type.name == 'tune' or action.action_object_content_type.name == 'setting' %}
+        <h3><a href="{{ action.action_object.get_absolute_url }}">{{ action.action_object.title }}</a></h3>
+        <div id="notation-{{ id_prefix }}{{ forloop.counter }}"></div>
+    {% elif action.action_object_content_type.name == 'tunecomment' or action.action_object_content_type.name == 'competitioncomment' %}
+        <p><a href="{{ action.action_object.get_absolute_url }}">{{ action.action_object.text }}</a></p>
+    {% else %}
+        <p>TODO: implement preview of action: {{ action }}</p>
+    {% endif %}
+        <p class="meta">{% include 'archiver/_action.html' %}</p>
+    </li>
+    {% empty %}
+    <li><p>{{ empty_message|default:'No tunes' }}</p></li>
+    {% endfor %}
+    <script type="text/javascript">
+    window.addEventListener("load", function() {
+        const params = {
+            paddingleft:0,
+            paddingright:0,
+            responsive: "resize",
+        }
+        {% for action in actions %}
+        {% if action.action_object_content_type.name == 'tune' or action.action_object_content_type.name == 'setting' %}
+            ABCJS.renderAbc("notation-{{ id_prefix }}{{ forloop.counter }}", "{{ action.action_object.abc_preview|escapejs }}", params);
+        {% endif %}
+        {% endfor %}
+    }, false);
+    </script>
+</ul>

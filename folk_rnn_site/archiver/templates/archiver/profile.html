@@ -19,13 +19,11 @@
 </div>
 <div id="activity" class="section">
         <div class="section-meta">
-        <h2>Latest activity</h2>
+        <h2>Activity</h2>
         </div>
         <div class="section-body">
             {% activity_stream 'actor' profile %}
-            {% for action in stream %}
-                {% include 'actstream/action.html' %}{# don't use template tag, inherit context #}
-            {% endfor %}
+            {% include 'archiver/_activity.html' with actions=stream id_prefix='activity' %}
         </div>
 </div> 
 {% endblock %}
