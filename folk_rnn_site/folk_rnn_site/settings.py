@@ -50,11 +50,11 @@ INSTALLED_APPS = [
     'markdown_deux',
     'django_hosts',
     'channels',
+    'qurl_templatetag',
+    'actstream', # needs to come before archiver, for admin override
     'composer',
     'archiver',
     'backup',
-    'qurl_templatetag',
-    'actstream',
 ]
 
 MIDDLEWARE = [
