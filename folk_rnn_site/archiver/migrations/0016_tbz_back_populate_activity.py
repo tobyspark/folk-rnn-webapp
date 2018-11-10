@@ -26,7 +26,10 @@ def forwards_func(apps, schema_editor):
     
     Tune = apps.get_model('archiver', 'Tune')
     registry.register(Tune)
+    folkrnn_anon_submission_default_author_id = 1
     for tune in Tune.objects.all():
+        if tune.author.id == folkrnn_anon_submission_default_author_id:
+            continue
         action.send(tune.author, verb='submitted', action_object=tune, timestamp=tune.submitted)
     
     Setting = apps.get_model('archiver', 'Setting')
