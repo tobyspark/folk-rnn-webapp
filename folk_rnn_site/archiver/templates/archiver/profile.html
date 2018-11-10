@@ -69,8 +69,7 @@
         <h2>Activity</h2>
         </div>
         <div class="section-body">
-            {% activity_stream 'actor' profile %}
-            {% include 'archiver/_activity.html' with actions=stream id_prefix='activity' %}
+            {% include 'archiver/_activity.html' with actions=activity id_prefix='activity' %}
         </div>
 </div> 
 {% endblock %}

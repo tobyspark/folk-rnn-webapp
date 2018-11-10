@@ -452,6 +452,7 @@ def user_page(request, user_id=None):
                             'profile': user,
                             'tunebook_count': tunebook_count,
                             'tunebook_entries': tunebook_entries,
+                            'activity': user.actor_actions.all()[:TUNE_PREVIEWS_PER_PAGE]
                             })
 
 def tunebook_page(request, user_id):
