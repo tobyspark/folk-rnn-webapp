@@ -161,6 +161,7 @@ def tune_page(request, tune_id=None):
             and now() - tune.submitted < timedelta(seconds=5)):
         tune.author = request.user
         tune.save()
+        action.send(request.user, verb='submitted', action_object=tune)
     
     # Make page
     attribution_form = None
@@ -185,14 +186,18 @@ def tune_page(request, tune_id=None):
             if 'submit-attribution' in request.POST:
                 attribution_form = TuneAttributionForm(request.POST)
                 if attribution_form.is_valid():
-                    tune.author = request.user
-                    tune.save()
+                    if tune.author != request.user:
+                        tune.author = request.user
+                        tune.save()
+                        action.send(request.user, verb='claimed', action_object=tune)
                     attribution = TuneAttribution.objects.filter(tune=tune).first()
                     if not attribution:
                         attribution = TuneAttribution(tune=tune)
-                    attribution.text = attribution_form.cleaned_data['text']
-                    attribution.url = attribution_form.cleaned_data['url']
-                    attribution.save()
+                    user_data = attribution_form.cleaned_data['text'], attribution_form.cleaned_data['url']
+                    if user_data != (attribution.text, attribution.url):
+                        attribution.text, attribution.url = user_data
+                        attribution.save()
+                        action.send(request.user, verb='updated', action_object=tune)
             elif 'submit-setting' in request.POST:
                 setting = Setting(
                             tune=tune,
