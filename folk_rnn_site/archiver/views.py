@@ -54,19 +54,6 @@ from archiver.forms import (
                             )
 from archiver.dataset import dataset_as_csv
 
-def activity(filter_dict={}):
-    qs_tune = Tune.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
-    qs_setting = Setting.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
-    # models are not similar enough for...
-    # qs_both = qs_tune.union(qs_setting).order_by('submitted')[:MAX_RECENT_ITEMS]
-    tunes_settings = list(chain(qs_tune, qs_setting))
-    tunes_settings.sort(key=lambda x: x.submitted)
-    tunes_settings[:-MAX_RECENT_ITEMS] = []
-    
-    comments = TuneComment.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
-    
-    return (tunes_settings, comments)
-
 def home_page(request):
     q = Q(setting__count__gt=0) | Q(comment__count__gt=0) | Q(recording__count__gt=0) | Q(event__count__gt=0) | Q(collection__count__gt=0)
     interesting_tunes = Tune.objects.all().annotate_counts().filter(q).annotate_saliency()
