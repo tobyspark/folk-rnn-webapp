@@ -6,10 +6,11 @@ from django.dispatch import receiver
 from django.utils.timezone import now
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.exceptions import ValidationError
-from django_hosts.resolvers import reverse
+from django.urls import reverse
 from embed_video.fields import EmbedVideoField
 from random import shuffle
 from datetime import timedelta
+from textwrap import shorten
 
 from folk_rnn_site.models import ABCModel, conform_abc
 from composer.models import RNNTune
@@ -66,16 +67,28 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ['first_name', 'last_name']
     
     objects = UserManager()
+    
+    def __str__(self):
+        name = self.get_full_name()
+        return f'{name} (id:{self.id})'
+    
+    def get_absolute_url(self):
+        return reverse('user', kwargs={'user_id': self.id})
+    
+    @property
+    def tunebook(self):
+        tunebook, created = Collection.objects.get_or_create(user=self)
+        return tunebook
 
 class Tune(ABCModel):
     """
     A tune, e.g. the core data of /tune/x
     """
     def __str__(self):
-        info = [f'MachineFolk {self.id}']
+        info = [f'mf:{self.id}']
         if self.rnn_tune:
-            info += [f'FolkRNN {self.rnn_tune.id}']
-        return f'Tune: {self.title} ({", ".join(info)})'
+            info += [f'frnn:{self.rnn_tune.id}']
+        return f'{self.title} ({", ".join(info)})'
     
     def clean(self):
         """
@@ -93,12 +106,15 @@ class Tune(ABCModel):
     class Meta:
         ordering = ['id']
     
+    def get_absolute_url(self):
+        return reverse('tune', kwargs={'tune_id': self.id})
+    
     @property
     def abc_with_attribution(self):
         """"
         Return abc with attribution information fields
         """
-        url = reverse('tune', host='archiver', kwargs={'tune_id': self.id})
+        url = self.get_absolute_url()
         abc_model = ABCModel(abc=self.abc)
         abc_model.headers_n = ['{} {}'.format(x.text if x.text else '', x.url if x.url else '') for x in self.tuneattribution_set.all()]
         if self.rnn_tune:
@@ -163,7 +179,7 @@ def tune_queryset_annotate_counts(self):
         Count('comment', distinct=True), 
         recording__count=Count('tunerecording', distinct=True), 
         event__count=Count('tuneevent', distinct=True),
-        tunebook__count=Count('tunebookentry', distinct=True),
+        collection__count=Count('collectionentry', distinct=True),
     )
 setattr(QuerySet, 'annotate_counts', tune_queryset_annotate_counts)
 
@@ -177,14 +193,14 @@ def annotate_counts(tunes):
         result.comment__count = result.comment_set.count() 
         result.recording__count = result.tunerecording_set.count() 
         result.event__count = result.tuneevent_set.count()
-        result.tunebook__count = result.tunebookentry_set.count()
+        result.collection__count = result.collectionentry_set.count()
 
 def tune_queryset_annotate_saliency(self):
     """
     Annotate salience to Tune QuerySets that have already had salient counts annotated
     """
     return self.annotate(
-        saliency = F('tunebook__count')*3 + F('setting__count')*3 + F('recording__count')*2 + F('event__count')*2 + F('comment__count')
+        saliency = F('collection__count')*3 + F('setting__count')*3 + F('recording__count')*2 + F('event__count')*2 + F('comment__count')
     )
 setattr(QuerySet, 'annotate_saliency', tune_queryset_annotate_saliency)
 
@@ -194,7 +210,7 @@ class TuneAttribution(models.Model):
     Multiple TuneAttributions can exist for any given tune.
     """
     def __str__(self):
-        return f'Tune Meta: {self.text[:30]} (MachineFolk {self.tune.id})'
+        return f'{shorten(self.text, width=30)} (mf:{self.tune.id})'
     
     class Meta:
         ordering = ['id']
@@ -209,10 +225,10 @@ class Setting(ABCModel):
     Multiple settings can exist for any given tune.
     """
     def __str__(self):
-        info = [f'X {self.header_x}', f'MachineFolk {self.tune.id}']
+        info = [f'setting:{self.header_x}', f'mf:{self.tune.id}']
         if self.tune.rnn_tune:
-            info += [f'FolkRNN {self.tune.rnn_tune.id}']
-        return f'Setting: {self.title} ({", ".join(info)})'
+            info += [f'frnn:{self.tune.rnn_tune.id}']
+        return f'{self.title} ({", ".join(info)})'
     
     def clean(self):
         """
@@ -233,12 +249,15 @@ class Setting(ABCModel):
     class Meta:
         ordering = ['id']
     
+    def get_absolute_url(self):
+        return reverse('setting', kwargs={'tune_id': self.tune.id, 'setting_id': self.header_x})
+    
     @property
     def abc_with_attribution(self):
         """
         Return abc with attribution information fields
         """
-        url = reverse('setting', host='archiver', kwargs={'tune_id': self.tune.id, 'setting_id': self.header_x})
+        url = self.get_absolute_url()
         abc_model = ABCModel(abc=self.abc)
         if self.tune.rnn_tune:
             model = self.tune.rnn_tune.rnn_model_name.replace('.pickle', '')
@@ -283,7 +302,11 @@ class TuneComment(Comment):
     Multiple comments can exist for any given tune.
     """
     def __str__(self):
-        return f'Comment: "{self.text[:30]}" by {self.author} on MachineFolk {self.tune.id})'
+        return f'"{shorten(self.text, width=30)}" by {self.author} on tune {self.tune})'
+    
+    def get_absolute_url(self):
+        tune_url = reverse('tune', kwargs={'tune_id': self.tune.id})
+        return f'{tune_url}#comments'
 
     tune = models.ForeignKey(Tune, related_name='comment_set', related_query_name='comment')
 
@@ -306,7 +329,10 @@ class Event(Documentation):
     An event, e.g. a concert or session
     """
     def __str__(self):
-        return f'Event: {self.title[:30]}'
+        return self.title
+    
+    def get_absolute_url(self):
+        return reverse('event', kwargs={'event_id': self.id})
     
     image = models.ImageField(null=True, blank=True)
 
@@ -316,7 +342,10 @@ class Recording(Documentation):
     Handles Youtube, Vimeo videos and SoundCloud audio tracks.
     """
     def __str__(self):
-        return f'Recording: {self.title[:30]}'
+        return self.title
+    
+    def get_absolute_url(self):
+        return reverse('recording', kwargs={'recording_id': self.id})
     
     video = EmbedVideoField()
     event = models.ForeignKey(Event, null=True, blank=True)
@@ -326,7 +355,7 @@ class TuneRecording(models.Model):
     Assign a recording to a tune.
     """
     def __str__(self):
-        return f'Tune Recording: {self.recording.title[:30]} (MachineFolk {self.tune.id})'
+        return f'{self.recording.title} of tune {self.tune})'
         
     class Meta:
         ordering = ['tune']
@@ -339,7 +368,7 @@ class TuneEvent(models.Model):
     Assign an event to a tune.
     """
     def __str__(self):
-        return f'Tune Event: {self.event.title[:30]} (MachineFolk {self.tune.id})'
+        return f'{self.event.title} of tune {self.tune})'
     
     class Meta:
         ordering = ['tune']
@@ -347,13 +376,27 @@ class TuneEvent(models.Model):
     tune = models.ForeignKey(Tune)
     event = models.ForeignKey(Event)
 
-class TunebookEntry(models.Model):
+class Collection(models.Model):
     """
-    Assign a tune or setting to a user, creating a tunebook.
+    A collection, a tunebook when user property is filled
     """
     def __str__(self):
-        tune_str = f'MachineFolk {self.tune.id}' if self.tune else f'MachineFolk {self.setting.tune.id} Setting {self.setting.header_x}'
-        return f'Tunebook Entry: {tune_str} by {self.user.get_full_name()}'
+        return f'Tunebook – {self.user}' if self.user else f'Collection (mf:{self.id})'
+    
+    def get_absolute_url(self):
+        if self.user is not None:
+            return reverse('tunebook', kwargs={'user_id': self.user.id})
+        return None
+    
+    user = models.ForeignKey(User, null=True)
+
+class CollectionEntry(models.Model):
+    """
+    Assign a tune or setting to a collection.
+    """
+    def __str__(self):
+        tune_str = f'{self.tune}' if self.tune else f'{self.setting}'
+        return f'{tune_str} in {self.collection}'
     
     @property
     def abc(self):
@@ -381,7 +424,7 @@ class TunebookEntry(models.Model):
     
     tune = models.ForeignKey(Tune, null=True)
     setting = models.ForeignKey(Setting, null=True)
-    user = models.ForeignKey(User)
+    collection = models.ForeignKey(Collection)
     submitted = models.DateTimeField(auto_now_add=True)
 
 class Competition(models.Model):
@@ -399,7 +442,7 @@ class Competition(models.Model):
     recording_vote_close = models.DateField(blank=True, null=True, help_text='Optional, if voting on the recordings is desired.')
     
     def __str__(self):
-        return f'Competition {self.id}: {self.title}'
+        return self.title
     
     def clean(self):
         if self.tune_vote_open >= self.recording_submit_open:
@@ -412,6 +455,10 @@ class Competition(models.Model):
             raise ValidationError({'recording_vote_close': 'Close value is required if recordings are voted upon'})
         if self.recording_vote_open > self.recording_vote_close:
             raise ValidationError({'recording_vote_close': 'Voting needs to finish on or after the day it starts'})
+    
+    
+    def get_absolute_url(self):
+        return reverse('competition', kwargs={'competition_id': self.id})
     
     @property
     def tune_vote_close(self):
@@ -552,9 +599,12 @@ class CompetitionComment(Comment):
     Multiple comments can exist for any given compeition.
     """
     def __str__(self):
-        return f'Comment: "{self.text[:30]}" by {self.author} on Competition {self.competition.title})'
+        return f'"{shorten(self.text, width=30)}" by {self.author} on {self.competition})'
 
     competition = models.ForeignKey(Competition, related_name='comment_set', related_query_name='comment')
+    
+    def get_absolute_url(self):
+        return f'{self.competition.get_absolute_url()}#comments'
 
 class VoteModel(models.Model):
     """
@@ -576,7 +626,7 @@ class CompetitionTune(models.Model):
     tune = models.ForeignKey(Tune)
     
     def __str__(self):
-        return f'Competition tune {self.tune.id} for {self.competition.id}: {self.competition.title}'
+        return f'{self.tune} for {self.competition}'
 
 class CompetitionTuneVote(VoteModel):
     """
@@ -592,7 +642,7 @@ class CompetitionRecording(models.Model):
     recording = models.ForeignKey(Recording)
     
     def __str__(self):
-        return f'Competition recording {self.recording.id} for {self.competition.id}: {self.competition.title}'
+        return f'{self.recording} for {self.competition}'
     
     def clean(self):
         """

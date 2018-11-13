@@ -44,15 +44,17 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.humanize',
+    'django.contrib.sites', # only for actstream
     'widget_tweaks',
     'embed_video',
     'markdown_deux',
     'django_hosts',
     'channels',
+    'qurl_templatetag',
+    'actstream', # needs to come before archiver, for admin override
     'composer',
     'archiver',
     'backup',
-    'qurl_templatetag',
 ]
 
 MIDDLEWARE = [
@@ -135,6 +137,9 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+## Sites – Used only because actstream requires it. See django-hosts for folkrnn/machinefolk serving.
+SITE_ID=1
 
 ## Logging
 

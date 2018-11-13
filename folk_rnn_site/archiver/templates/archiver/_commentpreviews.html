@@ -4,7 +4,7 @@
     <li>
     <h3><a href="/tune/{{ comment.tune.id }}">Re: {{ comment.tune.title }}</a></h3>
     <p>{{ comment.text|urlize }}</p>
-    <p class="meta">Posted by <a href="{% url 'user' user_id=comment.author.id %}">{{ comment.author.get_full_name }}</a> {{ comment.submitted|naturalday }}.</li>
+    <p class="meta">Posted by <a href="{{ comment.author.get_absolute_url }}">{{ comment.author.get_full_name }}</a> {{ comment.submitted|naturalday }}.</li>
     </li>
     {% empty %}
     <li><p>No comments</p></li>

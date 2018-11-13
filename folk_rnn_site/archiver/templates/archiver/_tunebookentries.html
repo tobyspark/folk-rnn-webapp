@@ -3,13 +3,13 @@
     {% for item in tunebook %}
     <li>
     {% if item.tune %}
-    <h3><a href="{% url 'tune' tune_id=item.tune.id %}">{{item.tune.title}}</a></h3>
+    <h3><a href="{{ item.tune.get_absolute_url }}">{{item.tune.title}}</a></h3>
     <div id="notation-tunebook-{{ forloop.counter }}"></div>
     <p class="meta">Tune added to tunebook {{ item.submitted|naturalday }}</p>
     {% elif item.setting %}{# setting model #}
-    <h3><a href="{% url 'tune' tune_id=item.setting.tune.id %}">{{item.setting.title}}</a></h3>
+    <h3><a href="{{ item.setting.get_absolute_url }}">{{item.setting.title}}</a></h3>
     <div id="notation-tunebook-{{ forloop.counter }}"></div>
-    <p class="meta">Setting of <a href="{% url 'tune' tune_id=item.setting.tune.id %}">{{ item.setting.tune.title }}</a> added to tunebook {{ item.submitted|naturalday }}</p>
+    <p class="meta">Setting of <a href="{{ item.setting.tune.get_absolute_url }}">{{ item.setting.tune.title }}</a> added to tunebook {{ item.submitted|naturalday }}</p>
     {% endif %}
     </li>
     {% empty %}

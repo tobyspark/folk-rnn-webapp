@@ -27,6 +27,9 @@ YEAR_CHOICES = range(date.today().year, date.today().year-20, -1)
 
 
 # PLEASE DON'T TOUCH
+
+default_app_config = 'archiver.apps.ArchiverConfig'
+
 # algorithmic nerdery, here for want of anywhere better
 # modified from https://stackoverflow.com/questions/352670/weighted-random-selection-with-and-without-replacement
 import heapq

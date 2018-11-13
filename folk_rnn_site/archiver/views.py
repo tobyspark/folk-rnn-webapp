@@ -1,12 +1,14 @@
 from django.shortcuts import redirect, render
-from django.urls import reverse
 from django.http import HttpResponse
 from django.core.files import File as dFile
 from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
+from actstream import action, actions
+from actstream.models import user_stream
 from tempfile import TemporaryFile
 from itertools import chain
 from datetime import timedelta
@@ -30,7 +32,8 @@ from archiver.models import (
                             TuneComment, 
                             Recording, 
                             Event, 
-                            TunebookEntry, 
+                            Collection,
+                            CollectionEntry, 
                             TuneRecording, 
                             Competition,
                             CompetitionTune,
@@ -53,21 +56,8 @@ from archiver.forms import (
                             )
 from archiver.dataset import dataset_as_csv
 
-def activity(filter_dict={}):
-    qs_tune = Tune.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
-    qs_setting = Setting.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
-    # models are not similar enough for...
-    # qs_both = qs_tune.union(qs_setting).order_by('submitted')[:MAX_RECENT_ITEMS]
-    tunes_settings = list(chain(qs_tune, qs_setting))
-    tunes_settings.sort(key=lambda x: x.submitted)
-    tunes_settings[:-MAX_RECENT_ITEMS] = []
-    
-    comments = TuneComment.objects.filter(**filter_dict).order_by('-id')[:MAX_RECENT_ITEMS]
-    
-    return (tunes_settings, comments)
-
 def home_page(request):
-    q = Q(setting__count__gt=0) | Q(comment__count__gt=0) | Q(recording__count__gt=0) | Q(event__count__gt=0) | Q(tunebook__count__gt=0)
+    q = Q(setting__count__gt=0) | Q(comment__count__gt=0) | Q(recording__count__gt=0) | Q(event__count__gt=0) | Q(collection__count__gt=0)
     interesting_tunes = Tune.objects.all().annotate_counts().filter(q).annotate_saliency()
     
     if len(interesting_tunes) > MAX_RECENT_ITEMS:
@@ -91,9 +81,20 @@ def home_page(request):
         except:
             recording = None
     
+    if request.user.is_authenticated():
+        # insufficient `with_user_activity = False`
+        actor_is_user = Q(
+            actor_content_type=ContentType.objects.get_for_model(request.user),
+            actor_object_id=request.user.pk
+        )
+        user_updates = user_stream(request.user).exclude(actor_is_user)[:MAX_RECENT_ITEMS]
+    else:
+        user_updates = None
+    
     return render(request, 'archiver/home.html', {
                             'recording': recording,
                             'tunes': tune_selection,
+                            'updates': user_updates,
                             })
 
 def tunes_page(request):
@@ -160,6 +161,8 @@ def tune_page(request, tune_id=None):
             and now() - tune.submitted < timedelta(seconds=5)):
         tune.author = request.user
         tune.save()
+        action.send(request.user, verb='submitted', action_object=tune)
+        actions.follow(request.user, tune, actor_only=False, send_action=False)
     
     # Make page
     attribution_form = None
@@ -184,14 +187,20 @@ def tune_page(request, tune_id=None):
             if 'submit-attribution' in request.POST:
                 attribution_form = TuneAttributionForm(request.POST)
                 if attribution_form.is_valid():
-                    tune.author = request.user
-                    tune.save()
+                    if tune.author != request.user:
+                        tune.author = request.user
+                        tune.save()
+                        action.send(request.user, verb='claimed', action_object=tune)
+                        actions.follow(request.user, tune, actor_only=False, send_action=False)
                     attribution = TuneAttribution.objects.filter(tune=tune).first()
                     if not attribution:
                         attribution = TuneAttribution(tune=tune)
-                    attribution.text = attribution_form.cleaned_data['text']
-                    attribution.url = attribution_form.cleaned_data['url']
-                    attribution.save()
+                    user_data = attribution_form.cleaned_data['text'], attribution_form.cleaned_data['url']
+                    if user_data != (attribution.text, attribution.url):
+                        attribution.text, attribution.url = user_data
+                        attribution.save()
+                        action.send(request.user, verb='updated', action_object=tune)
+                        actions.follow(request.user, tune, actor_only=False, send_action=False)
             elif 'submit-setting' in request.POST:
                 setting = Setting(
                             tune=tune,
@@ -200,6 +209,8 @@ def tune_page(request, tune_id=None):
                 form = SettingForm(request.POST, instance=setting)
                 if form.is_valid():
                     form.save() 
+                    action.send(request.user, verb='submitted', action_object=setting, target=tune)
+                    actions.follow(request.user, tune, actor_only=False, send_action=False)
                 else:
                     setting_form = form
             elif 'submit-comment' in request.POST:
@@ -211,21 +222,27 @@ def tune_page(request, tune_id=None):
                                 author=request.user,
                                 )
                     comment.save()
+                    action.send(request.user, verb='made', action_object=comment, target=tune)
+                    actions.follow(request.user, tune, actor_only=False, send_action=False)
                 else:
                     comment_form = form
             elif 'submit-tunebook-0' in request.POST:
                 form = TunebookForm(request.POST)
                 if form.is_valid():
                     if form.cleaned_data['add']:
-                        TunebookEntry.objects.get_or_create(
+                        CollectionEntry.objects.get_or_create(
                             tune=tune,
-                            user=request.user,
+                            collection=request.user.tunebook,
                             )
+                        action.send(request.user, verb='added', action_object=tune, target=request.user.tunebook)
+                        actions.follow(request.user, tune, actor_only=False, send_action=False)
                     else:
-                        TunebookEntry.objects.filter(
+                        CollectionEntry.objects.filter(
                             tune=tune,
-                            user=request.user,
+                            collection=request.user.tunebook,
                             ).delete()
+                        action.send(request.user, verb='removed', action_object=tune, target=request.user.tunebook)
+                        actions.follow(request.user, tune, actor_only=False, send_action=False)
             else:
                 # submit-tunebook-x in request.POST where x>0
                 setting_x = None
@@ -243,33 +260,49 @@ def tune_page(request, tune_id=None):
                     form = TunebookForm(request.POST)
                     if form.is_valid():
                         if form.cleaned_data['add']:
-                            TunebookEntry.objects.get_or_create(
+                            CollectionEntry.objects.get_or_create(
                                 setting=setting,
-                                user=request.user,
+                                collection=request.user.tunebook,
                                 )
+                            action.send(request.user, verb='added', action_object=setting, target=request.user.tunebook)
+                            actions.follow(request.user, tune, actor_only=False, send_action=False)
                         else:
-                            TunebookEntry.objects.filter(
+                            CollectionEntry.objects.filter(
                                 setting=setting,
-                                user=request.user,
+                                collection=request.user.tunebook,
                                 ).delete()
+                            action.send(request.user, verb='removed', action_object=setting, target=request.user.tunebook)
+                            actions.follow(request.user, tune, actor_only=False, send_action=False)
 
-    tune.tunebook_count = TunebookEntry.objects.filter(tune=tune).count()
+    tune.tunebook_count = CollectionEntry.objects.filter(tune=tune).count() #FIXME: collection.user is not null, do when there are non-tunebook collections
     if request.user.is_authenticated:
-        tune.other_tunebook_count = TunebookEntry.objects.filter(tune=tune).exclude(user=request.user).count()
-        tune.tunebook_form = TunebookForm({'add': TunebookEntry.objects.filter(
-                                                    user=request.user, 
-                                                    tune=tune,
-                                                    ).exists()})
+        tune.other_tunebook_count = (
+                            CollectionEntry.objects
+                            .filter(tune=tune)
+                            .exclude(collection=request.user.tunebook)
+                            .count()
+                            )
+        tune.tunebook_form = TunebookForm({'add': (
+                                            CollectionEntry.objects
+                                            .filter(tune=tune, collection=request.user.tunebook)
+                                            .exists()
+                                            )})
     
     settings = tune.setting_set.all()
     for setting in settings:
-        setting.tunebook_count = TunebookEntry.objects.filter(setting=setting).count()
+        setting.tunebook_count = CollectionEntry.objects.filter(setting=setting).count()
         if request.user.is_authenticated:
-            setting.other_tunebook_count = TunebookEntry.objects.filter(setting=setting).exclude(user=request.user).count()
-            setting.tunebook_form = TunebookForm({'add': TunebookEntry.objects.filter(
-                                                        user=request.user, 
-                                                        setting=setting,
-                                                        ).exists()})
+            setting.other_tunebook_count = (
+                                            CollectionEntry.objects
+                                            .filter(setting=setting)
+                                            .exclude(collection=request.user.tunebook)
+                                            .count()
+                                            )
+            setting.tunebook_form = TunebookForm({'add': (
+                                            CollectionEntry.objects
+                                            .filter(setting=setting, collection=request.user.tunebook)
+                                            .exists()
+                                            )})
         
     return render(request, 'archiver/tune.html', {
         'tune': tune,
@@ -294,7 +327,7 @@ def setting_redirect(request, tune_id=None, setting_id=None):
     if setting_id not in [x.header_x for x in tune.setting_set.all()]:
         return redirect('/')
     
-    return redirect(reverse('tune', kwargs={"tune_id": tune.id}) + f'#setting-{ setting_id }')
+    return redirect(tune.get_absolute_url() + f'#setting-{ setting_id }')
 
 def tune_download(request, tune_id=None):
     try:
@@ -415,17 +448,20 @@ def user_page(request, user_id=None):
         user = User.objects.get(id=user_id_int)
     except (TypeError, User.DoesNotExist):
         return redirect('/')
+    tunebook_count = CollectionEntry.objects.filter(collection=user.tunebook).count()
+    tunebook_entries = CollectionEntry.objects.filter(collection=user.tunebook).order_by('?')[:1]
     
-    tunebook_count = TunebookEntry.objects.filter(user=user).count()
-    tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')[:MAX_RECENT_ITEMS]
+    for item in tunebook_entries:
+        if item.tune:
+            item.tunebook_count = CollectionEntry.objects.filter(tune=item.tune).count()
+        else:
+            item.tunebook_count = CollectionEntry.objects.filter(setting=item.setting).count()
     
-    tunes_settings, comments = activity({'author': user})
     return render(request, 'archiver/profile.html', {
                             'profile': user,
                             'tunebook_count': tunebook_count,
-                            'tunebook': tunebook,
-                            'tunes_settings': tunes_settings,
-                            'comments': comments,
+                            'tunebook_entries': tunebook_entries,
+                            'activity': user.actor_actions.all()[:TUNE_PREVIEWS_PER_PAGE]
                             })
 
 def tunebook_page(request, user_id):
@@ -435,13 +471,13 @@ def tunebook_page(request, user_id):
     except (TypeError, User.DoesNotExist):
         return redirect('/')
     
-    tunebook = TunebookEntry.objects.filter(user=user).order_by('-id')
+    tunebook_entries = CollectionEntry.objects.filter(collection=user.tunebook).order_by('-id')
     
     page_number = request.GET.get('page')
     items_per_page = TUNE_PREVIEWS_PER_PAGE
     if page_number == 'all' and request.user.is_authenticated:
         items_per_page = 9999
-    paginator = Paginator(tunebook, items_per_page)
+    paginator = Paginator(tunebook_entries, items_per_page)
     try:
         tunebook_page = paginator.page(page_number)
     except PageNotAnInteger:
@@ -460,15 +496,15 @@ def tunebook_download(request, user_id):
         user = User.objects.get(id=user_id_int)
     except (TypeError, User.DoesNotExist):
         return redirect('/')
-
-    tunebook_qs = TunebookEntry.objects.filter(user=user).order_by('id')
-    tunebook = [ABCModel(abc=x.abc_with_attribution) for x in tunebook_qs]
-    for idx, tune in enumerate(tunebook):
+    
+    tunebook_qs = CollectionEntry.objects.filter(collection=user.tunebook).order_by('id')
+    tunebook_entries = [ABCModel(abc=x.abc_with_attribution) for x in tunebook_qs]
+    for idx, tune in enumerate(tunebook_entries):
         tune.header_x = idx
     
     tunebook_abc = f'% Tunebook – {user.get_full_name()}\n'
     tunebook_abc += f"% https://themachinefolksession.org{request.path}\n\n\n"
-    tunebook_abc += '\n\n'.join([x.abc for x in tunebook])
+    tunebook_abc += '\n\n'.join([x.abc for x in tunebook_entries])
     
     response = HttpResponse(tunebook_abc, content_type='text/plain')
     response['Content-Disposition'] = f'attachment; filename="themachinefolksession_tunebook_{user_id}'
@@ -547,7 +583,10 @@ def competition_page(request, competition_id):
                     competition=competition,
                     recording=recording,
                     )
-            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+            action.send(request.user, verb='submitted', action_object=recording, target=competition)
+            actions.follow(request.user, competition.tune_won, actor_only=False, send_action=False)
+            actions.follow(request.user, competition, actor_only=False, send_action=False)
+            return redirect(competition.get_absolute_url())
     else:
         recording_form = RecordingForm()
     
@@ -559,9 +598,13 @@ def competition_page(request, competition_id):
             try:
                 vote = CompetitionTuneVote.objects.get(votable=competition_tune, user=request.user)
                 vote.delete()
+                action.send(request.user, verb='retracted their tune vote', action_object=competition)
             except CompetitionTuneVote.DoesNotExist:
-                CompetitionTuneVote.objects.create(votable=competition_tune, user=request.user)
-            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+                vote = CompetitionTuneVote.objects.create(votable=competition_tune, user=request.user)
+                action.send(request.user, verb='cast', action_object=vote)
+                actions.follow(request.user, competition_tune.tune, actor_only=False, send_action=False)
+                actions.follow(request.user, competition, actor_only=False, send_action=False)
+            return redirect(competition.get_absolute_url())
     
     if request.method == 'POST' and 'submit-recording-vote' in request.POST:
         recording_vote_form = VoteForm(request.POST)
@@ -571,9 +614,13 @@ def competition_page(request, competition_id):
             try:
                 vote = CompetitionRecordingVote.objects.get(votable=competition_recording, user=request.user)
                 vote.delete()
+                action.send(request.user, verb='retracted their recording tune', action_object=competition)
             except CompetitionRecordingVote.DoesNotExist:
-                CompetitionRecordingVote.objects.create(votable=competition_recording, user=request.user)
-            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+                vote = CompetitionRecordingVote.objects.create(votable=competition_recording, user=request.user)
+                action.send(request.user, verb='cast', action_object=vote)
+                actions.follow(request.user, competition_recording.recording, actor_only=False, send_action=False)
+                actions.follow(request.user, competition, actor_only=False, send_action=False)
+            return redirect(competition.get_absolute_url())
     
     if request.method == 'POST' and 'submit-comment' in request.POST:
         comment_form = CommentForm(request.POST)
@@ -584,7 +631,9 @@ def competition_page(request, competition_id):
                         author=request.user,
                         )
             comment.save()
-            return redirect(reverse('competition', kwargs={"competition_id": competition.id}))
+            action.send(request.user, verb='made', action_object=comment, target=competition)
+            actions.follow(request.user, competition, actor_only=False, send_action=False)
+            return redirect(competition.get_absolute_url())
     else:
         comment_form = CommentForm()
     
@@ -606,7 +655,9 @@ def submit_page(request):
             tune_attribution = TuneAttribution(tune=tune) # tune now has pk
             tune_attribution_form = TuneAttributionForm(request.POST, instance=tune_attribution) 
             tune_attribution_form.save()
-            return redirect(reverse('tune', kwargs={"tune_id": tune.id}))
+            action.send(request.user, verb='submitted', action_object=tune)
+            actions.follow(request.user, tune, actor_only=False, send_action=False)
+            return redirect(tune.get_absolute_url())
     else:
         tune_form = TuneForm()
         tune_attribution_form = TuneAttributionForm()
@@ -621,7 +672,9 @@ def submit_page(request):
                     video = recording_form.cleaned_data['url'],
                     author=request.user,
                     )
-            return redirect(reverse('recording', kwargs={"recording_id": recording.id}))
+            action.send(request.user, verb='submitted', action_object=recording)
+            #TODO: actions.follow tune when UI for tunes in recording
+            return redirect(recording.get_absolute_url())
     else:
         recording_form = RecordingForm()
     
@@ -634,7 +687,8 @@ def submit_page(request):
                     date=event_form.cleaned_data['date'], 
                     author=request.user,
                     )
-            return redirect(reverse('event', kwargs={"event_id": event.id}))
+            action.send(request.user, verb='submitted', action_object=event)
+            return redirect(event.get_absolute_url())
     else:
         event_form = EventForm()
     
@@ -656,7 +710,7 @@ def help_page(request):
             message = contact_form.cleaned_data['text']
             if request.user.is_authenticated():
                 from_email = request.user.email
-                from_user_url = reverse('user', kwargs={'user_id': request.user.id})
+                from_user_url = request.user.get_absolute_url()
                 message += f"\n\n--\nAuthenticated user: { request.user.get_full_name() }\n{ from_email }\n{ request.META['HTTP_ORIGIN'] }{ from_user_url }"
             elif 'email' in contact_form.cleaned_data:
                 from_email = contact_form.cleaned_data['email']

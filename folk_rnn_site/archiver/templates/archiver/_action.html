@@ -1,0 +1,24 @@
+{% load humanize %}
+{% if include_actor %}
+    {% if action.actor == request.user %}You{% else %}<a href="{{ action.actor.get_absolute_url }}">{{ action.actor.get_full_name }}</a>{% endif %} {{ action.verb }} {% if action.action_object.get_absolute_url %}<a href="{{ action.action_object.get_absolute_url }}">{% endif %}the {{ action.action_object_content_type.name }}{% if action.action_object.get_absolute_url %}</a>{% endif %}
+{% else %}
+    {% if action.action_object.get_absolute_url %}<a href="{{ action.action_object.get_absolute_url }}">{{ action.action_object_content_type.name | capfirst }}</a>
+    {% else %}{{ action.action_object_content_type.name | capfirst }}
+    {% endif %} 
+    {{ action.verb }}
+{% endif %}
+{% if action.action_object and action.target %}
+    {% if action.verb == 'added' %}to
+    {% elif action.verb == 'submitted' %}to
+    {% elif action.verb == 'removed' %}from
+    {% elif action.verb == 'made' %}on
+    {% else %}FIXME: target word for verb
+    {% endif %}
+{% endif %}
+{% if action.target %}
+    {% if action.target_content_type.name == "collection" %}<a href="{{ action.target.get_absolute_url }}">{% if include_actor %}their {% endif %}tunebook</a>
+    {% elif action.target.get_absolute_url %}<a href="{{ action.target.get_absolute_url }}">{{ action.target }}</a>
+    {% else %}{{ action.target }}
+    {% endif %}
+{% endif %}
+{{ action.timestamp|naturalday }}

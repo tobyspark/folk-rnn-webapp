@@ -8,6 +8,8 @@ from archiver.models import (
                         TuneEvent, 
                         Setting, 
                         TuneComment, 
+                        Collection,
+                        CollectionEntry,
                         Recording, 
                         Event,
                         Competition,
@@ -17,6 +19,7 @@ from archiver.models import (
                         CompetitionRecordingVote,
                         CompetitionComment,
                         )
+from actstream.models import Action
 
 admin.site.site_header = "Administration – The Machine Folk Session"
 admin.site.site_title = "Administration – The Machine Folk Session"
@@ -35,6 +38,9 @@ class TuneRecordingInline(admin.StackedInline):
 
 class TuneEventInline(admin.StackedInline):
     model = TuneEvent
+
+class CollectionEntryInline(admin.StackedInline):
+    model = CollectionEntry
 
 class CompetitionTuneInline(admin.StackedInline):
     model = CompetitionTune
@@ -56,6 +62,10 @@ class TuneAdmin(admin.ModelAdmin):
     inlines = [ TuneAttributionInline, SettingInline, TuneCommentInline, TuneEventInline, TuneRecordingInline ]
 
 admin.site.register(TuneComment)
+
+@admin.register(Collection)
+class CollectionAdmin(admin.ModelAdmin):
+    inlines = [ CollectionEntryInline ]
 
 @admin.register(Recording)
 class RecordingAdmin(admin.ModelAdmin):
@@ -100,3 +110,15 @@ class CompetitionRecordingAdmin(admin.ModelAdmin):
     inlines = [ CompetitionRecordingVoteInline ]
 
 admin.site.register(CompetitionComment)
+
+class ActionAdmin(admin.ModelAdmin):
+    """
+    Override django-action-stream's ActionAdmin (i.e. actstream/admin.py)
+    List the four action parts as-is, not wasting column space with the string description.
+    """
+    date_hierarchy = 'timestamp'
+    list_display = ('actor', 'verb', 'action_object', 'target', 'public')
+    list_filter = ('timestamp', )
+        
+admin.site.unregister(Action)
+admin.site.register(Action, ActionAdmin)
