@@ -1,6 +1,6 @@
 {% load humanize %}
 {% if include_actor %}
-    <a href="{{ action.actor.get_absolute_url }}">{{ action.actor.get_full_name }}</a> {{ action.verb }} {% if action.action_object.get_absolute_url %}<a href="{{ action.action_object.get_absolute_url }}">{% endif %}the {{ action.action_object_content_type.name }}{% if action.action_object.get_absolute_url %}</a>{% endif %}
+    {% if action.actor == request.user %}You{% else %}<a href="{{ action.actor.get_absolute_url }}">{{ action.actor.get_full_name }}</a>{% endif %} {{ action.verb }} {% if action.action_object.get_absolute_url %}<a href="{{ action.action_object.get_absolute_url }}">{% endif %}the {{ action.action_object_content_type.name }}{% if action.action_object.get_absolute_url %}</a>{% endif %}
 {% else %}
     {% if action.action_object.get_absolute_url %}<a href="{{ action.action_object.get_absolute_url }}">{{ action.action_object_content_type.name | capfirst }}</a>
     {% else %}{{ action.action_object_content_type.name | capfirst }}

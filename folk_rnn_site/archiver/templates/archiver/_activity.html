@@ -9,9 +9,13 @@
     {% elif 'comment' in action.action_object_content_type.name %}
         <p><a href="{{ action.action_object.get_absolute_url }}">{{ action.action_object.text }}</a></p>
     {% elif action.action_object_content_type.name == 'recording' %}
+        {% if content_preview %}
         <p>{% video action.action_object.video is_secure=True as my_video %}
           {% video my_video%}
         {% endvideo %}</p>
+        {% else %}
+        <h3><a href="{{ action.action_object.get_absolute_url }}">{{ action.action_object.title }}</a></h3>
+        {% endif %}
     {% elif action.action_object_content_type.name == 'event' %}
         <h3><a href="{{ action.action_object.get_absolute_url }}">{{ action.action_object.title }}</a></h3>
     {% elif action.action_object_content_type.name == 'competition tune vote' or action.action_object_content_type.name == 'competition recording vote'%}
@@ -26,18 +30,20 @@
     {% empty %}
     <li><p>{{ empty_message|default:'No tunes' }}</p></li>
     {% endfor %}
-    <script type="text/javascript">
-    window.addEventListener("load", function() {
-        const params = {
-            paddingleft:0,
-            paddingright:0,
-            responsive: "resize",
-        }
-        {% for action in actions %}
-        {% if action.action_object_content_type.name == 'tune' or action.action_object_content_type.name == 'setting' %}
-            ABCJS.renderAbc("notation-{{ id_prefix }}{{ forloop.counter }}", "{{ action.action_object.abc_preview|escapejs }}", params);
-        {% endif %}
-        {% endfor %}
-    }, false);
-    </script>
+    {% if content_preview %}
+        <script type="text/javascript">
+        window.addEventListener("load", function() {
+            const params = {
+                paddingleft:0,
+                paddingright:0,
+                responsive: "resize",
+            }
+            {% for action in actions %}
+            {% if action.action_object_content_type.name == 'tune' or action.action_object_content_type.name == 'setting' %}
+                ABCJS.renderAbc("notation-{{ id_prefix }}{{ forloop.counter }}", "{{ action.action_object.abc_preview|escapejs }}", params);
+            {% endif %}
+            {% endfor %}
+        }, false);
+        </script>
+    {% endif %}
 </ul>

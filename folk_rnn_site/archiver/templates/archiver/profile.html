@@ -14,7 +14,7 @@
     </div>
     <div class="section-body">
         {% if tunebook_count %}
-            <p>There are <a href="{{ profile.tunebook.get_absolute_url }}">{{ tunebook_count }} entries in this member’s tunebook</a>. Here's one –</p>
+            <p>There are <a href="{{ profile.tunebook.get_absolute_url }}">{{ tunebook_count }} entries in {% if request.user == profile %}your {% else %}this member’s {% endif %}tunebook</a>. Here's one –</p>
         {% else %}
             {% if user == profile %}
                 <p>This site allows you to collect tunes and add them to a virtual tunebook. It provides an easy way to recall the tunes you like. You can download the entire tunebook as a single ABC file.</p>
@@ -38,7 +38,7 @@
         {% if item.setting %}
             <p class="meta">Setting {{ tunesetting.header_x|apnumber }} of <a href="{{ tunesetting.tune.get_absolute_url }}">{{ tunesetting.tune.title }}</a></br>
         {% endif %}
-        <p class="meta">Originally submitted by <a href="{{ tunesetting.author.get_absolute_url }}">{{ tunesetting.author.get_full_name }},</a><br>
+        <p class="meta">Submitted by <a href="{{ tunesetting.author.get_absolute_url }}">{{ tunesetting.author.get_full_name }},</a><br>
         {{ tunesetting.submitted | naturalday | capfirst }}</p>
         {% if item.tunebook_count > 1 %}
             <p class="meta">Added to {{ item.tunebook_count|apnumber }} tunebooks</p>
@@ -69,7 +69,7 @@
         <h2>Activity</h2>
         </div>
         <div class="section-body">
-            {% include 'archiver/_activity.html' with actions=activity id_prefix='activity' %}
+            {% include 'archiver/_activity.html' with actions=activity content_preview=True id_prefix='activity' %}
         </div>
 </div> 
 {% endblock %}

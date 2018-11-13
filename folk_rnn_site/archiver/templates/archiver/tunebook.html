@@ -7,7 +7,7 @@
 {% block content %}
 <div id="tunebook" class="section">
     <div class="section-meta">
-        <h2>{{ profile.get_full_name }}’s tunebook</h2>
+        <h2>{% if request.user == profile %}Your {% else %}{{ profile.get_full_name }}’s {% endif %}tunebook</h2>
         {% include 'archiver/_paginator.html' with paginated=tunebook %}
         {% if tunebook %}
         <div id="tunebook-download" class="download-link">
