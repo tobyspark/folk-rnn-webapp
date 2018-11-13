@@ -70,7 +70,7 @@ class User(AbstractUser):
     
     def __str__(self):
         name = self.get_full_name()
-        return f'{name} ({self.id})'
+        return f'{name} (id:{self.id})'
     
     def get_absolute_url(self):
         return reverse('user', kwargs={'user_id': self.id})
