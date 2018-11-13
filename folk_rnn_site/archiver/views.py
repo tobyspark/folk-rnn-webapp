@@ -6,7 +6,8 @@ from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
 from django.db.models import Q
-from actstream import action
+from actstream import action, actions
+from actstream.models import user_stream
 from tempfile import TemporaryFile
 from itertools import chain
 from datetime import timedelta
@@ -149,6 +150,7 @@ def tune_page(request, tune_id=None):
         tune.author = request.user
         tune.save()
         action.send(request.user, verb='submitted', action_object=tune)
+        actions.follow(request.user, tune, actor_only=False, send_action=False)
     
     # Make page
     attribution_form = None
@@ -177,6 +179,7 @@ def tune_page(request, tune_id=None):
                         tune.author = request.user
                         tune.save()
                         action.send(request.user, verb='claimed', action_object=tune)
+                        actions.follow(request.user, tune, actor_only=False, send_action=False)
                     attribution = TuneAttribution.objects.filter(tune=tune).first()
                     if not attribution:
                         attribution = TuneAttribution(tune=tune)
@@ -185,6 +188,7 @@ def tune_page(request, tune_id=None):
                         attribution.text, attribution.url = user_data
                         attribution.save()
                         action.send(request.user, verb='updated', action_object=tune)
+                        actions.follow(request.user, tune, actor_only=False, send_action=False)
             elif 'submit-setting' in request.POST:
                 setting = Setting(
                             tune=tune,
@@ -193,7 +197,8 @@ def tune_page(request, tune_id=None):
                 form = SettingForm(request.POST, instance=setting)
                 if form.is_valid():
                     form.save() 
-                    action.send(request.user, verb='submitted', action_object=setting)
+                    action.send(request.user, verb='submitted', action_object=setting, target=tune)
+                    actions.follow(request.user, tune, actor_only=False, send_action=False)
                 else:
                     setting_form = form
             elif 'submit-comment' in request.POST:
@@ -206,6 +211,7 @@ def tune_page(request, tune_id=None):
                                 )
                     comment.save()
                     action.send(request.user, verb='made', action_object=comment, target=tune)
+                    actions.follow(request.user, tune, actor_only=False, send_action=False)
                 else:
                     comment_form = form
             elif 'submit-tunebook-0' in request.POST:
@@ -217,12 +223,14 @@ def tune_page(request, tune_id=None):
                             collection=request.user.tunebook,
                             )
                         action.send(request.user, verb='added', action_object=tune, target=request.user.tunebook)
+                        actions.follow(request.user, tune, actor_only=False, send_action=False)
                     else:
                         CollectionEntry.objects.filter(
                             tune=tune,
                             collection=request.user.tunebook,
                             ).delete()
                         action.send(request.user, verb='removed', action_object=tune, target=request.user.tunebook)
+                        actions.follow(request.user, tune, actor_only=False, send_action=False)
             else:
                 # submit-tunebook-x in request.POST where x>0
                 setting_x = None
@@ -245,12 +253,14 @@ def tune_page(request, tune_id=None):
                                 collection=request.user.tunebook,
                                 )
                             action.send(request.user, verb='added', action_object=setting, target=request.user.tunebook)
+                            actions.follow(request.user, tune, actor_only=False, send_action=False)
                         else:
                             CollectionEntry.objects.filter(
                                 setting=setting,
                                 collection=request.user.tunebook,
                                 ).delete()
                             action.send(request.user, verb='removed', action_object=setting, target=request.user.tunebook)
+                            actions.follow(request.user, tune, actor_only=False, send_action=False)
 
     tune.tunebook_count = CollectionEntry.objects.filter(tune=tune).count() #FIXME: collection.user is not null, do when there are non-tunebook collections
     if request.user.is_authenticated:
@@ -562,6 +572,8 @@ def competition_page(request, competition_id):
                     recording=recording,
                     )
             action.send(request.user, verb='submitted', action_object=recording, target=competition)
+            actions.follow(request.user, competition.tune_won, actor_only=False, send_action=False)
+            actions.follow(request.user, competition, actor_only=False, send_action=False)
             return redirect(competition.get_absolute_url())
     else:
         recording_form = RecordingForm()
@@ -578,6 +590,8 @@ def competition_page(request, competition_id):
             except CompetitionTuneVote.DoesNotExist:
                 vote = CompetitionTuneVote.objects.create(votable=competition_tune, user=request.user)
                 action.send(request.user, verb='cast', action_object=vote)
+                actions.follow(request.user, competition_tune.tune, actor_only=False, send_action=False)
+                actions.follow(request.user, competition, actor_only=False, send_action=False)
             return redirect(competition.get_absolute_url())
     
     if request.method == 'POST' and 'submit-recording-vote' in request.POST:
@@ -592,6 +606,8 @@ def competition_page(request, competition_id):
             except CompetitionRecordingVote.DoesNotExist:
                 vote = CompetitionRecordingVote.objects.create(votable=competition_recording, user=request.user)
                 action.send(request.user, verb='cast', action_object=vote)
+                actions.follow(request.user, competition_recording.recording, actor_only=False, send_action=False)
+                actions.follow(request.user, competition, actor_only=False, send_action=False)
             return redirect(competition.get_absolute_url())
     
     if request.method == 'POST' and 'submit-comment' in request.POST:
@@ -604,6 +620,7 @@ def competition_page(request, competition_id):
                         )
             comment.save()
             action.send(request.user, verb='made', action_object=comment, target=competition)
+            actions.follow(request.user, competition, actor_only=False, send_action=False)
             return redirect(competition.get_absolute_url())
     else:
         comment_form = CommentForm()
@@ -627,6 +644,7 @@ def submit_page(request):
             tune_attribution_form = TuneAttributionForm(request.POST, instance=tune_attribution) 
             tune_attribution_form.save()
             action.send(request.user, verb='submitted', action_object=tune)
+            actions.follow(request.user, tune, actor_only=False, send_action=False)
             return redirect(tune.get_absolute_url())
     else:
         tune_form = TuneForm()
@@ -643,6 +661,7 @@ def submit_page(request):
                     author=request.user,
                     )
             action.send(request.user, verb='submitted', action_object=recording)
+            #TODO: actions.follow tune when UI for tunes in recording
             return redirect(recording.get_absolute_url())
     else:
         recording_form = RecordingForm()
