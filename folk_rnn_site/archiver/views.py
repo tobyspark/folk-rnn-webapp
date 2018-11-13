@@ -5,6 +5,7 @@ from django.utils.timezone import now
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib.postgres.search import SearchQuery, SearchRank, SearchVector
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 from actstream import action, actions
 from actstream.models import user_stream
@@ -80,9 +81,20 @@ def home_page(request):
         except:
             recording = None
     
+    if request.user.is_authenticated():
+        # insufficient `with_user_activity = False`
+        actor_is_user = Q(
+            actor_content_type=ContentType.objects.get_for_model(request.user),
+            actor_object_id=request.user.pk
+        )
+        user_updates = user_stream(request.user).exclude(actor_is_user)[:MAX_RECENT_ITEMS]
+    else:
+        user_updates = None
+    
     return render(request, 'archiver/home.html', {
                             'recording': recording,
                             'tunes': tune_selection,
+                            'updates': user_updates,
                             })
 
 def tunes_page(request):
