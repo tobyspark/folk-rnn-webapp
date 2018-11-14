@@ -4,10 +4,10 @@ import sys
 import re
 import ast
 from datetime import datetime
-from collections import namedtuple
+from collections import namedtuple, Counter
 
 Datum = namedtuple('Datum', ['date', 'session', 'info'])
-TuneInfo = namedtuple('TuneInfo', ['tune', 'action'])
+generate_keys = ['model', 'temp', 'seed', 'key', 'meter', 'start_abc']
 
 def ingest_file():
     '''
@@ -68,6 +68,46 @@ def ingest_file():
                 data.append(Datum(date, session, info))
     return data
 
+def tune_view():
+    '''
+    Produce a tune-centric view of the data
+    Per-session, track changes in the generate parameters *before* generate tune command
+    Log actions on the tune after generation
+    Return counts of all these things, e.g.
+        tune: 9625: {'compose': 1}
+        tune: 9626: {'compose': 1, 'play': 1}
+        tune: 9627: {'start_abc': 25, 'compose': 1, 'download': 1}
+        tune: 9628: {'compose': 1, 'download': 1}
+        tune: 9629: {'compose': 1}
+        tune: 9630: {'download': 2, 'compose': 1}
+        tune: 9631: {'seed': 1, 'start_abc': 1, 'temp': 1, 'compose': 1, 'download': 1}
+    '''
+    tunes = {}
+    session_state = {}
+    session_changes = {}
+    for datum in data:
+        state = datum.info.get('state')
+        if state:
+            # determine the generate parameter changes before the tune is generated
+            if datum.session not in session_state:
+                session_changes[datum.session] = Counter()
+                session_state[datum.session] = datum.info
+            old_generate_params = {k: v for k,v in datum.info['state'].items() if k in generate_keys}
+            new_generate_params = {k: v for k,v in session_state[datum.session]['state'].items() if k in generate_keys}
+            changes = dict(set(new_generate_params.items()) - set(old_generate_params.items()))
+            session_changes[datum.session].update(changes.keys())
+            session_state[datum.session] = datum.info
+            continue
+        tune = datum.info.get('tune')
+        if tune:
+            if tune not in tunes:
+                tunes[tune] = Counter()
+                if datum.session in session_state:
+                    tunes[tune].update(session_changes[datum.session])
+                    del session_state[datum.session]
+            tunes[tune][datum.info['action']] +=1
+            continue
+    return tunes
 
 if __name__ == '__main__':
     
@@ -81,5 +121,6 @@ if __name__ == '__main__':
     
     data = ingest_file()
     
-    for datum in data:
-        print(datum)
+    tunes = tune_view()
+    for tune, info in tunes.items():
+        print(f'tune: {tune}: {info}')
