@@ -123,6 +123,42 @@ def tune_view():
             continue
     return tunes
 
+def session_view():
+    '''
+    Produce a session-centric view of the data
+    Return session history, e.g.
+        Session 8144 ----------
+        {'tune': 9600, 'action': 'compose'}
+        {'seed': '467042'}
+        {'tune': 9600, 'action': 'play'}
+        {'tune': 9600, 'action': 'download'}
+        {'temp': '1'}
+        {'temp': '1.01'}
+        {'temp': '1.02'}
+        {'temp': '1.03'}
+    '''
+    sessions = {}
+    session_state = {}
+    for datum in data:
+        if datum.session not in sessions:
+            sessions[datum.session] = []
+        state = datum.info.get('state')
+        if state:
+            if datum.session not in session_state:
+                session_state[datum.session] = datum.info
+            old_generate_params = {k: v for k,v in datum.info['state'].items() if k in generate_keys}
+            new_generate_params = {k: v for k,v in session_state[datum.session]['state'].items() if k in generate_keys}
+            changes = dict(set(new_generate_params.items()) - set(old_generate_params.items()))
+            if changes:
+                sessions[datum.session].append(changes)
+            session_state[datum.session] = datum.info
+            continue
+        tune = datum.info.get('tune')
+        if tune:
+            sessions[datum.session].append(datum.info)
+            continue
+    return sessions
+
 if __name__ == '__main__':
     
     if sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor < 6):
@@ -137,4 +173,12 @@ if __name__ == '__main__':
     
     tunes = tune_view()
     for tune, info in tunes.items():
-        print(f'tune: {tune}: {info}')
+        print(f'tune {tune}: {info}')
+        
+    sessions = session_view()
+    for session, info in sessions.items():
+        
+        print(f'Session {session} ----------')
+        for entry in info:
+            print(entry)
+        print()
