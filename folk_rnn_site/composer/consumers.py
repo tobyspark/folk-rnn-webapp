@@ -235,10 +235,10 @@ class ComposerConsumer(JsonWebsocketConsumer):
                 # untrusted input
                 to_log = f"URL: {content['url']}. State: {content['state']}"
                 # poor mans check
-                if len(to_log) < 400:
+                if len(to_log) < 1024:
                     self.log_use(to_log)
                 else:
-                    self.log_use(to_log[:400])
+                    self.log_use(to_log[:1024])
                     logger.warning('(worryingly)long state_notification')
             elif content['type'] in ['midi_play', 'midi_download']:
                 self.log_use(f"{content['type']} of tune {content['tune_id']}")
