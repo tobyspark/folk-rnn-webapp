@@ -26,11 +26,25 @@ def ingest_file():
                 info = {'session': 'disconnect'}
             elif info_field.startswith('URL'): # URL: /tune/103. State: {'model': 'thesession_with_repeats.pickle', 'temp': '1.42', 'seed': '875453', 'key': 'K:Cmin', 'meter': 'M:4/4', 'start_abc': '', 'tunes': ['102', '103']}
                 try:
-                    # Because I am over cautious I fucked this, and the field as logged was truncated to 400chars.
-                    valid_info_field = re.search(r"State: ({.*})$", info_field).group(1)
-                    info = {'state': ast.literal_eval(valid_info_field)}
+                    state_literal = re.search(r"State: ({.*})$", info_field).group(1)
+                    state_dict = ast.literal_eval(state_literal)
                 except Exception as e:
-                    info = {'state': None}
+                    # Because I am over cautious I fucked this, and the field as logged was truncated to 400chars.
+                    state_dict = None
+                    state_literal = re.search(r"State: ({.*)$", info_field).group(1)
+                    while state_dict is None:
+                        end_idx = state_literal.rfind(',')
+                        if end_idx == -1:
+                            break
+                        state_literal = state_literal[:end_idx] + '}'
+                        try:
+                            state_dict = ast.literal_eval(state_literal)
+                            print(f'Extracted {state_dict} from malformed \n{info_field}\n')
+                        except:
+                            pass
+                    if state_dict is None:
+                        print(f'Failed to extract from malformed \n{info_field}\n')
+                info = {'state': state_dict}
             elif info_field.startswith('Compose command.'): # Compose command. Tune 103 created.
                 tune_int = int(info_field.split(' ')[3])
                 info = {'tune': tune_int, 'action': 'compose'}
