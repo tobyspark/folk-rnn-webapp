@@ -137,26 +137,33 @@ def session_view():
         {'temp': '1.02'}
         {'temp': '1.03'}
     '''
+    def get_state_tracker():
+        last_state = {}
+        def state_tracked(datum):
+            info = None
+            state = datum.info.get('state')
+            if state:
+                if datum.session not in last_state:
+                    last_state[datum.session] = datum.info
+                old_generate_params = {k: v for k,v in state.items() if k in generate_keys}
+                new_generate_params = {k: v for k,v in last_state[datum.session].items() if k in generate_keys}
+                changes = dict(set(new_generate_params.items()) - set(old_generate_params.items()))
+                if changes:
+                    info = changes
+                last_state[datum.session] = state
+            return info
+        return state_tracked
     sessions = {}
-    session_state = {}
+    state_tracked = get_state_tracker()
     for datum in data:
         if datum.session not in sessions:
             sessions[datum.session] = []
-        state = datum.info.get('state')
-        if state:
-            if datum.session not in session_state:
-                session_state[datum.session] = datum.info
-            old_generate_params = {k: v for k,v in datum.info['state'].items() if k in generate_keys}
-            new_generate_params = {k: v for k,v in session_state[datum.session]['state'].items() if k in generate_keys}
-            changes = dict(set(new_generate_params.items()) - set(old_generate_params.items()))
-            if changes:
-                sessions[datum.session].append(changes)
-            session_state[datum.session] = datum.info
-            continue
+        state_info = state_tracked(datum)
+        if state_info:
+            sessions[datum.session].append(state_info)
         tune = datum.info.get('tune')
         if tune:
             sessions[datum.session].append(datum.info)
-            continue
     return sessions
 
 if __name__ == '__main__':
