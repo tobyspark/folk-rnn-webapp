@@ -156,6 +156,31 @@ def session_view():
             last_datum[datum.session] = datum
             return info
         return time_elapsed
+    def get_tune_archive_tracker():
+        '''
+        Track when generation parameters are reset (i.e. browse to /) or set by an archive tune (i.e. browse to /tune/x)
+        This isn't logged directly (oh, hindsight) and so here follows some fragile heuristics
+        '''
+        current_tunes = {}
+        def tune_archiver_tracked(datum):
+            info = None
+            if datum.session not in current_tunes:
+                current_tunes[datum.session] = set()
+            action = datum.info.get('action')
+            if action == 'compose':
+                current_tunes[datum.session].add(datum.info['tune'])
+            state = datum.info.get('state')
+            if state:
+                if state['url_tune'] is None:
+                    if 'session' not in state:
+                        info = 'Generation parameters reset'
+                elif state['url_tune'] not in current_tunes[datum.session]:
+                    print(state['url_tune'], current_tunes[datum.session], state.get('tunes'))
+                    info = f"Generation parameters set from archived tune {state['url_tune']}"
+                    if 'tunes' in state: # not always there due to truncation
+                        current_tunes[datum.session] = set(map(int, state['tunes']))
+            return info
+        return tune_archiver_tracked   
     def get_state_tracker():
         '''
         Track generation parameter state to return changes in that state
@@ -178,6 +203,7 @@ def session_view():
     sessions = {}
     time_elapsed = get_time_elapser()
     state_tracked = get_state_tracker()
+    tune_archive_tracked = get_tune_archive_tracker()
     for datum in data:
         if datum.session not in sessions:
             sessions[datum.session] = []
@@ -187,6 +213,9 @@ def session_view():
         state_info = state_tracked(datum)
         if state_info:
             sessions[datum.session].append(state_info)
+        tune_archived = tune_archive_tracked(datum)
+        if tune_archived:
+            sessions[datum.session].append(tune_archived)
         tune = datum.info.get('tune')
         if tune:
             sessions[datum.session].append(datum.info)
