@@ -3,7 +3,7 @@
 import sys
 import re
 import ast
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import namedtuple, Counter
 
 Datum = namedtuple('Datum', ['date', 'session', 'info'])
@@ -17,7 +17,7 @@ def ingest_file():
         data = []
         for line in f:
             date_field, time_field, session_field, info_field = line.rstrip().split(' ', 3)
-            date = datetime.strptime(f'{date_field} {time_field[:-4]}', '%Y-%m-%d %H:%M:%S')
+            date = datetime.strptime(f'{date_field} {time_field}', '%Y-%m-%d %H:%M:%S,%f')
             session = int(session_field)
             info = None
             if info_field == 'Connect':
@@ -137,6 +137,17 @@ def session_view():
         {'temp': '1.02'}
         {'temp': '1.03'}
     '''
+    def get_time_elapser():
+        last_datum = {}
+        def time_elapsed(datum):
+            info = None
+            if datum.session in last_datum:
+                elapsed_time = datum.date - last_datum[datum.session].date
+                if elapsed_time > timedelta(days=1):
+                    info = f'...{elapsed_time.days} day(s) pass...'
+            last_datum[datum.session] = datum
+            return info
+        return time_elapsed
     def get_state_tracker():
         last_state = {}
         def state_tracked(datum):
@@ -154,10 +165,14 @@ def session_view():
             return info
         return state_tracked
     sessions = {}
+    time_elapsed = get_time_elapser()
     state_tracked = get_state_tracker()
     for datum in data:
         if datum.session not in sessions:
             sessions[datum.session] = []
+        elapsed_info = time_elapsed(datum)
+        if elapsed_info is not None:
+            sessions[datum.session].append(elapsed_info)
         state_info = state_tracked(datum)
         if state_info:
             sessions[datum.session].append(state_info)
