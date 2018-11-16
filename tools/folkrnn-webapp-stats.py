@@ -9,15 +9,18 @@ from collections import namedtuple, Counter
 Datum = namedtuple('Datum', ['date', 'session', 'info'])
 generate_keys = ['model', 'temp', 'seed', 'key', 'meter', 'start_abc']
 
-def ingest_file():
+def ingest_file(start_date=datetime(year=2018, month=5, day=19)):
     '''
     Read the composer use log from file, process into python objects, return a list of Datums
+    2018-05-19 is when machinefolk went live, with a datamigration snafu that overwrote folkrnn tunes from 15-18th.
     '''
     with open(log_filepath, 'r') as f:
         data = []
         for line in f:
             date_field, time_field, session_field, info_field = line.rstrip().split(' ', 3)
             date = datetime.strptime(f'{date_field} {time_field}', '%Y-%m-%d %H:%M:%S,%f')
+            if date < start_date:
+                continue
             session = int(session_field)
             info = None
             if info_field == 'Connect':
