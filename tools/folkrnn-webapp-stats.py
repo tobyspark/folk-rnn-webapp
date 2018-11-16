@@ -26,24 +26,29 @@ def ingest_file():
                 info = {'session': 'disconnect'}
             elif info_field.startswith('URL'): # URL: /tune/103. State: {'model': 'thesession_with_repeats.pickle', 'temp': '1.42', 'seed': '875453', 'key': 'K:Cmin', 'meter': 'M:4/4', 'start_abc': '', 'tunes': ['102', '103']}
                 try:
+                    state_dict = {'url_tune': int(re.match(r"URL: /tune/(\d+)\.", info_field).group(1))}
+                except:
+                    state_dict = {'url_tune': None} # URL: /
+                try:
                     state_literal = re.search(r"State: ({.*})$", info_field).group(1)
-                    state_dict = ast.literal_eval(state_literal)
+                    state_dict.update(ast.literal_eval(state_literal))
                 except Exception as e:
                     # Because I am over cautious I fucked this, and the field as logged was truncated to 400chars.
-                    state_dict = None
+                    candidate = None
                     state_literal = re.search(r"State: ({.*)$", info_field).group(1)
-                    while state_dict is None:
+                    while candidate is None:
                         end_idx = state_literal.rfind(',')
                         if end_idx == -1:
                             break
                         state_literal = state_literal[:end_idx] + '}'
                         try:
-                            state_dict = ast.literal_eval(state_literal)
-                            print(f'Extracted {state_dict} from malformed \n{info_field}\n')
+                            candidate = ast.literal_eval(state_literal)
+                            print(f'Extracted {candidate} from malformed \n{info_field}\n')
                         except:
                             pass
-                    if state_dict is None:
+                    if candidate is None:
                         print(f'Failed to extract from malformed \n{info_field}\n')
+                    state_dict.update(candidate)
                 info = {'state': state_dict}
             elif info_field.startswith('Compose command.'): # Compose command. Tune 103 created.
                 tune_int = int(info_field.split(' ')[3])
@@ -106,8 +111,8 @@ def tune_view():
             if datum.session not in session_state:
                 session_changes[datum.session] = Counter()
                 session_state[datum.session] = datum.info
-            old_generate_params = {k: v for k,v in datum.info['state'].items() if k in generate_keys}
-            new_generate_params = {k: v for k,v in session_state[datum.session]['state'].items() if k in generate_keys}
+            new_generate_params = {k: v for k,v in datum.info['state'].items() if k in generate_keys}
+            old_generate_params = {k: v for k,v in session_state[datum.session]['state'].items() if k in generate_keys}
             changes = dict(set(new_generate_params.items()) - set(old_generate_params.items()))
             session_changes[datum.session].update(changes.keys())
             session_state[datum.session] = datum.info
@@ -138,6 +143,9 @@ def session_view():
         {'temp': '1.03'}
     '''
     def get_time_elapser():
+        '''
+        Track when a day or more passes between session entries
+        '''
         last_datum = {}
         def time_elapsed(datum):
             info = None
@@ -149,15 +157,18 @@ def session_view():
             return info
         return time_elapsed
     def get_state_tracker():
+        '''
+        Track generation parameter state to return changes in that state
+        '''
         last_state = {}
         def state_tracked(datum):
             info = None
             state = datum.info.get('state')
             if state:
                 if datum.session not in last_state:
-                    last_state[datum.session] = datum.info
-                old_generate_params = {k: v for k,v in state.items() if k in generate_keys}
-                new_generate_params = {k: v for k,v in last_state[datum.session].items() if k in generate_keys}
+                    last_state[datum.session] = datum.info['state']
+                new_generate_params = {k: v for k,v in state.items() if k in generate_keys}
+                old_generate_params = {k: v for k,v in last_state[datum.session].items() if k in generate_keys}
                 changes = dict(set(new_generate_params.items()) - set(old_generate_params.items()))
                 if changes:
                     info = changes
