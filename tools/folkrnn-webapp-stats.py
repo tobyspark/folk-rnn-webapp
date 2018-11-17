@@ -9,6 +9,8 @@ from collections import namedtuple, Counter
 Datum = namedtuple('Datum', ['date', 'session', 'info'])
 generate_keys = ['model', 'temp', 'seed', 'key', 'meter', 'start_abc']
 
+verbose = False
+
 def ingest_file(start_date=datetime(year=2018, month=5, day=19)):
     '''
     Read the composer use log from file, process into python objects, return a list of Datums
@@ -46,10 +48,11 @@ def ingest_file(start_date=datetime(year=2018, month=5, day=19)):
                         state_literal = state_literal[:end_idx] + '}'
                         try:
                             candidate = ast.literal_eval(state_literal)
-                            print(f'Extracted {candidate} from malformed \n{info_field}\n')
+                            if verbose:
+                                print(f'Extracted {candidate} from malformed \n{info_field}\n')
                         except:
                             pass
-                    if candidate is None:
+                    if verbose and candidate is None:
                         print(f'Failed to extract from malformed \n{info_field}\n')
                     state_dict.update(candidate)
                 info = {'state': state_dict}
@@ -90,6 +93,38 @@ def ingest_file(start_date=datetime(year=2018, month=5, day=19)):
                 data.append(Datum(date, session, info))
     return data
 
+def coalesce_continuous_sessions():
+    '''
+    Many sessions appear continuations of prior sessions, e.g. identical state
+    This returns re-written data with the continuer session ids as the original id
+    '''
+    session_rewrite = {}
+    last_state = {}
+    for datum in data:
+        state = datum.info.get('state')
+        if state:
+            if datum.session not in last_state.keys():
+                for k, v in last_state.items():
+                    if v == state['seed']:
+                        print(f'{datum.session} -> {k}')
+                        session_rewrite[datum.session] = k
+                        break
+            last_state[session_rewrite.get(datum.session, datum.session)] = state['seed']
+    new_data = []
+    for datum in data:
+        try:
+            session = session_rewrite[datum.session]
+            new_data.append(Datum(datum.date, session, datum.info))
+        except KeyError:
+            new_data.append(datum)
+    if verbose:
+        for datum in new_data:
+            try:
+                print(f"{datum.session}: {datum.info['state']['seed']}, {datum.info['state']['tunes']}")
+            except KeyError:
+                pass
+    return new_data
+    
 def tune_view():
     '''
     Produce a tune-centric view of the data
@@ -235,6 +270,8 @@ if __name__ == '__main__':
     log_filepath = sys.argv[1]
     
     data = ingest_file()
+    
+    data = coalesce_continuous_sessions()
     
     tunes = tune_view()
     for tune, info in tunes.items():
