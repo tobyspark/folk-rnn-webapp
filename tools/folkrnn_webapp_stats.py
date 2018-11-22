@@ -11,7 +11,7 @@ generate_keys = ['model', 'temp', 'seed', 'key', 'meter', 'start_abc']
 
 verbose = False
 
-def ingest_file(start_date=datetime(year=2018, month=5, day=19)):
+def ingest_file(log_filepath, start_date=datetime(year=2018, month=5, day=19)):
     '''
     Read the composer use log from file, process into python objects, return a list of Datums
     2018-05-19 is when machinefolk went live, with a datamigration snafu that overwrote folkrnn tunes from 15-18th.
@@ -93,7 +93,7 @@ def ingest_file(start_date=datetime(year=2018, month=5, day=19)):
                 data.append(Datum(date, session, info))
     return data
 
-def coalesce_continuous_sessions():
+def coalesce_continuous_sessions(data):
     '''
     Many sessions appear continuations of prior sessions, e.g. identical state
     This returns re-written data with the continuer session ids as the original id
@@ -106,7 +106,6 @@ def coalesce_continuous_sessions():
             if datum.session not in last_state.keys():
                 for k, v in last_state.items():
                     if v == state['seed']:
-                        print(f'{datum.session} -> {k}')
                         session_rewrite[datum.session] = k
                         break
             last_state[session_rewrite.get(datum.session, datum.session)] = state['seed']
@@ -125,7 +124,7 @@ def coalesce_continuous_sessions():
                 pass
     return new_data
     
-def tune_view():
+def tune_view(data):
     '''
     Produce a tune-centric view of the data
     Per-session, track changes in the generate parameters *before* generate tune command
@@ -166,7 +165,7 @@ def tune_view():
             continue
     return tunes
 
-def session_view():
+def session_view(data):
     '''
     Produce a session-centric view of the data
     Return session history, e.g.
@@ -259,6 +258,7 @@ def session_view():
             sessions[datum.session].append(datum.info)
     return sessions
 
+    
 if __name__ == '__main__':
     
     if sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor < 6):
@@ -267,13 +267,11 @@ if __name__ == '__main__':
     if (len(sys.argv) < 2):
         sys.exit('Missing log file')
         
-    log_filepath = sys.argv[1]
+    data = ingest_file(sys.argv[1])
     
-    data = ingest_file()
+    data = coalesce_continuous_sessions(data)
     
-    data = coalesce_continuous_sessions()
-    
-    tunes = tune_view()
+    tunes = tune_view(data)
     for tune, info in tunes.items():
         print(f'tune {tune}: {info}')
         
@@ -284,3 +282,6 @@ if __name__ == '__main__':
         for entry in info:
             print(entry)
         print()
+    
+    analyse(data, tunes, sessions)
+    
