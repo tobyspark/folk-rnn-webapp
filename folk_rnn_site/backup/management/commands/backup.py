@@ -165,7 +165,7 @@ class Command(BaseCommand):
         """
         print('Listing all stored files')
         for file_info in self._list_stored_files():
-            print(file_info)
+            print(f"{file_info['name']:60}{file_info['size']:10}{file_info['createdTime']}")
     
     def download_file(self, file_id, file_path):
         """
