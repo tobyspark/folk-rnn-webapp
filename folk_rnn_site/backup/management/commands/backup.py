@@ -145,11 +145,7 @@ class Command(BaseCommand):
                 logger.error(f'archive_store_folder: {e}') # It should... # Do not retry. Log the error and fail.
         return body['name']
 
-    def list_stored_files(self):
-        """
-        Utility function, typically for interactive use
-        """
-        print('Listing all stored files')
+    def _list_stored_files(self):
         next_page_token = 'no token for first page'
         while next_page_token is not None:
             kwargs = {'orderBy':'createdTime desc'}
@@ -161,7 +157,15 @@ class Command(BaseCommand):
             else:
                 next_page_token = None
             for meta in drive_list['files']:
-                print(self.drive.files().get(fileId=meta['id'], fields='name,size,createdTime').execute())
+                yield self.drive.files().get(fileId=meta['id'], fields='id, name,size,createdTime').execute()
+
+    def list_stored_files(self):
+        """
+        Utility function, typically for interactive use
+        """
+        print('Listing all stored files')
+        for file_info in self._list_stored_files():
+            print(f"{file_info['name']:60}{file_info['size']:10}{file_info['createdTime']}")
     
     def download_file(self, file_id, file_path):
         """
@@ -196,7 +200,27 @@ class Command(BaseCommand):
             raise ValueError
         self.download_file(file_id, filename)
     
-    
+    def download_latest_production_backup(self, to_dir=''):
+        names = [
+            ['db_data_backup_production_', None, None],
+            ['folk_rnn_webapp_backup_production_', None, None],
+            ['tunes_backup_production_', None, None],
+            ]
+            
+        # relies on _list_stored_files's newest-first ordering request
+        for file_info in self._list_stored_files():
+            for name in names:
+                if file_info.get('name').startswith(name[0]):
+                    name[1] = file_info.get('id')
+                    name[2] = file_info.get('name')
+            if all(x[1] for x in names):
+                for name in names:
+                    download_path = os.path.join(to_dir, name[2])
+                    self.download_file(name[1], download_path)
+                    name.append(download_path)
+                break
+        return ([x[3] for x in names])
+                    
     def delete_file(self, file_id):
         """
         Utility function, typically for interactive use
