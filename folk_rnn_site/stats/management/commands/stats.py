@@ -324,30 +324,33 @@ def analyse(data, tunes, sessions):
     - Of the tunes downloaded, are there any common characteristics, like most of the tunes are in 6/8, Cmaj? 
     '''
     
+    def format_dict(d):
+        return ', '.join([f'{k}: {v:.2}' for k, v in d.items()])
+    
     duration = data[-1].date - data[0].date
     session_tunes = {k: [info['tune'] for info in v if isinstance(info, dict) and info.get('action') == 'compose'] for k, v in sessions.items()}
     session_tune_counts = {k: len(v) for k, v in session_tunes.items()}
     print(f"{len(tunes)} tunes were generated from {len(session_tunes)} sessions over {duration.days} days.")
     print(f"Distribution: {sorted(Counter(session_tune_counts.values()).items())}")
-    print(f"With mean: {mean(session_tune_counts.values())} and standard deviation: {pstdev(session_tune_counts.values())}")
+    print(f"With mean: {mean(session_tune_counts.values()):.2} and standard deviation: {pstdev(session_tune_counts.values()):.2}")
     print()
     
     generating_session_tunes = {k: v for k, v in session_tunes.items() if v}
     generating_session_tune_counts = {k: len(v) for k, v in generating_session_tunes.items()}
     print("A session is more-or-less the use of a unique browser, tracked over time. However the number of sessions with no tunes generated may have little value, as some sessions reported as distinct were identifiably not, and not all visits to the site may have been made in good faith (e.g. bots). Our best approximation of good-faith users are then joining sessions that are identifiably continuations of previous ones, and then discounting any that did not generate a tune.")
-    print(f"Our best approximation of good-faith users generated on average mean: {mean(generating_session_tune_counts.values())} standard deviation: {pstdev(generating_session_tune_counts.values())}.")
+    print(f"Our best approximation of good-faith users generated on average mean: {mean(generating_session_tune_counts.values()):.2} standard deviation: {pstdev(generating_session_tune_counts.values()):.2}.")
     print("For each tune generated, the frequency of the following generate parameters being used was:")
-    print({k: mean([k in tune for tune in tunes.values()]) for k in generate_keys})
+    print(format_dict({k: mean([k in tune for tune in tunes.values()]) for k in generate_keys}))
     print("For each tune generated, the frequency of it being played, downloaded or archived was:")
-    print({k: mean([k in tune for tune in tunes.values()]) for k in export_keys})
+    print(format_dict({k: mean([k in tune for tune in tunes.values()]) for k in export_keys}))
     print("If the tune had no changes to the generate parameters, the frequency of it being played, downloaded or archived was:")
     no_changes = {k: mean([k in tune for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) == set()]) for k in export_keys}
     no_changes.update({'all': mean([set(export_keys).intersection(tune.keys()) != set() for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) == set()])})
-    print(no_changes)
+    print(format_dict(no_changes))
     print("Whereas if the tune did have changes to the generate parameters, the frequency of it being played, downloaded or archived was:")
     changes = {k: mean([k in tune for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) != set()]) for k in export_keys}
     changes.update({'all': mean([set(export_keys).intersection(tune.keys()) != set() for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) != set()])})
-    print(changes)
+    print(format_dict(changes))
     
     # TODO: extract ABC properties
     
