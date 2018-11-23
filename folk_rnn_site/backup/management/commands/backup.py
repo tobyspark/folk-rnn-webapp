@@ -217,7 +217,9 @@ class Command(BaseCommand):
                 for name in names:
                     download_path = os.path.join(to_dir, name[2])
                     self.download_file(name[1], download_path)
+                    name.append(download_path)
                 break
+        return ([x[3] for x in names])
                     
     def delete_file(self, file_id):
         """

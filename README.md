@@ -58,6 +58,18 @@ Note: Using the localhost IP address as above will route to the default app (cur
 
 Note: if the specification for the VM changes, e.g. what's in the `Vagrantfile`, those changes will need to be retrospectively applied to any existing machines. Either `vagrant reload --provision` the existing machine, or `vagrant destroy; vagrant up` to create a fresh machine to this spec.
 
+#### Backup, and restoring from it
+
+A production install should automatically backup the database and key files to a cloud service.
+
+A django management command is included to apply this backup to a local machine, i.e. follow the above procedure with this.
+
+```
+vagrant up
+vagrant ssh
+python3.6 /folk_rnn_webapp/folk_rnn_site/manage.py applybackup
+```
+
 #### Tests
 ```
 vagrant up
