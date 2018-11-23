@@ -157,7 +157,7 @@ class Command(BaseCommand):
             else:
                 next_page_token = None
             for meta in drive_list['files']:
-                yield self.drive.files().get(fileId=meta['id'], fields='name,size,createdTime').execute()
+                yield self.drive.files().get(fileId=meta['id'], fields='id, name,size,createdTime').execute()
 
     def list_stored_files(self):
         """
@@ -200,21 +200,23 @@ class Command(BaseCommand):
             raise ValueError
         self.download_file(file_id, filename)
     
-    def download_latest_production_backup(self):
+    def download_latest_production_backup(self, to_dir=''):
         names = [
-            ['db_data_backup_production_', None],
-            ['folk_rnn_webapp_backup_production_', None],
-            ['tunes_backup_production_', None],
+            ['db_data_backup_production_', None, None],
+            ['folk_rnn_webapp_backup_production_', None, None],
+            ['tunes_backup_production_', None, None],
             ]
             
         # relies on _list_stored_files's newest-first ordering request
         for file_info in self._list_stored_files():
             for name in names:
                 if file_info.get('name').startswith(name[0]):
-                    name[1] = file_info.get('name')
+                    name[1] = file_info.get('id')
+                    name[2] = file_info.get('name')
             if all(x[1] for x in names):
                 for name in names:
-                    self.download_file_named(name[1])
+                    download_path = os.path.join(to_dir, name[2])
+                    self.download_file(name[1], download_path)
                 break
                     
     def delete_file(self, file_id):
