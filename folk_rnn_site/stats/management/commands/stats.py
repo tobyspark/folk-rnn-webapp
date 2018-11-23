@@ -1,4 +1,4 @@
-#! /usr/local/bin/python3.6
+#!/usr/local/bin/python3.6
 
 import sys
 import re
@@ -7,10 +7,51 @@ from datetime import datetime, timedelta
 from collections import namedtuple, Counter
 from statistics import mean, pstdev
 
+from django.core.management.base import BaseCommand
+from django.conf import settings
+
 Datum = namedtuple('Datum', ['date', 'session', 'info'])
 generate_keys = ['model', 'temp', 'seed', 'key', 'meter', 'start_abc']
 
 verbose = False
+
+class Command(BaseCommand):
+    '''
+    Collates and analyses useage data from logs and database. A Django management command.
+    i.e `python3.6 /vagrant/folk_rnn_webapp/folk_rnn_site/manage.py stats`
+        
+    Includes utility functions, typically for interactive use, i.e.
+        cd /folk_rnn_webapp/folk_rnn_site
+        python3.6
+        from backup.management.commands.stats import Command
+        data = ingest_file(<path to composer.use.log>)
+        print(session_view(data))
+    '''
+    help = 'Produce usage statistics suitable for academic write-up.'
+    
+    def handle(self, *args, **options):
+        '''
+        Process the command (i.e. the django manage.py entrypoint)
+        '''
+        composer_use_log_path = settings.LOGGING['handlers']['file_composer_use']['filename']
+        
+        data = ingest_file(composer_use_log_path)
+        
+        data = coalesce_continuous_sessions(data)
+        
+        tunes = tune_view(data)
+        for tune, info in tunes.items():
+            print(f'tune {tune}: {info}')
+            
+        sessions = session_view(data)
+        for session, info in sessions.items():
+            
+            print(f'Session {session} ----------')
+            for entry in info:
+                print(entry)
+            print()
+        
+        analyse(data, tunes, sessions)
 
 def ingest_file(log_filepath, start_date=datetime(year=2018, month=5, day=19)):
     '''
