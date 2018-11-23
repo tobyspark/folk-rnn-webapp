@@ -10,8 +10,11 @@ from statistics import mean, pstdev
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
+from archiver.models import Tune
+
 Datum = namedtuple('Datum', ['date', 'session', 'info'])
 generate_keys = ['model', 'temp', 'seed', 'key', 'meter', 'start_abc']
+export_keys = ['play', 'download', 'archive']
 
 verbose = False
 
@@ -39,7 +42,7 @@ class Command(BaseCommand):
         
         data = coalesce_continuous_sessions(data)
         
-        tunes = tune_view(data)
+        tunes = tune_view_with_archiver_info(data)
         for tune, info in tunes.items():
             print(f'tune {tune}: {info}')
             
@@ -207,6 +210,17 @@ def tune_view(data):
             continue
     return tunes
 
+def tune_view_with_archiver_info(data):
+    '''
+    As per tune_view, but including data harvested from the archiver database.
+    e.g. has each tune been archived
+    '''
+    tunes = tune_view(data)
+    for composer_tune_id in tunes:
+        if Tune.objects.filter(rnn_tune__id=composer_tune_id).exists():
+            tunes[composer_tune_id]['archive'] +=1
+    return tunes
+
 def session_view(data):
     '''
     Produce a session-centric view of the data
@@ -324,14 +338,18 @@ def analyse(data, tunes, sessions):
     print(f"Our best approximation of good-faith users generated on average mean: {mean(generating_session_tune_counts.values())} standard deviation: {pstdev(generating_session_tune_counts.values())}.")
     print("For each tune generated, the frequency of the following generate parameters being used was:")
     print({k: mean([k in tune for tune in tunes.values()]) for k in generate_keys})
-    print("For each tune generated, the frequency of it being downloaded <TODO: or archived> was:")
-    print({k: mean([k in tune for tune in tunes.values()]) for k in ['download']})
-    print("If the tune had no changes to the generate parameters, the frequency of it being downloaded was:")
-    print({k: mean([k in tune for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) == set()]) for k in ['download']})
-    print("Whereas if the tune did have changes to the generate parameters, the frequency of it being downloaded was:")
-    print({k: mean([k in tune for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) != set()]) for k in ['download']})
+    print("For each tune generated, the frequency of it being played, downloaded or archived was:")
+    print({k: mean([k in tune for tune in tunes.values()]) for k in export_keys})
+    print("If the tune had no changes to the generate parameters, the frequency of it being played, downloaded or archived was:")
+    no_changes = {k: mean([k in tune for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) == set()]) for k in export_keys}
+    no_changes.update({'all': mean([set(export_keys).intersection(tune.keys()) != set() for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) == set()])})
+    print(no_changes)
+    print("Whereas if the tune did have changes to the generate parameters, the frequency of it being played, downloaded or archived was:")
+    changes = {k: mean([k in tune for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) != set()]) for k in export_keys}
+    changes.update({'all': mean([set(export_keys).intersection(tune.keys()) != set() for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) != set()])})
+    print(changes)
     
-    # TODO: extract ABC properties, requires database access (as does detemining archived)
+    # TODO: extract ABC properties
     
 if __name__ == '__main__':
     
