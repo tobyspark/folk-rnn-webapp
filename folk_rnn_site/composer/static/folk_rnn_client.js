@@ -381,14 +381,14 @@ folkrnn.updateTuneDiv = function(tune) {
     
     el_abc.value = tune.abc;
     el_abc.setAttribute('rows', tune.abc.split(/\r\n|\r|\n/).length - 1);
-    el_model.value = tune.rnn_model_name.replace('.pickle', '');
-    el_seed.value = tune.seed;
-    el_temp.value = tune.temp;
-    el_prime_tokens.value = tune.prime_tokens;
-    el_requested.value = tune.requested;
-    el_generated.value = tune.rnn_finished;
+    el_model.textContent = tune.rnn_model_name.replace('.pickle', '');
+    el_seed.textContent = tune.seed;
+    el_temp.textContent = tune.temp;
+    el_prime_tokens.textContent = tune.prime_tokens;
+    el_requested.textContent = tune.requested;
+    el_generated.textContent = tune.rnn_finished;
     if (tune.rnn_finished) {
-        el_generated.value = new Date(tune.rnn_finished).toLocaleString();
+        el_generated.textContent = new Date(tune.rnn_finished).toLocaleString();
         el_requested.parentNode.setAttribute('hidden', '');
         el_generated.parentNode.removeAttribute('hidden');
         
@@ -407,7 +407,7 @@ folkrnn.updateTuneDiv = function(tune) {
             folkrnn.fieldStartABC.value = tune.start_abc;
         }
     } else {
-        el_requested.value = new Date(tune.requested).toLocaleString();
+        el_requested.textContent = new Date(tune.requested).toLocaleString();
         el_requested.parentNode.removeAttribute('hidden');
         el_generated.parentNode.setAttribute('hidden', '');
         
