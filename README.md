@@ -33,6 +33,8 @@ some-directory
 └── midi-js-soundfonts
 ```
 
+Note the folk-rnn repository used here is a fork of the original folk-rnn project that provides an API to the generate functionality and has an orders-of-magnitude faster implementation of the generate code.
+
 ### Procedure – Dev, i.e. local, VirtualBox
 In a shell, navigate to the `folk-rnn-webapp` directory, and issue the following commands
 
@@ -128,7 +130,7 @@ The RNN models used by the composer app are re-packaged versions of the pickle f
 
 The packaging process happens automatically on `vagrant provision`, and the webapp should dynamically load all relevant settings from the pickles on app intialisation. For example, mode and meter keys are extracted from the model’s tokens.
 
-To include a new model, first update the folk-rnn library to include the model, e.g. the `folk-rnn` directory alongside `folk-rnn-webapp`. (Note this is a fork of the original folk-rnn project, that provides an API to the generate functionality and has an orders-of-magnitude faster implementation of the generate code. With this done, the model will be copied onto the host machine on provisioning.
+To include a new model, first update your copy of the folk-rnn library to include the model, i.e. if you are training the model elsewhere, find the `folk-rnn` directory alongside `folk-rnn-webapp`, and place the model file `pkl` in the `metadata` folder. With this done, the model will be copied onto the host machine on provisioning.
 
 With the new model in place, edit the webapp provisioning script to import the model into the webapp, and provision: 
 `tools/create_model_from_config_meta.py`
