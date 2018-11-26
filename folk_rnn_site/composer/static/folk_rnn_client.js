@@ -352,15 +352,16 @@ folkrnn.updateKeyMeter = function() {
     while (folkrnn.fieldKey.lastChild) {
         folkrnn.fieldKey.removeChild(folkrnn.fieldKey.lastChild);
     }
-    let key_map = {
-        'K:Cmaj': 'C Major',		
-        'K:Cmin': 'C Minor',		
-        'K:Cdor': 'C Dorian',		
-        'K:Cmix': 'C Mixolydian',
-        '*' : 'C ?????'
+    const key_map = {
+        'maj': 'Major',		
+        'min': 'Minor',		
+        'dor': 'Dorian',		
+        'mix': 'Mixolydian',
+        'lyd': 'Lydian',
     };
     for (const k of folkrnn.models[folkrnn.fieldModel.value].header_k_tokens) {
-        folkrnn.fieldKey.appendChild(new Option(key_map[k], k));
+        const label = (k === '*') ? '? ???' : k.slice(2,-3) + " " + key_map[k.slice(-3).toLowerCase()]
+        folkrnn.fieldKey.appendChild(new Option(label, k));
     }
     folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, key, 'K:Cmaj');
 };

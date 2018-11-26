@@ -2,13 +2,19 @@ from django.db import models
 from folk_rnn_site.models import ABCModel
 from django_hosts.resolvers import reverse
 
+from composer.rnn_models import token_for_info_field
+
 class RNNTune(ABCModel):
     def __str__(self):
         return f'RNNTune {self.id}'
         
     @property
     def prime_tokens(self):
-        prime_token_items = (self.meter, self.key, self.start_abc)
+        prime_token_items = (
+                            token_for_info_field(self.meter, self.rnn_model_name),
+                            token_for_info_field(self.key, self.rnn_model_name),
+                            self.start_abc,
+                            )
         return ' '.join(x for x in prime_token_items if x)
     
     @property
@@ -41,8 +47,8 @@ class RNNTune(ABCModel):
     rnn_model_name = models.CharField(max_length=64, default='')
     seed = models.IntegerField(default=42)
     temp = models.FloatField(default=1.0)
-    meter = models.CharField(max_length=6, default='')
-    key = models.CharField(max_length=6, default='')
+    meter = models.CharField(max_length=7, default='') # e.g. M:11/16
+    key = models.CharField(max_length=7, default='') # e.g. K:BbMin
     start_abc = models.TextField(default='')
     requested = models.DateTimeField(auto_now_add=True)
     rnn_started = models.DateTimeField(null=True)
