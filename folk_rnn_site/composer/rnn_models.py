@@ -3,12 +3,16 @@ import pickle
 import functools
 import json
 import logging
+import re
 from collections import OrderedDict
 
 from composer import MODEL_PATH, FOLKRNN_INSTANCE_CACHE_COUNT
 from folk_rnn import Folk_RNN
 
 logger = logging.getLogger(__name__)
+
+header_m_regex = re.compile(r"M:(\d+)/(\d+)")
+header_k_regex = re.compile(r"K:[A-G][b#]?[A-Za-z]{3}")
 
 @functools.lru_cache(maxsize=FOLKRNN_INSTANCE_CACHE_COUNT)
 def folk_rnn_cached(rnn_model_name):
@@ -33,8 +37,13 @@ def models():
             model['tokens'] = set(job_spec['token2idx'].keys())
             model['tokens'].add('*')
             model['display_name'] = job_spec['name']
-            model['header_m_tokens'] = sorted({x for x in model['tokens'] if x.startswith('M:')}, key=lambda x: int(x[2:].split('/')[0])) + ['*']
-            model['header_k_tokens'] = sorted({x for x in model['tokens'] if x.startswith('K:')}) + ['*']
+            model['header_m_tokens'] = sorted(
+                    {header_m_regex.search(x).group(0) for x in model['tokens'] if header_m_regex.search(x)}, 
+                    key=lambda x: int(header_m_regex.search(x).group(2)*100) + int(header_m_regex.search(x).group(1))
+                                            ) + ['*']
+            model['header_k_tokens'] = sorted(
+                    {header_k_regex.search(x).group(0) for x in model['tokens'] if header_k_regex.search(x)}
+                                            ) + ['*']
             models[filename] = model
         except:
             logger.warning(f'Error parsing {filename}')
@@ -59,10 +68,28 @@ def validate_meter(token, model_file_name):
     tokens = models()[model_file_name]['header_m_tokens']
     if token == '' and len(tokens) == 0:
         return True
-    return token in tokens
+    # Info fields can form the header or be in-line, a model will have one or the other.
+    if token in tokens:
+        return True
+    return f'[{token}]' in tokens
 
 def validate_key(token, model_file_name):
     tokens = models()[model_file_name]['header_k_tokens']
     if token == '' and len(tokens) == 0:
         return True
-    return token in tokens
+    # Info fields can form the header or be in-line, a model will have one or the other.
+    if token in tokens:
+        return True
+    return f'[{token}]' in tokens
+
+def token_for_info_field(token, model_file_name):
+    tokens = models()[model_file_name]['header_m_tokens']
+    tokens += models()[model_file_name]['header_k_tokens']
+    # Info fields can form the header or be in-line, a model will have one or the other.
+    if token in tokens:
+        return token 
+    token = f'[{token}]'
+    if token in tokens:
+        return token   
+    raise ValueError
+    
