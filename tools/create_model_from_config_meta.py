@@ -9,6 +9,7 @@ import pickle
 metadata_paths = [
         ('/folk_rnn/metadata/config5-wrepeats-20160112-222521.pkl', 'thesession_with_repeats', 'thesession.org (w/ :| |:)'),
         ('/folk_rnn/metadata/config5-worepeats-20160311-134539.pkl', 'thesession_without_repeats', 'thesession.org (w/o :| |:)'),
+        ('/folk_rnn/metadata/lstm_pretrain-9_nov_folkwiki_and_sessions-20181112-093943.pkl', 'swedish', 'folkwiki.se'),
         # ('/folk_rnn/metadata/config5_resume-allabcworepeats_parsed_Tallis_trimmed1000-20171228-191847_epoch39.pkl', 'without_repeats_tallis'),
         ]
 
@@ -21,12 +22,13 @@ try:
 except:
     pass
 
-for metadata_path, model_filename, model_displayname in metadata_paths: 
+for idx, (metadata_path, model_filename, model_displayname) in enumerate(metadata_paths): 
     with open(metadata_path, 'rb') as f:
         metadata = pickle.load(f, encoding='latin1') # latin1 maps 0-255 to unicode 0-255
         
     model = {
         'name': model_displayname,
+        'order': idx,
         'token2idx': metadata['token2idx'],
         'param_values': metadata['param_values'], 
         'num_layers': config.num_layers, 

@@ -33,6 +33,8 @@ some-directory
 └── midi-js-soundfonts
 ```
 
+Note the folk-rnn repository used here is a fork of the original folk-rnn project that provides an API to the generate functionality and has an orders-of-magnitude faster implementation of the generate code.
+
 ### Procedure – Dev, i.e. local, VirtualBox
 In a shell, navigate to the `folk-rnn-webapp` directory, and issue the following commands
 
@@ -121,3 +123,24 @@ Browse to `<archiver url>/dataset` to download a CSV of all the tunes and settin
 On a host machine, run the following django management command `python3.6 /folk_rnn_webapp/folk_rnn_site/manage.py stats` to view i. a tune-centric view of activity, ii. a composer-session-centric view of activity, and iii. descriptive statistics suitable for academic write-up.
 
 All datasets are anonymous.
+
+## Models
+
+The RNN models used by the composer app are re-packaged versions of the pickle files used by folk-rnn. They contain meta-data such as the display name for the model, and are in Python 3 format.
+
+The packaging process happens automatically on `vagrant provision`, and the webapp should dynamically load all relevant settings from the pickles on app intialisation. For example, mode and meter keys are extracted from the model’s tokens.
+
+To include a new model, first update your copy of the folk-rnn library to include the model, i.e. if you are training the model elsewhere, find the `folk-rnn` directory alongside `folk-rnn-webapp`, and place the model file `pkl` in the `metadata` folder. With this done, the model will be copied onto the host machine on provisioning.
+
+With the new model in place, edit the webapp provisioning script to import the model into the webapp, and provision: 
+`tools/create_model_from_config_meta.py`
+
+The script starts with a list of models to include, as tuples structured as `(folk-rnn-metadata-pickle, save-as-name, display-name)` e.g.
+
+```
+	(
+	'/folk_rnn/metadata/config5-wrepeats-20160112-222521.pkl',
+	'thesession_with_repeats', 
+	'thesession.org (w/ :| |:)’,
+	)
+```

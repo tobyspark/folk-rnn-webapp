@@ -49,27 +49,30 @@ class FolkRNNConsumer(SyncConsumer):
         abc = f'X:{tune.id}\n'
         if FOLKRNN_TUNE_TITLE:
             abc += f'T:{FOLKRNN_TUNE_TITLE}{tune.id}\n'
-        token_count = 0
-        deferred_tokens = []
+        in_header = True
+        header_tokens = []
         def on_token(token):
-            nonlocal token_count, abc, deferred_tokens
-            token_count += 1
-            if token_count == 1:
-                if token[0:2] != 'M:': # valid ABC: ensure M, K header
-                    abc += 'M:none\n'
-                    deferred_tokens += token
+            nonlocal abc, header_tokens, in_header
+            # Ensure valid ABC
+            # - In header, have M (req), K, (req), L (opt) info fields on new lines, in that order.
+            # - In body, any info field should be in square brackets, if it's not already.
+            # This code tries its best to cope with ill-formed ABC produced by folk-rnn, i.e. probablistic ordering.
+            # Further complicating things, info-fields have to be modelled as either header or in-line, and this hasn't been done consistently between models
+            if in_header:
+                if token.strip('[]')[0:2] in ['M:', 'K:', 'L:']:
+                    header_tokens.append(token.strip('[]'))
                 else:
-                    abc += token + '\n'
-            elif token_count == 2: # valid ABC: ensure M, K header
-                if token[0:2] != 'K:':
-                    abc += 'K:none\n'
-                    deferred_tokens += token
-                else:
-                    abc += token + '\n'
-            else:
-                if token[0:2] in ['M:', 'K:']: # valid ABC: information fields in body need to be wrapped in square brackets
+                    in_header = False
+                    for header in ['M:', 'K:', 'L:']:
+                        header_token_candidates = [x for x in header_tokens if x.startswith(header)]
+                        if header_token_candidates:
+                            abc += header_token_candidates[0] + '\n'
+                        elif header in ['M:', 'K:']:
+                            abc += header + 'none\n'
+            if not in_header:
+                if token[0:2] in ['M:', 'K:', 'L:']:
                     token = f'[{ token }]'
-                abc += ' '.join(deferred_tokens) + token
+                abc += token
             async_to_sync(self.channel_layer.group_send)(
                                     f'tune_{tune.id}',
                                     {
