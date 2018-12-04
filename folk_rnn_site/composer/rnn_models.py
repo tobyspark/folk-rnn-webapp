@@ -28,8 +28,8 @@ def folk_rnn_cached(rnn_model_name):
 
 @functools.lru_cache(maxsize=1)
 def models():
-    models = OrderedDict()
-    for filename in sorted(os.listdir(MODEL_PATH)):
+    models = {}
+    for filename in os.listdir(MODEL_PATH):
         try:
             with open(os.path.join(MODEL_PATH, filename), "rb") as f:
                 job_spec = pickle.load(f)
@@ -37,6 +37,7 @@ def models():
             model['tokens'] = set(job_spec['token2idx'].keys())
             model['tokens'].add('*')
             model['display_name'] = job_spec['name']
+            model['display_order'] = job_spec['order']
             model['header_m_tokens'] = sorted(
                     {header_m_regex.search(x).group(0) for x in model['tokens'] if header_m_regex.search(x)}, 
                     key=lambda x: int(header_m_regex.search(x).group(2)*100) + int(header_m_regex.search(x).group(1))
@@ -48,7 +49,7 @@ def models():
         except:
             logger.warning(f'Error parsing {filename}')
             pass
-    return models
+    return OrderedDict(sorted(models.items(), key=lambda x: x[1]['display_order']))
 
 def models_json():
     def set_encoder(obj):

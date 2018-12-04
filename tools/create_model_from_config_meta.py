@@ -22,12 +22,13 @@ try:
 except:
     pass
 
-for metadata_path, model_filename, model_displayname in metadata_paths: 
+for idx, (metadata_path, model_filename, model_displayname) in enumerate(metadata_paths): 
     with open(metadata_path, 'rb') as f:
         metadata = pickle.load(f, encoding='latin1') # latin1 maps 0-255 to unicode 0-255
         
     model = {
         'name': model_displayname,
+        'order': idx,
         'token2idx': metadata['token2idx'],
         'param_values': metadata['param_values'], 
         'num_layers': config.num_layers, 
