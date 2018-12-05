@@ -399,7 +399,8 @@ folkrnn.updateTuneDiv = function(tune) {
         el_archive_form.removeAttribute('hidden');
         
         if (folkrnn.setComposeParametersFromTune) {
-            folkrnn.fieldModel.value = tune.rnn_model_name;
+            folkrnn.utilities.setSelectByValue(folkrnn.fieldModel, tune.rnn_model_name, '');
+            folkrnn.updateKeyMeter()
             folkrnn.fieldTemp.value = tune.temp;
             folkrnn.fieldSeed.value = tune.seed;
             folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, tune.key, '');
