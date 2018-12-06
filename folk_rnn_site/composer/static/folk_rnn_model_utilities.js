@@ -133,7 +133,7 @@ folkrnn.parseABC = function(abc) {
             flag_innote=0;
             flag_indur=0;
             flag_expectingnote=0;
-            result.push(c)
+            result.push(c);
         } else {
             invalidIndexes.push(i);
         }

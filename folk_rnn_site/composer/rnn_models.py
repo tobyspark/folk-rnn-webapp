@@ -45,6 +45,9 @@ def models():
             model['header_k_tokens'] = sorted(
                     {header_k_regex.search(x).group(0) for x in model['tokens'] if header_k_regex.search(x)}
                                             ) + ['*']
+            model['default_meter'] = job_spec['default_meter']
+            model['default_mode'] = job_spec['default_mode']
+            model['default_tempo'] = job_spec['default_tempo']
             models[filename] = model
         except:
             logger.warning(f'Error parsing {filename}')
