@@ -12,7 +12,7 @@ folkrnn.initialise = function() {
     folkrnn.fieldKey = document.getElementById("id_key");
     folkrnn.fieldMeter = document.getElementById("id_meter");
     folkrnn.fieldStartABC = document.getElementById("id_start_abc");
-    folkrnn.seedAutoButton = document.getElementById("seed_auto")
+    folkrnn.seedAutoButton = document.getElementById("seed_auto");
     folkrnn.composeButton = document.getElementById("compose_button");
     
     folkrnn.div_tune = document.getElementById("tune");
@@ -87,7 +87,7 @@ folkrnn.stateManager = {
         
         // Reveal about div, if there are no tunes
         if (Object.keys(folkrnn.tuneManager.tunes).length === 0) {
-            folkrnn.showAboutSection(true)
+            folkrnn.showAboutSection(true);
         }
     },
     'updateState': function(newState) {
@@ -191,6 +191,7 @@ folkrnn.tuneManager = {
         return folkrnn.tuneManager.tunes[tune_id].div;
     },
     '_enableABCJS_colorRange': function(range, color) {
+        "use strict";
         if (range && range.elements) {
             range.elements.forEach(function (set) {
                 set.forEach(function (item) {
@@ -200,6 +201,7 @@ folkrnn.tuneManager = {
         }
     },
     '_enableABCJS_animateCallback': function(lastRange, currentRange, context) {
+        "use strict";
         folkrnn.tuneManager._enableABCJS_colorRange(lastRange, "#000000");
         folkrnn.tuneManager._enableABCJS_colorRange(currentRange, "#3D9AFC");
     },
@@ -226,7 +228,7 @@ folkrnn.tuneManager = {
         });
         
         document.getElementById('tempo_input-' + tune_id).addEventListener("change", function (event) {
-            folkrnn.tuneManager.tunes[tune_id].abcjs.paramChanged({"qpm": parseInt(event.target.value)})
+            folkrnn.tuneManager.tunes[tune_id].abcjs.paramChanged({"qpm": parseInt(event.target.value)});
             folkrnn.websocketSend({
                 command: "notification",
                 type: "tempo",
@@ -298,7 +300,7 @@ folkrnn.generateRequest = function () {
     }
     
     if (folkrnn.fieldSeed.dataset.autoseed) {
-        folkrnn.fieldSeed.value = Math.floor(Math.random() * Math.floor(folkrnn.maxSeed))
+        folkrnn.fieldSeed.value = Math.floor(Math.random() * Math.floor(folkrnn.maxSeed));
     }
 };
 
@@ -407,7 +409,7 @@ folkrnn.updateTuneDiv = function(tune) {
         
         if (folkrnn.setComposeParametersFromTune) {
             folkrnn.utilities.setSelectByValue(folkrnn.fieldModel, tune.rnn_model_name, '');
-            folkrnn.updateKeyMeter()
+            folkrnn.updateKeyMeter();
             folkrnn.fieldTemp.value = tune.temp;
             folkrnn.fieldSeed.value = tune.seed;
             folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, tune.key);
@@ -428,6 +430,7 @@ folkrnn.updateTuneDiv = function(tune) {
 };
 
 folkrnn.showAboutSection = function(toShow) {
+    "use strict";
     const div_about = document.getElementById("header");
     if (toShow) {
         div_about.removeAttribute('hidden');
@@ -442,6 +445,7 @@ folkrnn.showAboutSection = function(toShow) {
 };
 
 folkrnn.handleSeedAuto = function(autoSeedOn) {
+    "use strict";
     const seed_field_div = document.getElementById('seed_field_div');
     if (autoSeedOn) {
         seed_field_div.className = 'pure-u-1';
