@@ -385,6 +385,7 @@ folkrnn.updateTuneDiv = function(tune) {
     const el_requested = document.getElementById("requested-" + tune.id);
     const el_generated = document.getElementById("generated-" + tune.id);
     const el_tempo = document.getElementById("tempo-" + tune.id);
+    const el_tempo_input = document.getElementById('tempo_input-' + tune.id)
     const el_archive_form = document.getElementById("archive_form-" + tune.id);
     const el_archive_title = document.getElementById("id_title-" + tune.id);
     
@@ -396,6 +397,7 @@ folkrnn.updateTuneDiv = function(tune) {
     el_prime_tokens.textContent = tune.prime_tokens;
     el_requested.textContent = tune.requested;
     el_generated.textContent = tune.rnn_finished;
+    el_tempo_input.value = folkrnn.models[tune.rnn_model_name].default_tempo;
     if (tune.rnn_finished) {
         el_generated.textContent = new Date(tune.rnn_finished).toLocaleString();
         el_requested.parentNode.setAttribute('hidden', '');
