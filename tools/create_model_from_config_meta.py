@@ -7,9 +7,11 @@ import importlib
 import pickle
 
 metadata_paths = [
-        ('/folk_rnn/metadata/config5-wrepeats-20160112-222521.pkl', 'thesession_with_repeats', 'thesession.org (w/ :| |:)'),
-        ('/folk_rnn/metadata/config5-worepeats-20160311-134539.pkl', 'thesession_without_repeats', 'thesession.org (w/o :| |:)'),
-        ('/folk_rnn/metadata/lstm_dropout-9_nov_folkwiki-20181112-195023_epoch89.pkl', 'swedish', 'folkwiki.se'),
+        # Tuple format: metadata_pickle_path, new_filename, display_name, default_meter, default_mode, default_tempo
+        # Note: default_mode capitalisation as per model token!
+        ('/folk_rnn/metadata/config5-wrepeats-20160112-222521.pkl', 'thesession_with_repeats', 'thesession.org (w/ :| |:)', '4/4', 'Cmaj', 120),
+        ('/folk_rnn/metadata/config5-worepeats-20160311-134539.pkl', 'thesession_without_repeats', 'thesession.org (w/o :| |:)', '4/4', 'Cmaj', 120),
+        ('/folk_rnn/metadata/lstm_dropout-9_nov_folkwiki-20181112-195023_epoch89.pkl', 'swedish', 'folkwiki.se', '3/4', 'DMin', 105),
         # ('/folk_rnn/metadata/config5_resume-allabcworepeats_parsed_Tallis_trimmed1000-20171228-191847_epoch39.pkl', 'without_repeats_tallis'),
         ]
 
@@ -22,7 +24,7 @@ try:
 except:
     pass
 
-for idx, (metadata_path, model_filename, model_displayname) in enumerate(metadata_paths): 
+for idx, (metadata_path, model_filename, model_displayname, default_meter, default_mode, default_tempo) in enumerate(metadata_paths): 
     with open(metadata_path, 'rb') as f:
         metadata = pickle.load(f, encoding='latin1') # latin1 maps 0-255 to unicode 0-255
         
@@ -33,6 +35,9 @@ for idx, (metadata_path, model_filename, model_displayname) in enumerate(metadat
         'param_values': metadata['param_values'], 
         'num_layers': config.num_layers, 
         'metadata_path': metadata_path,
+        'default_meter': default_meter,
+        'default_mode': default_mode, 
+        'default_tempo': default_tempo,
     }
     
     path = os.path.join(model_dir, model_filename + '.pickle')
