@@ -125,6 +125,7 @@ folkrnn.stateManager = {
         
         // Apply to composition UI
         folkrnn.utilities.setSelectByValue(folkrnn.fieldModel, state.model);
+        folkrnn.updateKeyMeter()
         folkrnn.fieldTemp.value = state.temp;
         folkrnn.fieldSeed.value = state.seed;
         folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, state.key);
@@ -333,39 +334,43 @@ folkrnn.validateStartABC = function() {
 folkrnn.updateKeyMeter = function() {
     "use strict";
     // Update key, meter options per new model's vocab
+    // If the meter, mode tokens in new model are the same as the old, don't do anything.
+    // Else update key, meter options per new model's vocabset and defaults.
     
-    // Keep selected value if possible
-    const meter = folkrnn.fieldMeter.value;
-    const key = folkrnn.fieldKey.value;
-    const fallback_meter = 'M:' + folkrnn.models[folkrnn.fieldModel.value].default_meter
-    const fallback_key = 'K:' + folkrnn.models[folkrnn.fieldModel.value].default_mode
-
-    // Set Meter options from model
-    while (folkrnn.fieldMeter.lastChild) {
-        folkrnn.fieldMeter.removeChild(folkrnn.fieldMeter.lastChild);
+    const m_values_old = Array.from(folkrnn.fieldMeter.childNodes).map(x => x.value);
+    const m_values_new = folkrnn.models[folkrnn.fieldModel.value].header_m_tokens;
+    const k_values_old = Array.from(folkrnn.fieldKey.childNodes).map(x => x.value);
+    const k_values_new = folkrnn.models[folkrnn.fieldModel.value].header_k_tokens;
+    
+    if (!folkrnn.utilities.isEqual(m_values_old, m_values_new)) {
+        while (folkrnn.fieldMeter.lastChild) {
+            folkrnn.fieldMeter.removeChild(folkrnn.fieldMeter.lastChild);
+        }
+        for (const m of m_values_new) {
+            const label = (m === '*') ? '?/?' : m.slice(2);
+            folkrnn.fieldMeter.appendChild(new Option(label, m));
+        }
+        const m_default = 'M:' + folkrnn.models[folkrnn.fieldModel.value].default_meter;
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, m_default, '');
     }
-    for (const m of folkrnn.models[folkrnn.fieldModel.value].header_m_tokens) {
-        const label = (m === '*') ? '?/?' : m.slice(2)
-        folkrnn.fieldMeter.appendChild(new Option(label, m));
+    if (!folkrnn.utilities.isEqual(k_values_old, k_values_new)) {
+        while (folkrnn.fieldKey.lastChild) {
+            folkrnn.fieldKey.removeChild(folkrnn.fieldKey.lastChild);
+        }
+        const key_map = {
+            'maj': 'Major',		
+            'min': 'Minor',		
+            'dor': 'Dorian',		
+            'mix': 'Mixolydian',
+            'lyd': 'Lydian',
+        };
+        for (const k of k_values_new) {
+            const label = (k === '*') ? '? ???' : k.slice(2,-3) + " " + key_map[k.slice(-3).toLowerCase()];
+            folkrnn.fieldKey.appendChild(new Option(label, k));
+        }
+        const k_default = 'K:' + folkrnn.models[folkrnn.fieldModel.value].default_mode;
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, k_default, '');
     }
-    folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, meter, fallback_meter);
-
-    // Set Key options from model
-    while (folkrnn.fieldKey.lastChild) {
-        folkrnn.fieldKey.removeChild(folkrnn.fieldKey.lastChild);
-    }
-    const key_map = {
-        'maj': 'Major',		
-        'min': 'Minor',		
-        'dor': 'Dorian',		
-        'mix': 'Mixolydian',
-        'lyd': 'Lydian',
-    };
-    for (const k of folkrnn.models[folkrnn.fieldModel.value].header_k_tokens) {
-        const label = (k === '*') ? '? ???' : k.slice(2,-3) + " " + key_map[k.slice(-3).toLowerCase()]
-        folkrnn.fieldKey.appendChild(new Option(label, k));
-    }
-    folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, key, fallback_key);
 };
 
 folkrnn.updateTuneDiv = function(tune) {
@@ -405,8 +410,8 @@ folkrnn.updateTuneDiv = function(tune) {
             folkrnn.updateKeyMeter()
             folkrnn.fieldTemp.value = tune.temp;
             folkrnn.fieldSeed.value = tune.seed;
-            folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, tune.key, '');
-            folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, tune.meter, '');
+            folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, tune.key);
+            folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, tune.meter);
             folkrnn.fieldStartABC.value = tune.start_abc;
         }
     } else {
@@ -462,4 +467,10 @@ folkrnn.utilities.setSelectByValue = function(element, value, default_value) {
            return;
         }
     }
+};
+
+folkrnn.utilities.isEqual = function(array1, array2) {
+    "use strict";
+    // A shallow, scalar comparison of arrays
+    return array1.length === array2.length && array1.every((value, index) => value === array2[index]);
 };
