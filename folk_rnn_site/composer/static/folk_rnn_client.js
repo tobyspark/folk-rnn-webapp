@@ -337,6 +337,8 @@ folkrnn.updateKeyMeter = function() {
     // Keep selected value if possible
     const meter = folkrnn.fieldMeter.value;
     const key = folkrnn.fieldKey.value;
+    const fallback_meter = 'M:' + folkrnn.models[folkrnn.fieldModel.value].default_meter
+    const fallback_key = 'K:' + folkrnn.models[folkrnn.fieldModel.value].default_mode
 
     // Set Meter options from model
     while (folkrnn.fieldMeter.lastChild) {
@@ -346,7 +348,7 @@ folkrnn.updateKeyMeter = function() {
         const label = (m === '*') ? '?/?' : m.slice(2)
         folkrnn.fieldMeter.appendChild(new Option(label, m));
     }
-    folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, meter, 'M:4/4');
+    folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, meter, fallback_meter);
 
     // Set Key options from model
     while (folkrnn.fieldKey.lastChild) {
@@ -363,7 +365,7 @@ folkrnn.updateKeyMeter = function() {
         const label = (k === '*') ? '? ???' : k.slice(2,-3) + " " + key_map[k.slice(-3).toLowerCase()]
         folkrnn.fieldKey.appendChild(new Option(label, k));
     }
-    folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, key, 'K:Cmaj');
+    folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, key, fallback_key);
 };
 
 folkrnn.updateTuneDiv = function(tune) {
