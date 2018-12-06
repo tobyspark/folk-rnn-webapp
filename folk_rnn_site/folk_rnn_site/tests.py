@@ -145,6 +145,26 @@ N:Note 3
 M:4/4
 K:Cmaj
 {ABC_BODY}''')
+    
+    def test_q_property(self):
+        tune = ConcreteABCTune(abc=mint_abc())
+        self.assertEqual(tune.header_q, None)
+        tune.header_q = 120
+        self.assertEqual(tune.header_q, '120')
+        self.assertEqual(tune.abc, f'''X:0
+T:{ABC_TITLE}
+M:4/4
+Q:120
+K:Cmaj
+{ABC_BODY}''')
+        tune.header_q = 105
+        self.assertEqual(tune.header_q, '105')
+        self.assertEqual(tune.abc, f'''X:0
+T:{ABC_TITLE}
+M:4/4
+Q:105
+K:Cmaj
+{ABC_BODY}''')
             
     def test_body_property(self):
         tune = ConcreteABCTune(abc=mint_abc())
