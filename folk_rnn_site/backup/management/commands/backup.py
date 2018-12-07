@@ -68,7 +68,15 @@ class Command(BaseCommand):
         data = BytesIO()
         # contenttypes and auth.Permission are auto-regenerated and not to be trusted across database instances
         # e.g. https://stackoverflow.com/questions/853796/problems-with-contenttypes-when-loading-a-fixture-in-django
-        call_command('dumpdata', all=True, format='json', indent=4, exclude=('contenttypes', 'auth.Permission'), stdout=TextIOWrapper(data, write_through=True))
+        call_command(
+                'dumpdata', 
+                all=True, 
+                format='json', 
+                indent=4, 
+                use_natural_foreign_keys=True,
+                exclude=('contenttypes', 'auth.Permission'), 
+                stdout=TextIOWrapper(data, write_through=True),
+                )
         with SpooledTemporaryFile() as f:
             # Archive to tar
             with tarfile.open(fileobj=f, mode='x:bz2') as tar:
