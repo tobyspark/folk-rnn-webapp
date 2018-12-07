@@ -135,12 +135,15 @@ To include a new model, first update your copy of the folk-rnn library to includ
 With the new model in place, edit the webapp provisioning script to import the model into the webapp, and provision: 
 `tools/create_model_from_config_meta.py`
 
-The script starts with a list of models to include, as tuples structured as `(folk-rnn-metadata-pickle, save-as-name, display-name)` e.g.
+The script starts with a list of models to include, as tuples structured as `(folk-rnn-metadata-pickle, save-as-name, display-name, default_meter, default_mode, default_tempo)` e.g.
 
 ```
 	(
 	'/folk_rnn/metadata/config5-wrepeats-20160112-222521.pkl',
 	'thesession_with_repeats', 
 	'thesession.org (w/ :| |:)’,
+	'4/4', 
+	'Cmaj', 
+	120,
 	)
 ```
