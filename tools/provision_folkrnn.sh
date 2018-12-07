@@ -29,8 +29,8 @@ pip3.6 install -e .
 if [ ! -d /var/opt/folk_rnn_task ]; then
     mkdir /var/opt/folk_rnn_task
     chown vagrant:vagrant /var/opt/folk_rnn_task
-    su vagrant -c /folk_rnn_webapp/tools/create_model_from_config_meta.py
 fi
+su vagrant -c /folk_rnn_webapp/tools/create_model_from_config_meta.py
 
 # folk_rnn webapp log dir
 mkdir -p /var/log/folk_rnn_webapp

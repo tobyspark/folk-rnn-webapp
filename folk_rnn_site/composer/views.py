@@ -10,6 +10,7 @@ from tempfile import TemporaryFile
 
 from folk_rnn_site.models import conform_abc
 from composer.models import RNNTune
+from composer.rnn_models import models
 from composer.forms import ComposeForm, ArchiveForm
 from composer.dataset import dataset_as_csv
 from archiver.models import Tune
@@ -56,6 +57,7 @@ def archive_tune(request, tune_id=None):
                     is_valid = False
                 tune_in_archive = Tune(rnn_tune=tune, abc=tune.abc, check_valid_abc=is_valid)
                 tune_in_archive.title = form.cleaned_data['title']
+                tune_in_archive.header_q = models()[tune.rnn_model_name]['default_tempo']
                 tune_in_archive.save()
             return redirect(reverse('tune', host='archiver', kwargs={'tune_id': tune_in_archive.id}))
     return redirect('/')

@@ -163,6 +163,14 @@ class ABCModel(models.Model):
         match = header_q_regex.search(self.abc)
         return match.group(1) if match else None
     
+    @header_q.setter
+    def header_q(self, value):
+        if header_q_regex.search(self.abc):
+            sub = f'Q:{value}\n' if value else ''
+            self.abc = header_q_regex.sub(sub, self.abc, count=1)
+        elif value:
+            self.abc = header_k_regex.sub(f'Q:{value}\nK:{self.header_k}\n', self.abc)
+    
     @property
     def header_m(self):
         '''
