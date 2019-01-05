@@ -11,7 +11,7 @@ metadata_paths = [
         # Note: default_mode capitalisation as per model token!
         ('/folk_rnn/metadata/config5-wrepeats-20160112-222521.pkl', 'thesession_with_repeats', 'thesession.org (w/ :| |:)', '4/4', 'Cmaj', 120),
         ('/folk_rnn/metadata/config5-worepeats-20160311-134539.pkl', 'thesession_without_repeats', 'thesession.org (w/o :| |:)', '4/4', 'Cmaj', 120),
-        ('/folk_rnn/metadata/lstm_dropout-9_nov_folkwiki-20181112-195023_epoch89.pkl', 'swedish', 'folkwiki.se', '3/4', 'DMin', 105),
+        ('/folk_rnn/metadata/lstm_dropout-9_nov_folkwiki-20181112-195023_epoch89.pkl', 'swedish', 'folkwiki.se', '?/?', '? ???', 105),
         # ('/folk_rnn/metadata/config5_resume-allabcworepeats_parsed_Tallis_trimmed1000-20171228-191847_epoch39.pkl', 'without_repeats_tallis'),
         ]
 
