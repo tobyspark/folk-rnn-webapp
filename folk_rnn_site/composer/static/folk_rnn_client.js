@@ -10,6 +10,7 @@ folkrnn.initialise = function() {
     folkrnn.fieldTemp = document.getElementById("id_temp");
     folkrnn.fieldSeed = document.getElementById("id_seed");
     folkrnn.fieldKey = document.getElementById("id_key");
+    folkrnn.fieldUnitNoteLength = document.getElementById("id_unitnotelength");
     folkrnn.fieldMeter = document.getElementById("id_meter");
     folkrnn.fieldStartABC = document.getElementById("id_start_abc");
     folkrnn.seedAutoButton = document.getElementById("seed_auto");
@@ -279,6 +280,7 @@ folkrnn.generateRequest = function () {
     valid = valid && folkrnn.fieldModel.reportValidity();
     valid = valid && folkrnn.fieldTemp.reportValidity();
     valid = valid && folkrnn.fieldSeed.reportValidity();
+    valid = valid && folkrnn.fieldUnitNoteLength.reportValidity();
     valid = valid && folkrnn.fieldKey.reportValidity();
     valid = valid && folkrnn.fieldMeter.reportValidity();
     valid = valid && folkrnn.fieldStartABC.reportValidity();
@@ -287,6 +289,7 @@ folkrnn.generateRequest = function () {
         formData.model = folkrnn.fieldModel.value;
         formData.temp = folkrnn.fieldTemp.value;
         formData.seed = folkrnn.fieldSeed.value;
+        formData.unitnotelength = folkrnn.fieldUnitNoteLength.value;
         formData.key = folkrnn.fieldKey.value;
         formData.meter = folkrnn.fieldMeter.value;
         formData.start_abc = folkrnn.parseABC(folkrnn.fieldStartABC.value).tokens.join(' ');
@@ -339,10 +342,29 @@ folkrnn.updateKeyMeter = function() {
     // If the meter, mode tokens in new model are the same as the old, don't do anything.
     // Else update key, meter options per new model's vocabset and defaults.
     
+    const l_values_old = Array.from(folkrnn.fieldUnitNoteLength.childNodes).map(x => x.value);
+    const l_values_new = folkrnn.models[folkrnn.fieldModel.value].header_l_tokens;
     const m_values_old = Array.from(folkrnn.fieldMeter.childNodes).map(x => x.value);
     const m_values_new = folkrnn.models[folkrnn.fieldModel.value].header_m_tokens;
     const k_values_old = Array.from(folkrnn.fieldKey.childNodes).map(x => x.value);
     const k_values_new = folkrnn.models[folkrnn.fieldModel.value].header_k_tokens;
+    
+    if (l_values_new.length > 1) {
+        folkrnn.fieldUnitNoteLength.parentNode.removeAttribute('hidden');
+    } else {
+        folkrnn.fieldUnitNoteLength.parentNode.setAttribute('hidden', '');
+    }
+    if (!folkrnn.utilities.isEqual(l_values_old, l_values_new)) {
+        while (folkrnn.fieldUnitNoteLength.lastChild) {
+            folkrnn.fieldUnitNoteLength.removeChild(folkrnn.fieldUnitNoteLength.lastChild);
+        }
+        for (const l of l_values_new) {
+            const label = (l === '*') ? '?/?' : l.slice(2);
+            folkrnn.fieldUnitNoteLength.appendChild(new Option(label, l));
+        }
+        const l_default = 'L:1/8';
+        folkrnn.utilities.setSelectByValue(folkrnn.fieldUnitNoteLength, l_default, '');
+    }
     
     if (!folkrnn.utilities.isEqual(m_values_old, m_values_new)) {
         while (folkrnn.fieldMeter.lastChild) {

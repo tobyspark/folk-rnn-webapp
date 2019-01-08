@@ -215,6 +215,7 @@ class ComposerConsumer(JsonWebsocketConsumer):
                 tune.rnn_model_name = form.cleaned_data['model']
                 tune.seed = form.cleaned_data['seed']
                 tune.temp = form.cleaned_data['temp']
+                tune.unitnotelength = form.cleaned_data['unitnotelength']
                 tune.meter = form.cleaned_data['meter']
                 tune.key = form.cleaned_data['key']
                 tune.start_abc = form.cleaned_data['start_abc']
