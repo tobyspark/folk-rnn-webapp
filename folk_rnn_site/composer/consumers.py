@@ -54,16 +54,16 @@ class FolkRNNConsumer(SyncConsumer):
         def on_token(token):
             nonlocal abc, header_tokens, in_header
             # Ensure valid ABC
-            # - In header, have M (req), K, (req), L (opt) info fields on new lines, in that order.
+            # - In header, have L (opt), M (req), K, (req) info fields on new lines, in that order.
             # - In body, any info field should be in square brackets, if it's not already.
             # This code tries its best to cope with ill-formed ABC produced by folk-rnn, i.e. probablistic ordering.
             # Further complicating things, info-fields have to be modelled as either header or in-line, and this hasn't been done consistently between models
             if in_header:
-                if token.strip('[]')[0:2] in ['M:', 'K:', 'L:']:
+                if token.strip('[]')[0:2] in ['L:', 'M:', 'K:']:
                     header_tokens.append(token.strip('[]'))
                 else:
                     in_header = False
-                    for header in ['M:', 'K:', 'L:']:
+                    for header in [ 'L:', 'M:', 'K:']:
                         header_token_candidates = [x for x in header_tokens if x.startswith(header)]
                         if header_token_candidates:
                             abc += header_token_candidates[0] + '\n'
