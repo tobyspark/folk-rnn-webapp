@@ -10,8 +10,6 @@ from statistics import mean, pstdev
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
-from archiver.models import Tune
-
 Datum = namedtuple('Datum', ['date', 'session', 'info'])
 generate_keys = ['model', 'temp', 'seed', 'key', 'meter', 'start_abc']
 export_keys = ['play', 'download', 'archive']
@@ -23,12 +21,8 @@ class Command(BaseCommand):
     Collates and analyses useage data from logs and database. A Django management command.
     i.e `python3.6 /vagrant/folk_rnn_webapp/folk_rnn_site/manage.py stats`
         
-    Includes utility functions, typically for interactive use, i.e.
-        cd /folk_rnn_webapp/folk_rnn_site
-        python3.6
-        from backup.management.commands.stats import Command
-        data = ingest_file(<path to composer.use.log>)
-        print(session_view(data))
+    For interactive exploration of the data:
+    `python3.6 /vagrant/folk_rnn_webapp/folk_rnn_site/stats/management/commands/stats.py /var/log/folk_rnn_webapp/composer.use.log`
     '''
     help = 'Produce usage statistics suitable for academic write-up.'
     
@@ -215,6 +209,7 @@ def tune_view_with_archiver_info(data):
     As per tune_view, but including data harvested from the archiver database.
     e.g. has each tune been archived
     '''
+    from archiver.models import Tune, User
     tunes = tune_view(data)
     for composer_tune_id in tunes:
         if Tune.objects.filter(rnn_tune__id=composer_tune_id).exists():
@@ -366,17 +361,6 @@ if __name__ == '__main__':
     
     data = coalesce_continuous_sessions(data)
     
-    tunes = tune_view(data)
-    for tune, info in tunes.items():
-        print(f'tune {tune}: {info}')
-        
-    sessions = session_view(data)
-    for session, info in sessions.items():
-        
-        print(f'Session {session} ----------')
-        for entry in info:
-            print(entry)
-        print()
-    
-    analyse(data, tunes, sessions)
+    import code
+    code.interact(local=locals())
     
