@@ -3,9 +3,11 @@
 import sys
 import re
 import ast
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 from collections import namedtuple, Counter, defaultdict
 from statistics import mean, pstdev
+
+from matplotlib import pyplot
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
@@ -351,6 +353,26 @@ def analyse(data, tunes, sessions):
     changes = {k: mean([k in tune for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) != set()]) for k in export_keys}
     changes.update({'all': mean([set(export_keys).intersection(tune.keys()) != set() for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) != set()])})
     print(format_dict(changes))
+    print()
+
+    start_date = data[0].date
+    bin_period = timedelta(days=1)
+    bins = [(start_date + i*bin_period).timestamp() for i in range(duration//bin_period)] # timestamp required for multiple series data, see https://stackoverflow.com/questions/34943836/stacked-histogram-with-datetime-in-matplotlib
+    compose_dates = [x['compose'][0].timestamp() for x in tunes.values() if len(x['compose'])] # a few tunes have no compose dates, eeek!
+    download_dates = [x['download'][0].timestamp() for x in tunes.values() if len(x['download'])]
+    archive_dates = [x['archive'][0].timestamp() for x in tunes.values() if len(x['archive'])]
+    n, bins, patches = pyplot.hist(
+            [archive_dates, download_dates, compose_dates],
+            bins=bins,
+            histtype='barstacked'
+            )
+    tick_period = timedelta(days=7)
+    ticks = [(start_date + i*tick_period).timestamp() for i in range(duration//tick_period)]
+    pyplot.xticks(ticks,[date.fromtimestamp(t) for t in ticks], rotation='vertical')
+    pyplot.ylim(None, 6500)
+    pyplot.savefig('archive_download_compose_histogram__daily.pdf')
+    pyplot.ylim(None, 500)
+    pyplot.savefig('archive_download_compose_histogram__daily_crop.pdf')
     
     # TODO: extract ABC properties
     

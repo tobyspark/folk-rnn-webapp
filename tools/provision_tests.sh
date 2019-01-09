@@ -20,3 +20,11 @@ if [ ! -f /usr/local/bin/chromedriver ]; then
     mv chromedriver /usr/local/bin/chromedriver
     rm chromedriver*
 fi
+
+### Folk RNN WebApp stats requirements, for dev only
+
+echo "***"
+echo "*** Check Folk RNN Stats"
+echo "***"
+
+pip3.6 install "matplotlib"
