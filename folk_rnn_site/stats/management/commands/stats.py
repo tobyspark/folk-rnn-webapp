@@ -4,7 +4,7 @@ import sys
 import re
 import ast
 from datetime import datetime, timedelta
-from collections import namedtuple, Counter
+from collections import namedtuple, Counter, defaultdict
 from statistics import mean, pstdev
 
 from django.core.management.base import BaseCommand
@@ -176,6 +176,8 @@ def tune_view(data):
         tune: 9629: {'compose': 1}
         tune: 9630: {'download': 2, 'compose': 1}
         tune: 9631: {'seed': 1, 'start_abc': 1, 'temp': 1, 'compose': 1, 'download': 1}
+    UPDATE: Instead of counts, returns a list of dates when these things happened.
+            These can can then be counted, or analysed further.
     '''
     tunes = {}
     session_state = {}
@@ -185,22 +187,22 @@ def tune_view(data):
         if state:
             # determine the generate parameter changes before the tune is generated
             if datum.session not in session_state:
-                session_changes[datum.session] = Counter()
+                session_changes[datum.session] = defaultdict(list)
                 session_state[datum.session] = datum.info
             new_generate_params = {k: v for k,v in datum.info['state'].items() if k in generate_keys}
             old_generate_params = {k: v for k,v in session_state[datum.session]['state'].items() if k in generate_keys}
             changes = dict(set(new_generate_params.items()) - set(old_generate_params.items()))
-            session_changes[datum.session].update(changes.keys())
+            session_changes[datum.session].update({ x:datum.date for x in changes.keys()})
             session_state[datum.session] = datum.info
             continue
         tune = datum.info.get('tune')
         if tune:
             if tune not in tunes:
-                tunes[tune] = Counter()
+                tunes[tune] = defaultdict(list)
                 if datum.session in session_state:
                     tunes[tune].update(session_changes[datum.session])
                     del session_state[datum.session]
-            tunes[tune][datum.info['action']] +=1
+            tunes[tune][datum.info['action']].append(datum.date)
             continue
     return tunes
 
@@ -212,8 +214,11 @@ def tune_view_with_archiver_info(data):
     from archiver.models import Tune, User
     tunes = tune_view(data)
     for composer_tune_id in tunes:
-        if Tune.objects.filter(rnn_tune__id=composer_tune_id).exists():
-            tunes[composer_tune_id]['archive'] +=1
+        try:
+            archive_date = Tune.objects.get(rnn_tune__id=composer_tune_id).submitted
+            tunes[composer_tune_id]['archive'].append(archive_date)
+        except Tune.DoesNotExist:
+            pass
     return tunes
 
 def session_view(data):
