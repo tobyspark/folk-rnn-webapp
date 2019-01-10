@@ -50,7 +50,9 @@ class Command(BaseCommand):
                 print(entry)
             print()
         
-        analyse(data, tunes, sessions)
+        analyse_folkrnn(data, tunes, sessions)
+        analyse_machinefolk(data)
+        
 
 def ingest_file(log_filepath, start_date=datetime(year=2018, month=5, day=19)):
     '''
@@ -213,7 +215,7 @@ def tune_view_with_archiver_info(data):
     As per tune_view, but including data harvested from the archiver database.
     e.g. has each tune been archived
     '''
-    from archiver.models import Tune, User
+    from archiver.models import Tune
     tunes = tune_view(data)
     for composer_tune_id in tunes:
         try:
@@ -316,7 +318,7 @@ def session_view(data):
             sessions[datum.session].append(datum.info)
     return sessions
 
-def analyse(data, tunes, sessions):
+def analyse_folkrnn(data, tunes, sessions):
     '''
     We are interested in seeing:
     - What is the distribution of tunes generated in a session?
@@ -394,8 +396,36 @@ def analyse(data, tunes, sessions):
     german_week = 27
     n = n[2] # analyse tunes generated
     noted_week_proportion = (n[swedish_week] + n[german_week]) / sum(n) # 55% in early Jan 2019 !
-    print(f"Usage data over time shows three features. Overall use for the first {split_week} weeks was similar, with a median of {median(n[:split_week])} tunes generated each week. In the subsequent {len(n) - split_week} weeks to the time of writing, overall use increased, with a median of {median(n[split_week:])} tunes generated each week. This period also features usage spikes. One week, correlating to an interview in Swedish media, shows {n[swedish_week] / median(n[split_week:])}x the median tunes generated. The largest, correlating to a mention in German media, shows an {n[german_week] / median(n[split_week:])}x increase.")
+    print(f"Usage data over time shows three features. Overall use for the first {split_week} weeks was similar, with a median of {median(n[:split_week])} tunes generated each week. In the subsequent {len(n) - split_week} weeks to the time of writing, overall use increased, with a median of {median(n[split_week:])} tunes generated each week. This period also features usage spikes. One week, correlating to an interview in Swedish media, shows {n[swedish_week] / median(n[split_week:]):.1f}x the median tunes generated. The largest, correlating to a mention in German media, shows an {n[german_week] / median(n[split_week:]):.1f}x increase.")
+
+def analyse_machinefolk(data):
+    from archiver.models import Tune, Setting, Recording, Event, User, Collection, CollectionEntry
+    from actstream.models import Action
     
+    print("The Machine Folk Session – ")
+    tunes = Tune.objects.all().annotate_counts().annotate_saliency()
+    tunes_total = tunes.count()
+    tunes_folkrnn = tunes.filter(rnn_tune__isnull=False).count()
+    tunes_settings = tunes.filter(setting__count__gt=0).count()
+    tunes_recordings = tunes.filter(recording__count__gt=0).count()
+    tunes_folkrnn_settings = tunes.filter(setting__count__gt=0, rnn_tune__isnull=False).count()
+    settings_total = Setting.objects.count()
+    settings_folkrnn = Setting.objects.filter(tune__rnn_tune__isnull=False).count()
+    recordings_total = Recording.objects.count()
+    users_admin = User.objects.filter(is_superuser=True).count()
+    users_normal = User.objects.filter(is_superuser=False).count()
+    interesting_tune = tunes.order_by('saliency').last()
+    tunebooks = Collection.objects.filter(user__isnull=False).count()
+    tunebook_entries = CollectionEntry.objects.filter(collection__user__isnull=False).count()
+    tunebook_entries_settings = CollectionEntry.objects.filter(collection__user__isnull=False, setting__isnull=False).count()
+    actions_total = Action.objects.count()
+    actions_bob = Action.objects.actor(User.objects.get(id=2)).count()
+    
+    print(f"As of {data[-1].date.isoformat()}, the website themachinefolksession.org has {tunes_total} contributed tunes. Of these, {tunes_settings} have had further iterations contributed in the form of ‘settings’; the site currently hosts {settings_total} settings in total. {tunes_recordings} tunes have live recordings contributed; the site currently hosts {recordings_total} recordings in total (a single performance may encompass many tunes).")
+    print(f"Of the {tunes_total} contributed tunes, {tunes_folkrnn} were generated on, and archived from, folkrnn.org. Of these entirely machine-generated tunes, {tunes_folkrnn_settings} have had human edits contributed; themachinefolksession.org currently hosts {settings_folkrnn} settings of folkrnn generated tunes in total.")
+    print(f"{tunebooks} Registered users have selected {tunebook_entries} tunes as being noteworthy enough to add to their tunebooks. {tunebook_entries_settings/tunebook_entries:.0%} of these are actually settings of the tune, rather than the original tune. Per the algorithm used by the home page of themachinefolksession.org to surface ‘interesting’ tunes, “{interesting_tune.title}” is the most, with {interesting_tune.setting__count} settings and {interesting_tune.recording__count} recordings.")
+    print(f"Most content-affecting activity has been from the administrators, however. Sturm accounts for {actions_bob/actions_total:.0%} of such activity.")
+
 if __name__ == '__main__':
     
     if sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor < 6):
