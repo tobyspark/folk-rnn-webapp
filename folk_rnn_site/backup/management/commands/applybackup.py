@@ -32,6 +32,10 @@ class Command(BaseCommand):
             with tarfile.open(name=db_path, mode='r:bz2') as tar:
                 tar.extractall(path=tmp)
                 call_command('flush', interactive=False) # Ideally drop, create and migrate
+                                                         # sudo su -c postgres psql
+                                                         # DROP DATABASE folk_rnn;
+                                                         # CREATE DATABASE folk_rnn WITH OWNER=folk_rnn TEMPLATE=template0;
+                                                         # python3.6 manage.py migrate
                 call_command('loaddata', os.path.join(tmp, 'db_data.json'))
             
             logger.info('Applying logs...')
