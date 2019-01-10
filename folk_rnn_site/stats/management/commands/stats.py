@@ -5,7 +5,7 @@ import re
 import ast
 from datetime import datetime, date, timedelta
 from collections import namedtuple, Counter, defaultdict
-from statistics import mean, pstdev
+from statistics import mean, pstdev, median
 
 from matplotlib import pyplot
 
@@ -354,10 +354,11 @@ def analyse(data, tunes, sessions):
     changes.update({'all': mean([set(export_keys).intersection(tune.keys()) != set() for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) != set()])})
     print(format_dict(changes))
     print()
-
+    
+    print("Usage over time –")
     start_date = data[0].date
     bin_period = timedelta(days=1)
-    bins = [(start_date + i*bin_period).timestamp() for i in range(duration//bin_period)] # timestamp required for multiple series data, see https://stackoverflow.com/questions/34943836/stacked-histogram-with-datetime-in-matplotlib
+    bins = [(start_date + i*bin_period).timestamp() for i in range(1 + duration//bin_period)] # timestamp required for multiple series data, see https://stackoverflow.com/questions/34943836/stacked-histogram-with-datetime-in-matplotlib
     compose_dates = [x['compose'][0].timestamp() for x in tunes.values() if len(x['compose'])] # a few tunes have no compose dates, eeek!
     download_dates = [x['download'][0].timestamp() for x in tunes.values() if len(x['download'])]
     archive_dates = [x['archive'][0].timestamp() for x in tunes.values() if len(x['archive'])]
@@ -373,8 +374,27 @@ def analyse(data, tunes, sessions):
     pyplot.savefig('archive_download_compose_histogram__daily.pdf')
     pyplot.ylim(None, 500)
     pyplot.savefig('archive_download_compose_histogram__daily_crop.pdf')
+    print("- archive_download_compose_histogram__daily.pdf and cropped version saved")
     
-    # TODO: extract ABC properties
+    bin_period = timedelta(days=7)
+    bins = [(start_date + i*bin_period).timestamp() for i in range(1 + duration//bin_period)]
+    n, bins, patches = pyplot.hist(
+            [archive_dates, download_dates, compose_dates],
+            bins=bins,
+            histtype='barstacked'
+            )
+    pyplot.ylim(None, 12000)
+    pyplot.savefig('archive_download_compose_histogram__weekly.pdf')
+    pyplot.ylim(None, 2000)
+    pyplot.savefig('archive_download_compose_histogram__weekly_crop.pdf')        
+    print("- archive_download_compose_histogram__weekly.pdf and cropped version saved")
+    
+    split_week = 18
+    swedish_week = 23
+    german_week = 27
+    n = n[2] # analyse tunes generated
+    noted_week_proportion = (n[swedish_week] + n[german_week]) / sum(n) # 55% in early Jan 2019 !
+    print(f"Usage data over time shows three features. Overall use for the first {split_week} weeks was similar, with a median of {median(n[:split_week])} tunes generated each week. In the subsequent {len(n) - split_week} weeks to the time of writing, overall use increased, with a median of {median(n[split_week:])} tunes generated each week. This period also features usage spikes. One week, correlating to an interview in Swedish media, shows {n[swedish_week] / median(n[split_week:])}x the median tunes generated. The largest, correlating to a mention in German media, shows an {n[german_week] / median(n[split_week:])}x increase.")
     
 if __name__ == '__main__':
     
