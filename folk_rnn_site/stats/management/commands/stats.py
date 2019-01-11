@@ -3,14 +3,14 @@
 import sys
 import re
 import ast
-from datetime import datetime, timedelta
-from collections import namedtuple, Counter
-from statistics import mean, pstdev
+from datetime import datetime, date, timedelta
+from collections import namedtuple, Counter, defaultdict
+from statistics import mean, pstdev, median
+
+from matplotlib import pyplot
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
-
-from archiver.models import Tune
 
 Datum = namedtuple('Datum', ['date', 'session', 'info'])
 generate_keys = ['model', 'temp', 'seed', 'key', 'meter', 'start_abc']
@@ -23,12 +23,8 @@ class Command(BaseCommand):
     Collates and analyses useage data from logs and database. A Django management command.
     i.e `python3.6 /vagrant/folk_rnn_webapp/folk_rnn_site/manage.py stats`
         
-    Includes utility functions, typically for interactive use, i.e.
-        cd /folk_rnn_webapp/folk_rnn_site
-        python3.6
-        from backup.management.commands.stats import Command
-        data = ingest_file(<path to composer.use.log>)
-        print(session_view(data))
+    For interactive exploration of the data:
+    `python3.6 /vagrant/folk_rnn_webapp/folk_rnn_site/stats/management/commands/stats.py /var/log/folk_rnn_webapp/composer.use.log`
     '''
     help = 'Produce usage statistics suitable for academic write-up.'
     
@@ -54,7 +50,9 @@ class Command(BaseCommand):
                 print(entry)
             print()
         
-        analyse(data, tunes, sessions)
+        analyse_folkrnn(data, tunes, sessions)
+        analyse_machinefolk(data)
+        
 
 def ingest_file(log_filepath, start_date=datetime(year=2018, month=5, day=19)):
     '''
@@ -182,6 +180,8 @@ def tune_view(data):
         tune: 9629: {'compose': 1}
         tune: 9630: {'download': 2, 'compose': 1}
         tune: 9631: {'seed': 1, 'start_abc': 1, 'temp': 1, 'compose': 1, 'download': 1}
+    UPDATE: Instead of counts, returns a list of dates when these things happened.
+            These can can then be counted, or analysed further.
     '''
     tunes = {}
     session_state = {}
@@ -191,22 +191,22 @@ def tune_view(data):
         if state:
             # determine the generate parameter changes before the tune is generated
             if datum.session not in session_state:
-                session_changes[datum.session] = Counter()
+                session_changes[datum.session] = defaultdict(list)
                 session_state[datum.session] = datum.info
             new_generate_params = {k: v for k,v in datum.info['state'].items() if k in generate_keys}
             old_generate_params = {k: v for k,v in session_state[datum.session]['state'].items() if k in generate_keys}
             changes = dict(set(new_generate_params.items()) - set(old_generate_params.items()))
-            session_changes[datum.session].update(changes.keys())
+            session_changes[datum.session].update({ x:datum.date for x in changes.keys()})
             session_state[datum.session] = datum.info
             continue
         tune = datum.info.get('tune')
         if tune:
             if tune not in tunes:
-                tunes[tune] = Counter()
+                tunes[tune] = defaultdict(list)
                 if datum.session in session_state:
                     tunes[tune].update(session_changes[datum.session])
                     del session_state[datum.session]
-            tunes[tune][datum.info['action']] +=1
+            tunes[tune][datum.info['action']].append(datum.date)
             continue
     return tunes
 
@@ -215,10 +215,14 @@ def tune_view_with_archiver_info(data):
     As per tune_view, but including data harvested from the archiver database.
     e.g. has each tune been archived
     '''
+    from archiver.models import Tune
     tunes = tune_view(data)
     for composer_tune_id in tunes:
-        if Tune.objects.filter(rnn_tune__id=composer_tune_id).exists():
-            tunes[composer_tune_id]['archive'] +=1
+        try:
+            archive_date = Tune.objects.get(rnn_tune__id=composer_tune_id).submitted
+            tunes[composer_tune_id]['archive'].append(archive_date)
+        except Tune.DoesNotExist:
+            pass
     return tunes
 
 def session_view(data):
@@ -314,7 +318,7 @@ def session_view(data):
             sessions[datum.session].append(datum.info)
     return sessions
 
-def analyse(data, tunes, sessions):
+def analyse_folkrnn(data, tunes, sessions):
     '''
     We are interested in seeing:
     - What is the distribution of tunes generated in a session?
@@ -351,9 +355,77 @@ def analyse(data, tunes, sessions):
     changes = {k: mean([k in tune for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) != set()]) for k in export_keys}
     changes.update({'all': mean([set(export_keys).intersection(tune.keys()) != set() for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) != set()])})
     print(format_dict(changes))
+    print()
     
-    # TODO: extract ABC properties
+    print("Usage over time –")
+    start_date = data[0].date
+    bin_period = timedelta(days=1)
+    bins = [(start_date + i*bin_period).timestamp() for i in range(1 + duration//bin_period)] # timestamp required for multiple series data, see https://stackoverflow.com/questions/34943836/stacked-histogram-with-datetime-in-matplotlib
+    compose_dates = [x['compose'][0].timestamp() for x in tunes.values() if len(x['compose'])] # a few tunes have no compose dates, eeek!
+    download_dates = [x['download'][0].timestamp() for x in tunes.values() if len(x['download'])]
+    archive_dates = [x['archive'][0].timestamp() for x in tunes.values() if len(x['archive'])]
+    n, bins, patches = pyplot.hist(
+            [archive_dates, download_dates, compose_dates],
+            bins=bins,
+            histtype='barstacked'
+            )
+    tick_period = timedelta(days=7)
+    ticks = [(start_date + i*tick_period).timestamp() for i in range(duration//tick_period)]
+    pyplot.xticks(ticks,[date.fromtimestamp(t) for t in ticks], rotation='vertical')
+    pyplot.ylim(None, 6500)
+    pyplot.savefig('archive_download_compose_histogram__daily.pdf')
+    pyplot.ylim(None, 500)
+    pyplot.savefig('archive_download_compose_histogram__daily_crop.pdf')
+    print("- archive_download_compose_histogram__daily.pdf and cropped version saved")
     
+    bin_period = timedelta(days=7)
+    bins = [(start_date + i*bin_period).timestamp() for i in range(1 + duration//bin_period)]
+    n, bins, patches = pyplot.hist(
+            [archive_dates, download_dates, compose_dates],
+            bins=bins,
+            histtype='barstacked'
+            )
+    pyplot.ylim(None, 12000)
+    pyplot.savefig('archive_download_compose_histogram__weekly.pdf')
+    pyplot.ylim(None, 2000)
+    pyplot.savefig('archive_download_compose_histogram__weekly_crop.pdf')        
+    print("- archive_download_compose_histogram__weekly.pdf and cropped version saved")
+    
+    split_week = 18
+    swedish_week = 23
+    german_week = 27
+    n = n[2] # analyse tunes generated
+    noted_week_proportion = (n[swedish_week] + n[german_week]) / sum(n) # 55% in early Jan 2019 !
+    print(f"Usage data over time shows three features. Overall use for the first {split_week} weeks was similar, with a median of {median(n[:split_week])} tunes generated each week. In the subsequent {len(n) - split_week} weeks to the time of writing, overall use increased, with a median of {median(n[split_week:])} tunes generated each week. This period also features usage spikes. One week, correlating to an interview in Swedish media, shows {n[swedish_week] / median(n[split_week:]):.1f}x the median tunes generated. The largest, correlating to a mention in German media, shows an {n[german_week] / median(n[split_week:]):.1f}x increase.")
+
+def analyse_machinefolk(data):
+    from archiver.models import Tune, Setting, Recording, Event, User, Collection, CollectionEntry
+    from actstream.models import Action
+    
+    print("The Machine Folk Session – ")
+    tunes = Tune.objects.all().annotate_counts().annotate_saliency()
+    tunes_total = tunes.count()
+    tunes_folkrnn = tunes.filter(rnn_tune__isnull=False).count()
+    tunes_settings = tunes.filter(setting__count__gt=0).count()
+    tunes_recordings = tunes.filter(recording__count__gt=0).count()
+    tunes_folkrnn_settings = tunes.filter(setting__count__gt=0, rnn_tune__isnull=False).count()
+    settings_total = Setting.objects.count()
+    settings_folkrnn = Setting.objects.filter(tune__rnn_tune__isnull=False).count()
+    recordings_total = Recording.objects.count()
+    users_admin = User.objects.filter(is_superuser=True).count()
+    users_normal = User.objects.filter(is_superuser=False).count()
+    interesting_tune = tunes.order_by('saliency').last()
+    tunebooks = Collection.objects.filter(user__isnull=False).count()
+    tunebook_entries = CollectionEntry.objects.filter(collection__user__isnull=False).count()
+    tunebook_entries_settings = CollectionEntry.objects.filter(collection__user__isnull=False, setting__isnull=False).count()
+    actions_total = Action.objects.count()
+    actions_bob = Action.objects.actor(User.objects.get(id=2)).count()
+    
+    print(f"As of {data[-1].date.isoformat()}, the website themachinefolksession.org has {tunes_total} contributed tunes. Of these, {tunes_settings} have had further iterations contributed in the form of ‘settings’; the site currently hosts {settings_total} settings in total. {tunes_recordings} tunes have live recordings contributed; the site currently hosts {recordings_total} recordings in total (a single performance may encompass many tunes).")
+    print(f"Of the {tunes_total} contributed tunes, {tunes_folkrnn} were generated on, and archived from, folkrnn.org. Of these entirely machine-generated tunes, {tunes_folkrnn_settings} have had human edits contributed; themachinefolksession.org currently hosts {settings_folkrnn} settings of folkrnn generated tunes in total.")
+    print(f"{tunebooks} Registered users have selected {tunebook_entries} tunes as being noteworthy enough to add to their tunebooks. {tunebook_entries_settings/tunebook_entries:.0%} of these are actually settings of the tune, rather than the original tune. Per the algorithm used by the home page of themachinefolksession.org to surface ‘interesting’ tunes, “{interesting_tune.title}” is the most, with {interesting_tune.setting__count} settings and {interesting_tune.recording__count} recordings.")
+    print(f"Most content-affecting activity has been from the administrators, however. Sturm accounts for {actions_bob/actions_total:.0%} of such activity.")
+
 if __name__ == '__main__':
     
     if sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor < 6):
@@ -366,17 +438,6 @@ if __name__ == '__main__':
     
     data = coalesce_continuous_sessions(data)
     
-    tunes = tune_view(data)
-    for tune, info in tunes.items():
-        print(f'tune {tune}: {info}')
-        
-    sessions = session_view(data)
-    for session, info in sessions.items():
-        
-        print(f'Session {session} ----------')
-        for entry in info:
-            print(entry)
-        print()
-    
-    analyse(data, tunes, sessions)
+    import code
+    code.interact(local=locals())
     
