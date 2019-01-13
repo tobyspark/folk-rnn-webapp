@@ -4,6 +4,7 @@ import functools
 import json
 import logging
 import re
+import random
 from collections import OrderedDict
 
 from composer import MODEL_PATH, FOLKRNN_INSTANCE_CACHE_COUNT
@@ -11,6 +12,7 @@ from folk_rnn import Folk_RNN
 
 logger = logging.getLogger(__name__)
 
+header_l_regex = re.compile(r"L:(\d+)/(\d+)")
 header_m_regex = re.compile(r"M:(\d+)/(\d+)")
 header_k_regex = re.compile(r"K:[A-G][b#]?[A-Za-z]{3}")
 
@@ -38,6 +40,11 @@ def models():
             model['tokens'].add('*')
             model['display_name'] = job_spec['name']
             model['display_order'] = job_spec['order']
+            model['header_l_tokens'] = sorted(
+                    {header_l_regex.search(x).group(0) for x in model['tokens'] if header_l_regex.search(x)}
+                                            )
+            if len(model['header_l_tokens']) > 0:
+                model['header_l_tokens'].append('*')
             model['header_m_tokens'] = sorted(
                     {header_m_regex.search(x).group(0) for x in model['tokens'] if header_m_regex.search(x)}, 
                     key=lambda x: int(header_m_regex.search(x).group(2)*100) + int(header_m_regex.search(x).group(1))
@@ -48,6 +55,12 @@ def models():
             model['default_meter'] = job_spec['default_meter']
             model['default_mode'] = job_spec['default_mode']
             model['default_tempo'] = job_spec['default_tempo']
+            if 'l_freqs' in job_spec:
+                model['l_freqs'] = {header_m_regex.search(k).group(0): {header_l_regex.search(l).group(0): freq for l, freq in v.items()}  for k, v in job_spec['l_freqs'].items()}
+                model['header_m_tokens'] = sorted(
+                    {header_m_regex.search(x).group(0) for x in job_spec['l_freqs'].keys()},
+                    key=lambda x: int(header_m_regex.search(x).group(2)*100) + int(header_m_regex.search(x).group(1))
+                                            ) + ['*']
             models[filename] = model
         except:
             logger.warning(f'Error parsing {filename}')
@@ -65,8 +78,31 @@ def models_json():
 def choices():
     return ((x, models()[x]['display_name']) for x in models())
 
+def l_for_m_header(m_token, model_file_name):
+    l_freqs = models()[model_file_name].get('l_freqs')
+    if l_freqs:
+        if m_token == '*':
+            return m_token
+        else:
+            return random.choices(
+                list(l_freqs[m_token].keys()), 
+                list(l_freqs[m_token].values())
+                )[0]
+            l_freqs[m_token]
+    else:
+        return ''
+
 def validate_tokens(tokens, model_file_name):
     return set(tokens).issubset(models()[model_file_name]['tokens'])
+
+def validate_unitnotelength(token, model_file_name):
+    tokens = models()[model_file_name]['header_l_tokens']
+    if token == '' and len(tokens) == 0:
+        return True
+    # Info fields can form the header or be in-line, a model will have one or the other.
+    if token in tokens:
+        return True
+    return f'[{token}]' in tokens
 
 def validate_meter(token, model_file_name):
     tokens = models()[model_file_name]['header_m_tokens']

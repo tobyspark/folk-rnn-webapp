@@ -8,7 +8,7 @@ from channels.exceptions import StopConsumer
 from channels.generic.websocket import JsonWebsocketConsumer
 from asgiref.sync import async_to_sync
 
-from composer.rnn_models import folk_rnn_cached
+from composer.rnn_models import folk_rnn_cached, l_for_m_header
 from composer import ABC2ABC_PATH, TUNE_PATH, FOLKRNN_TUNE_TITLE
 from composer.models import RNNTune, Session
 from composer.forms import ComposeForm
@@ -54,16 +54,16 @@ class FolkRNNConsumer(SyncConsumer):
         def on_token(token):
             nonlocal abc, header_tokens, in_header
             # Ensure valid ABC
-            # - In header, have M (req), K, (req), L (opt) info fields on new lines, in that order.
+            # - In header, have L (opt), M (req), K, (req) info fields on new lines, in that order.
             # - In body, any info field should be in square brackets, if it's not already.
             # This code tries its best to cope with ill-formed ABC produced by folk-rnn, i.e. probablistic ordering.
             # Further complicating things, info-fields have to be modelled as either header or in-line, and this hasn't been done consistently between models
             if in_header:
-                if token.strip('[]')[0:2] in ['M:', 'K:', 'L:']:
+                if token.strip('[]')[0:2] in ['L:', 'M:', 'K:']:
                     header_tokens.append(token.strip('[]'))
                 else:
                     in_header = False
-                    for header in ['M:', 'K:', 'L:']:
+                    for header in [ 'L:', 'M:', 'K:']:
                         header_token_candidates = [x for x in header_tokens if x.startswith(header)]
                         if header_token_candidates:
                             abc += header_token_candidates[0] + '\n'
@@ -217,6 +217,9 @@ class ComposerConsumer(JsonWebsocketConsumer):
                 tune.temp = form.cleaned_data['temp']
                 tune.meter = form.cleaned_data['meter']
                 tune.key = form.cleaned_data['key']
+                tune.unitnotelength = form.cleaned_data['unitnotelength']
+                if tune.unitnotelength == '':
+                    tune.unitnotelength = l_for_m_header(tune.meter, tune.rnn_model_name)
                 tune.start_abc = form.cleaned_data['start_abc']
                 tune.save()
                 

@@ -33,6 +33,10 @@
                 </fieldset>
                 <fieldset class="pure-input-1">
                     <legend>Tune Properties</legend>
+                    <div class="pure-u-1-2" hidden> <!-- see comment at folkrnn.enable_l_parameter -->
+                        <label for="{{ compose_form.unitnotelength.id_for_label }}">ABC Unit</label>
+                        {% render_field compose_form.unitnotelength class+="pure-input-1" title="Choose what note length is used in the ABC" %}
+                    </div>
                     <div class="pure-u-1-2">
                         <label for="{{ compose_form.meter.id_for_label }}">Meter</label>
                         {% render_field compose_form.meter class+="pure-input-1" title="Choose a meter for the tune" %}

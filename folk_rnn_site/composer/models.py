@@ -11,6 +11,7 @@ class RNNTune(ABCModel):
     @property
     def prime_tokens(self):
         prime_token_items = (
+                            token_for_info_field(self.unitnotelength, self.rnn_model_name) if self.unitnotelength else None,
                             token_for_info_field(self.meter, self.rnn_model_name),
                             token_for_info_field(self.key, self.rnn_model_name),
                             self.start_abc,
@@ -47,6 +48,7 @@ class RNNTune(ABCModel):
     rnn_model_name = models.CharField(max_length=64, default='')
     seed = models.IntegerField(default=42)
     temp = models.FloatField(default=1.0)
+    unitnotelength = models.CharField(max_length=7, default='') # e.g. L:1/16
     meter = models.CharField(max_length=7, default='') # e.g. M:11/16
     key = models.CharField(max_length=7, default='') # e.g. K:BbMin
     start_abc = models.TextField(default='')

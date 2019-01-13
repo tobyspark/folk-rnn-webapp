@@ -4,7 +4,7 @@ from random import randint
 
 from composer import FOLKRNN_MAX_SEED
 from composer.rnn_models import choices as rnn_choices
-from composer.rnn_models import validate_tokens, validate_meter, validate_key
+from composer.rnn_models import validate_tokens, validate_unitnotelength, validate_meter, validate_key
 
 class ChoiceFieldNoValidation(forms.ChoiceField):
     def validate(self, value):
@@ -14,6 +14,7 @@ class ComposeForm(forms.Form):
     model = forms.ChoiceField(choices=rnn_choices())
     temp = forms.DecimalField(min_value=0.01, max_value=10, decimal_places=2, initial=1)
     seed = forms.IntegerField(min_value=0, max_value=FOLKRNN_MAX_SEED, initial=lambda : randint(0, FOLKRNN_MAX_SEED))
+    unitnotelength = ChoiceFieldNoValidation(choices=())
     meter = ChoiceFieldNoValidation(choices=())
     key = ChoiceFieldNoValidation(choices=())
     start_abc = forms.CharField(widget=forms.Textarea(),
@@ -28,6 +29,14 @@ class ComposeForm(forms.Form):
             tokens = self.cleaned_data['start_abc'].split(' ')
             if not validate_tokens(tokens, model_file_name=self.cleaned_data['model']):
                 self.add_error('start_abc', ValidationError('Invalid ABC as per RNN model', code='invalid'))
+        
+        if 'unitnotelength' in self.data:
+            if validate_unitnotelength(self.data['unitnotelength'], model_file_name=self.cleaned_data['model']):
+                self.cleaned_data['unitnotelength'] = self.data['unitnotelength']
+            else:
+                self.add_error('key', ValidationError('Invalid unit note length as per RNN model', code='invalid'))
+        else:
+            self.cleaned_data['unitnotelength'] = ''
         
         if 'meter' in self.data:
             if validate_meter(self.data['meter'], model_file_name=self.cleaned_data['model']):
