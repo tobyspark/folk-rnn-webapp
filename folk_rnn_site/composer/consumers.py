@@ -8,7 +8,7 @@ from channels.exceptions import StopConsumer
 from channels.generic.websocket import JsonWebsocketConsumer
 from asgiref.sync import async_to_sync
 
-from composer.rnn_models import folk_rnn_cached
+from composer.rnn_models import folk_rnn_cached, l_for_m_header
 from composer import ABC2ABC_PATH, TUNE_PATH, FOLKRNN_TUNE_TITLE
 from composer.models import RNNTune, Session
 from composer.forms import ComposeForm
@@ -215,9 +215,9 @@ class ComposerConsumer(JsonWebsocketConsumer):
                 tune.rnn_model_name = form.cleaned_data['model']
                 tune.seed = form.cleaned_data['seed']
                 tune.temp = form.cleaned_data['temp']
-                tune.unitnotelength = form.cleaned_data['unitnotelength']
                 tune.meter = form.cleaned_data['meter']
                 tune.key = form.cleaned_data['key']
+                tune.unitnotelength = l_for_m_header(tune.meter, tune.rnn_model_name)
                 tune.start_abc = form.cleaned_data['start_abc']
                 tune.save()
                 

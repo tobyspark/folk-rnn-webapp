@@ -4,6 +4,7 @@ import functools
 import json
 import logging
 import re
+import random
 from collections import OrderedDict
 
 from composer import MODEL_PATH, FOLKRNN_INSTANCE_CACHE_COUNT
@@ -54,6 +55,8 @@ def models():
             model['default_meter'] = job_spec['default_meter']
             model['default_mode'] = job_spec['default_mode']
             model['default_tempo'] = job_spec['default_tempo']
+            if 'l_freqs' in job_spec:
+                model['l_freqs'] = {header_m_regex.search(k).group(0): {header_l_regex.search(l).group(0): freq for l, freq in v.items()}  for k, v in job_spec['l_freqs'].items()}
             models[filename] = model
         except:
             logger.warning(f'Error parsing {filename}')
@@ -70,6 +73,13 @@ def models_json():
 
 def choices():
     return ((x, models()[x]['display_name']) for x in models())
+
+def l_for_m_header(m_token, model_file_name):
+    try:
+        freqs = models()[model_file_name]['l_freqs'][m_token]
+    except KeyError:
+        return ''
+    return random.choices(list(freqs.keys()), list(freqs.values()))[0]
 
 def validate_tokens(tokens, model_file_name):
     return set(tokens).issubset(models()[model_file_name]['tokens'])
