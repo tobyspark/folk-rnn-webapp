@@ -217,7 +217,9 @@ class ComposerConsumer(JsonWebsocketConsumer):
                 tune.temp = form.cleaned_data['temp']
                 tune.meter = form.cleaned_data['meter']
                 tune.key = form.cleaned_data['key']
-                tune.unitnotelength = l_for_m_header(tune.meter, tune.rnn_model_name)
+                tune.unitnotelength = form.cleaned_data['unitnotelength']
+                if tune.unitnotelength == '':
+                    tune.unitnotelength = l_for_m_header(tune.meter, tune.rnn_model_name)
                 tune.start_abc = form.cleaned_data['start_abc']
                 tune.save()
                 
