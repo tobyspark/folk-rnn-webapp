@@ -57,6 +57,10 @@ def models():
             model['default_tempo'] = job_spec['default_tempo']
             if 'l_freqs' in job_spec:
                 model['l_freqs'] = {header_m_regex.search(k).group(0): {header_l_regex.search(l).group(0): freq for l, freq in v.items()}  for k, v in job_spec['l_freqs'].items()}
+                model['header_m_tokens'] = sorted(
+                    {header_m_regex.search(x).group(0) for x in job_spec['l_freqs'].keys()},
+                    key=lambda x: int(header_m_regex.search(x).group(2)*100) + int(header_m_regex.search(x).group(1))
+                                            ) + ['*']
             models[filename] = model
         except:
             logger.warning(f'Error parsing {filename}')
