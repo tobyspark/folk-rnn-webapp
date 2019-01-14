@@ -78,12 +78,13 @@ def models_json():
 def choices():
     return ((x, models()[x]['display_name']) for x in models())
 
-def l_for_m_header(m_token, model_file_name):
+def l_for_m_header(m_token, seed, model_file_name):
     l_freqs = models()[model_file_name].get('l_freqs')
     if l_freqs:
         if m_token == '*':
             return m_token
         else:
+            random.seed(a=seed)
             return random.choices(
                 list(l_freqs[m_token].keys()), 
                 list(l_freqs[m_token].values())
