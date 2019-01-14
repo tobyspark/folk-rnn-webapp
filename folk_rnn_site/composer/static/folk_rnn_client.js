@@ -327,11 +327,13 @@ folkrnn.validateStartABC = function() {
         folkrnn.fieldStartABC.setCustomValidity('Invalid: ' + markedUpABC);
     } 
 
+    const invalidHeaders = folkrnn.invalidHeaders(abcParsed.header.l, abcParsed.header.m, abcParsed.header.k, folkrnn.fieldModel.value);
     const invalidTokens = folkrnn.invalidTokens(abcParsed.tokens, folkrnn.fieldModel.value);
-    if (invalidTokens.length == 1 ) {
-        folkrnn.fieldStartABC.setCustomValidity('Invalid token: ' + invalidTokens[0]);
-    } else if (invalidTokens.length > 1 ) {
-        folkrnn.fieldStartABC.setCustomValidity('Invalid tokens: ' + invalidTokens.join(', '));
+    const allInvalidTokens = invalidHeaders.concat(invalidTokens)
+    if (allInvalidTokens.length == 1 ) {
+        folkrnn.fieldStartABC.setCustomValidity('Invalid token: ' + allInvalidTokens[0]);
+    } else if (allInvalidTokens.length > 1 ) {
+        folkrnn.fieldStartABC.setCustomValidity('Invalid tokens: ' + allInvalidTokens.join(', '));
     } 
 };
 

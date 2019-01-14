@@ -5,6 +5,18 @@ if (typeof folkrnn == 'undefined') {
     folkrnn = {};
 }
 
+folkrnn.invalidHeaders = function(l, m, k, modelFileName) {
+    "use strict";
+    let invalidTokens = [];
+    if (l && folkrnn.models[modelFileName].header_l_tokens.indexOf(l) == -1)
+        invalidTokens.push(l);
+    if (m && folkrnn.models[modelFileName].header_m_tokens.indexOf(m) == -1)
+        invalidTokens.push(m);
+    if (k && folkrnn.models[modelFileName].header_k_tokens.indexOf(k) == -1)
+        invalidTokens.push(k);    
+    return invalidTokens;
+};
+
 folkrnn.invalidTokens = function(userTokens, modelFileName) {
     "use strict";
     const modelTokens = folkrnn.models[modelFileName].tokens;
