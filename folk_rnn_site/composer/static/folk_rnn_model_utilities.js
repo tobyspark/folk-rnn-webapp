@@ -33,6 +33,14 @@ folkrnn.parseABC = function(abc) {
         header.m = match[2];
         header.k = match[3];
         body_start_index = header_regex.lastIndex
+    } else {
+        header_regex = /\[?(M:\d+\/\d+)\]?\n\[?(K:[A-G][b#]?[A-Za-z]{3})\]?\n/g;
+        match = header_regex.exec(abc);
+        if (match !== null) {
+           header.m = match[1];
+           header.k = match[2];
+           body_start_index = header_regex.lastIndex
+        }   
     } 
     
     // BODY
