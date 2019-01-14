@@ -328,6 +328,24 @@ folkrnn.validateStartABC = function() {
     } 
 
     const invalidHeaders = folkrnn.invalidHeaders(abcParsed.header.l, abcParsed.header.m, abcParsed.header.k, folkrnn.fieldModel.value);
+    if (invalidHeaders.length == 0) {
+        if (abcParsed.header.m) {
+            folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, abcParsed.header.m);
+            folkrnn.fieldMeter.setAttribute('disabled', '');
+        } else {
+            folkrnn.fieldMeter.removeAttribute('disabled');
+        }
+        if (abcParsed.header.k) {
+            folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, abcParsed.header.k);
+            folkrnn.fieldKey.setAttribute('disabled', '');
+        } else {
+            folkrnn.fieldKey.removeAttribute('disabled');
+        }
+    } else {
+        folkrnn.fieldMeter.removeAttribute('disabled');
+        folkrnn.fieldKey.removeAttribute('disabled');
+    }
+    
     const invalidTokens = folkrnn.invalidTokens(abcParsed.tokens, folkrnn.fieldModel.value);
     const allInvalidTokens = invalidHeaders.concat(invalidTokens)
     if (allInvalidTokens.length == 1 ) {
