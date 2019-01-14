@@ -283,13 +283,15 @@ folkrnn.generateRequest = function () {
     valid = valid && folkrnn.fieldMeter.reportValidity();
     valid = valid && folkrnn.fieldStartABC.reportValidity();
     if (valid) {
+        const parsedStartABC = folkrnn.parseABC(folkrnn.fieldStartABC.value)
         const formData = {};
         formData.model = folkrnn.fieldModel.value;
         formData.temp = folkrnn.fieldTemp.value;
         formData.seed = folkrnn.fieldSeed.value;
-        formData.key = folkrnn.fieldKey.value;
-        formData.meter = folkrnn.fieldMeter.value;
-        formData.start_abc = folkrnn.parseABC(folkrnn.fieldStartABC.value).tokens.join(' ');
+        formData.unit_note_length = parsedStartABC.header.l || ''
+        formData.meter = parsedStartABC.header.m || folkrnn.fieldMeter.value;
+        formData.key = parsedStartABC.header.k || folkrnn.fieldKey.value;
+        formData.start_abc = parsedStartABC.tokens.join(' ');
         
         folkrnn.websocketSend({
                     'command': 'compose',
