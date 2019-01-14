@@ -88,7 +88,6 @@ def l_for_m_header(m_token, model_file_name):
                 list(l_freqs[m_token].keys()), 
                 list(l_freqs[m_token].values())
                 )[0]
-            l_freqs[m_token]
     else:
         return ''
 
