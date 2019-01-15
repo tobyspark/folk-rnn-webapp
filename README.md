@@ -147,3 +147,5 @@ The script starts with a list of models to include, as tuples structured as `(fo
 	120,
 	)
 ```
+
+For models yet to be developed, it is recommended to normalise to L:1/8 and include info-fields in header and body as separate tokens. The code here has been adapted to handle a model without these, i.e. a corpus with L, M, K headers, and those headers may be `[L:x/y]` rather than `L:x/y`. Models such as these (e.g. Swedish) need a tool run to generate further metadata for the folkrnn.org model. See `tools/analyse_l_for_m.py`, and how the resulting information is applied in the `create_model_from_config_meta` script.
