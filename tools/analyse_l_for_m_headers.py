@@ -20,7 +20,8 @@ folk_rnn = Folk_RNN(
     )
 
 l_frequencies = defaultdict(Counter)
-non_l_first_tokens = defaultdict(Counter)
+m_headers = Counter()
+k_headers = Counter()
 
 for i in range(1000):
     tune_tokens = folk_rnn.generate_tune(random_number_generator_seed=42*i, temperature=1)
@@ -28,16 +29,29 @@ for i in range(1000):
     if 'L:' in tune_tokens[0]:
         l_frequencies[tune_tokens[1]][tune_tokens[0]] += 1
     else:
-        non_l_first_tokens[tune_tokens[0]] += 1
+        raise ValueError
+    if 'M:' in tune_tokens[1]:
+        m_headers[tune_tokens[1]] += 1
+    else:
+        raise ValueError
+    if 'K:' in tune_tokens[2]:
+        k_headers[tune_tokens[2]] += 1
 
 for l, freqs in l_frequencies.items():
     total = sum(freqs.values())
     l_frequencies[l] = {k: v/total for k,v in freqs.items()}
 
+print('L-for-M Frequences --------')
 print(json.dumps(l_frequencies))
+print()
 
 # {"[M:3/4]": {"[L:1/8]": 0.5053128689492326, "[L:1/16]": 0.4887839433293979, "[L:1/4]": 0.0059031877213695395}, "[M:2/4]": {"[L:1/16]": 0.7064220183486238, "[L:1/8]": 0.29357798165137616}, "[M:4/4]": {"[L:1/8]": 0.7560975609756098, "[L:1/16]": 0.24390243902439024}, "[M:2/2]": {"[L:1/8]": 1.0}, "[M:9/8]": {"[L:1/4]": 1.0}}
 
-print(json.dumps(non_l_first_tokens))
+print('M, K Header Tokens --------')
+print(json.dumps(m_headers))
+print(m_headers.keys())
+print(json.dumps(k_headers))
+print(k_headers.keys())
+print()
 
 import code; code.interact(local=locals())
