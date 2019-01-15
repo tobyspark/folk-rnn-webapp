@@ -172,6 +172,22 @@ div .abcjs-inline-midi {
     background-color: unset;
 }
 
+.midi-box-container {
+    display:flex;
+}
+
+.midi-box-player {
+    flex-grow: 1;
+}
+
+.midi-box-tempo {
+    flex: 0 0 4em;
+}
+
+.midi-box-download {
+    flex: 0 0 9em;    
+}
+
 .bpm-valign {
     margin-top: 0.625em;
 }
