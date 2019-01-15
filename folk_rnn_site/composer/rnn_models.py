@@ -31,6 +31,20 @@ def folk_rnn_cached(rnn_model_name):
 
 @functools.lru_cache(maxsize=1)
 def models():
+    '''
+    The RNN models, in a form usable by composer.
+    Returns ordered dict with keys.
+    'tokens' - the raw tokens comprising the model vocabulary
+    'display_name' - the model name used in the UI
+    'display_order' - the order of models when listed, e.g. in drop down menu
+    'default_meter' - the default meter chosen when option given, e.g. in drop down menu
+    default_mode - as above
+    default_tempo - as above
+    header_l_tokens - the unit note length tokens, as selected by runs of the RNN, in header form (e.g. stripped of any enclosing brackets)
+    header_m_tokens - as above
+    header_k_tokens - as above
+    l_freqs - corpora with L, M, K headers require appropriate L values to be generated for any given M value, this supplies the frequencies from which a weighted random choice can be made
+    '''
     models = {}
     for filename in os.listdir(MODEL_PATH):
         try:
@@ -93,6 +107,11 @@ def choices():
     return ((x, models()[x]['display_name']) for x in models())
 
 def l_for_m_header(m_token, seed, model_file_name):
+    '''
+    Generate an appropriate unit note length token for the given meter token of the given corpus.
+    Use weighted random choice, with seed set as per RNN seed for reproducability.
+    Handle models without L tokens, and wildcard tokens.
+    '''
     l_freqs = models()[model_file_name].get('l_freqs')
     if l_freqs:
         if m_token == '*':
@@ -107,38 +126,48 @@ def l_for_m_header(m_token, seed, model_file_name):
         return ''
 
 def validate_tokens(tokens, model_file_name):
+    '''
+    Verify the tokens are all in the model's vocab.
+    Tokens here are raw, e.g. as per RNN.
+    '''
     return set(tokens).issubset(models()[model_file_name]['tokens'])
 
 def validate_unitnotelength(token, model_file_name):
+    '''
+    Verify the token is one of the header tokens in the model's vocab.
+    Tokens here are in header form, e.g. not raw with possible enclosing brackets.
+    The unit note length token is optional, so '' is accepted here.
+    '''
     tokens = models()[model_file_name]['header_l_tokens']
-        return True
-    # Info fields can form the header or be in-line, a model will have one or the other.
-    if token in tokens:
     if token == '':
         return True
-    return f'[{token}]' in tokens
+    return token in tokens
 
 def validate_meter(token, model_file_name):
+    '''
+    Verify the token is one of the header tokens in the model's vocab.
+    Tokens here are in header form, e.g. not raw with possible enclosing brackets.
+    '''
     tokens = models()[model_file_name]['header_m_tokens']
     if token == '' and len(tokens) == 0:
         return True
-    # Info fields can form the header or be in-line, a model will have one or the other.
-    if token in tokens:
-        return True
-    return f'[{token}]' in tokens
+    return token in tokens
 
 def validate_key(token, model_file_name):
+    '''
+    Verify the token is one of the header tokens in the model's vocab.
+    Tokens here are in header form, e.g. not raw with possible enclosing brackets.
+    '''
     tokens = models()[model_file_name]['header_k_tokens']
     if token == '' and len(tokens) == 0:
         return True
-    # Info fields can form the header or be in-line, a model will have one or the other.
-    if token in tokens:
-        return True
-    return f'[{token}]' in tokens
+    return token in tokens
 
 def token_for_info_field(token, model_file_name):
+    '''
+    Return the raw token for the given token, e.g. add enclosing brackets if needed.
+    '''
     tokens = models()[model_file_name]['tokens']
-    # Info fields can form the header or be in-line, a model will have one or the other.
     if token in tokens:
         return token 
     token = f'[{token}]'
