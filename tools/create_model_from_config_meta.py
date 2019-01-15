@@ -33,6 +33,15 @@ l_for_m_header_frequencies = {
         }
 }
 
+# The swedish corpus has many meter tokens that appear only in the body. These are the tokens that appear in the header, on a thousand runs as above.
+m_header_subset = {
+    'swedish': ['[M:3/4]', '[M:2/4]', '[M:4/4]', '[M:2/2]', '[M:9/8]'],
+}
+
+# The swedish corpus has many key tokens that appear only in the body. These are the tokens that appear in the header, on a thousand runs as above.
+k_header_subset = {
+    'swedish': ['[K:DMin]', '[K:GMaj]', '[K:DMaj]', '[K:AMaj]', '[K:EMin]', '[K:CMaj]', '[K:GMin]', '[K:AMin]', '[K:FMaj]', '[K:BMin]', '[K:BbMaj]', '[K:DDor]', '[K:GDor]', '[K:CMin]', '[K:EbMaj]'],
+}
 
 config_module = 'configurations.config5'
 config = importlib.import_module(config_module, package='folk_rnn')
@@ -61,6 +70,16 @@ for idx, (metadata_path, model_filename, model_displayname, default_meter, defau
     
     try:
         model['l_freqs'] = l_for_m_header_frequencies[model_filename]
+    except KeyError:
+        pass
+
+    try:
+        model['header_m_tokens'] = m_header_subset[model_filename]
+    except KeyError:
+        pass
+    
+    try:
+        model['header_k_tokens'] = k_header_subset[model_filename]
     except KeyError:
         pass
     

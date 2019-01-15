@@ -15,6 +15,7 @@ logger = logging.getLogger(__name__)
 header_l_regex = re.compile(r"L:(\d+)/(\d+)")
 header_m_regex = re.compile(r"M:(\d+)/(\d+)")
 header_k_regex = re.compile(r"K:[A-G][b#]?[A-Za-z]{3}")
+header_m_sort = lambda x: int(header_m_regex.search(x).group(2)*100) + int(header_m_regex.search(x).group(1))
 
 @functools.lru_cache(maxsize=FOLKRNN_INSTANCE_CACHE_COUNT)
 def folk_rnn_cached(rnn_model_name):
@@ -40,27 +41,40 @@ def models():
             model['tokens'].add('*')
             model['display_name'] = job_spec['name']
             model['display_order'] = job_spec['order']
-            model['header_l_tokens'] = sorted(
-                    {header_l_regex.search(x).group(0) for x in model['tokens'] if header_l_regex.search(x)}
-                                            )
-            if len(model['header_l_tokens']) > 0:
-                model['header_l_tokens'].append('*')
-            model['header_m_tokens'] = sorted(
-                    {header_m_regex.search(x).group(0) for x in model['tokens'] if header_m_regex.search(x)}, 
-                    key=lambda x: int(header_m_regex.search(x).group(2)*100) + int(header_m_regex.search(x).group(1))
-                                            ) + ['*']
-            model['header_k_tokens'] = sorted(
-                    {header_k_regex.search(x).group(0) for x in model['tokens'] if header_k_regex.search(x)}
-                                            ) + ['*']
             model['default_meter'] = job_spec['default_meter']
             model['default_mode'] = job_spec['default_mode']
             model['default_tempo'] = job_spec['default_tempo']
-            if 'l_freqs' in job_spec:
-                model['l_freqs'] = {header_m_regex.search(k).group(0): {header_l_regex.search(l).group(0): freq for l, freq in v.items()}  for k, v in job_spec['l_freqs'].items()}
-                model['header_m_tokens'] = sorted(
-                    {header_m_regex.search(x).group(0) for x in job_spec['l_freqs'].keys()},
-                    key=lambda x: int(header_m_regex.search(x).group(2)*100) + int(header_m_regex.search(x).group(1))
-                                            ) + ['*']
+            
+            try:
+                l_tokens = job_spec['header_l_tokens']
+            except KeyError:
+                l_tokens = [x for x in model['tokens'] if header_l_regex.search(x)]
+            l_tokens = [header_l_regex.search(x).group(0) for x in l_tokens]
+            model['header_l_tokens'] = sorted(l_tokens) + ['*'] if len(l_tokens) else []
+            
+            try:
+                m_tokens = job_spec['header_m_tokens']
+            except KeyError:
+                m_tokens = [x for x in model['tokens'] if header_m_regex.search(x)]
+            m_tokens = [header_m_regex.search(x).group(0) for x in m_tokens]
+            model['header_m_tokens'] = sorted(m_tokens, key=header_m_sort) + ['*']
+            
+            try:
+                k_tokens = job_spec['header_k_tokens']
+            except KeyError:
+                k_tokens = [x for x in model['tokens'] if header_k_regex.search(x)]
+            k_tokens = [header_k_regex.search(x).group(0) for x in k_tokens]
+            model['header_k_tokens'] = sorted(k_tokens) + ['*']
+            
+            try:
+                model['l_freqs'] = {
+                    header_m_regex.search(k).group(0): {
+                        header_l_regex.search(l).group(0): freq for l, freq in v.items()
+                        } for k, v in job_spec['l_freqs'].items()
+                    }
+            except KeyError:
+                pass
+            
             models[filename] = model
         except:
             logger.warning(f'Error parsing {filename}')

@@ -45,6 +45,7 @@ print('L-for-M Frequences --------')
 print(json.dumps(l_frequencies))
 print()
 
+# L-for-M Frequences --------
 # {"[M:3/4]": {"[L:1/8]": 0.5053128689492326, "[L:1/16]": 0.4887839433293979, "[L:1/4]": 0.0059031877213695395}, "[M:2/4]": {"[L:1/16]": 0.7064220183486238, "[L:1/8]": 0.29357798165137616}, "[M:4/4]": {"[L:1/8]": 0.7560975609756098, "[L:1/16]": 0.24390243902439024}, "[M:2/2]": {"[L:1/8]": 1.0}, "[M:9/8]": {"[L:1/4]": 1.0}}
 
 print('M, K Header Tokens --------')
@@ -53,5 +54,9 @@ print(m_headers.keys())
 print(json.dumps(k_headers))
 print(k_headers.keys())
 print()
+
+# M, K Header Tokens --------
+# {"[M:3/4]": 847, "[M:2/4]": 109, "[M:4/4]": 41, "[M:2/2]": 2, "[M:9/8]": 1}
+# {"[K:DMin]": 138, "[K:GMaj]": 217, "[K:DMaj]": 220, "[K:AMaj]": 90, "[K:EMin]": 11, "[K:CMaj]": 97, "[K:GMin]": 52, "[K:AMin]": 71, "[K:FMaj]": 54, "[K:BMin]": 3, "[K:BbMaj]": 19, "[K:DDor]": 14, "[K:GDor]": 2, "[K:CMin]": 4, "[K:EbMaj]": 1}
 
 import code; code.interact(local=locals())
