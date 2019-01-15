@@ -5,6 +5,18 @@ if (typeof folkrnn == 'undefined') {
     folkrnn = {};
 }
 
+folkrnn.invalidHeaders = function(l, m, k, modelFileName) {
+    "use strict";
+    let invalidTokens = [];
+    if (l && folkrnn.models[modelFileName].header_l_tokens.indexOf(l) == -1)
+        invalidTokens.push(l);
+    if (m && folkrnn.models[modelFileName].header_m_tokens.indexOf(m) == -1)
+        invalidTokens.push(m);
+    if (k && folkrnn.models[modelFileName].header_k_tokens.indexOf(k) == -1)
+        invalidTokens.push(k);    
+    return invalidTokens;
+};
+
 folkrnn.invalidTokens = function(userTokens, modelFileName) {
     "use strict";
     const modelTokens = folkrnn.models[modelFileName].tokens;
@@ -20,6 +32,31 @@ folkrnn.invalidTokens = function(userTokens, modelFileName) {
 
 folkrnn.parseABC = function(abc) {
     "use strict";
+    
+    // HEADER
+    
+    let header = {};
+    let body_start_index = 0;
+    
+    let header_regex = /\[?(L:\d+\/\d+)]?\n\[?(M:\d+\/\d+)\]?\n\[?(K:[A-G][b#]?[A-Za-z]{3})\]?\n/g;
+    let match = header_regex.exec(abc);
+    if (match !== null) {
+        header.l = match[1];
+        header.m = match[2];
+        header.k = match[3];
+        body_start_index = header_regex.lastIndex
+    } else {
+        header_regex = /\[?(M:\d+\/\d+)\]?\n\[?(K:[A-G][b#]?[A-Za-z]{3})\]?\n/g;
+        match = header_regex.exec(abc);
+        if (match !== null) {
+           header.m = match[1];
+           header.k = match[2];
+           body_start_index = header_regex.lastIndex
+        }   
+    } 
+    
+    // BODY
+    
     // Javascript port of Bob Sturm's original python script that was used to generate the training dataset.
     // Extended to return invalid ABC
     // Extended to handle wildcard token
@@ -42,7 +79,7 @@ folkrnn.parseABC = function(abc) {
     let flag_expectingnote=0;
     let flag_innote=0;
     let flag_indur=0;
-    for (let i = 0; i < abc.length; i++) {
+    for (let i = body_start_index; i < abc.length; i++) {
         const c = abc[i];
 
         if (ignoreSet.has(c))
@@ -174,5 +211,5 @@ folkrnn.parseABC = function(abc) {
     tokensSpaced = tokensSpaced.replace(/-:\|/g, '- :|'); //sed 's/-:|/- :|/g'    
     result = tokensSpaced.split(' ');
 
-    return {'tokens': result, 'invalidIndexes': invalidIndexes};
+    return {'header': header, 'tokens': result, 'invalidIndexes': invalidIndexes};
 };

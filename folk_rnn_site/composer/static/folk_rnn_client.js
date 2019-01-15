@@ -7,20 +7,10 @@ if (typeof folkrnn == 'undefined')
 folkrnn.initialise = function() {
     "use strict";
     
-    // Some models are trained on a corpus with a L header before the M.
-    // We can't satisfactorily wildcard this it relates to the M input chosen in UI, but comes before.
-    // Exposing this choice in the UI also has issues, as poor outputs can easily be generated without experience with the corpus
-    // If no parameter is submitted to the server, it will generate a value in a manner akin to the RNN.
-    // So by default we disable this in the UI, here, but the mechanism is still in here as
-    // a) the work has been done
-    // b) with a quick tweak through browser dev tools, this allows a power-user to manually specify L if desired.
-    folkrnn.enable_l_parameter = false
-    
     folkrnn.fieldModel = document.getElementById("id_model");
     folkrnn.fieldTemp = document.getElementById("id_temp");
     folkrnn.fieldSeed = document.getElementById("id_seed");
     folkrnn.fieldKey = document.getElementById("id_key");
-    folkrnn.fieldUnitNoteLength = document.getElementById("id_unitnotelength");
     folkrnn.fieldMeter = document.getElementById("id_meter");
     folkrnn.fieldStartABC = document.getElementById("id_start_abc");
     folkrnn.seedAutoButton = document.getElementById("seed_auto");
@@ -289,19 +279,19 @@ folkrnn.generateRequest = function () {
     valid = valid && folkrnn.fieldModel.reportValidity();
     valid = valid && folkrnn.fieldTemp.reportValidity();
     valid = valid && folkrnn.fieldSeed.reportValidity();
-    if (folkrnn.enable_l_parameter) valid = valid && folkrnn.fieldUnitNoteLength.reportValidity();
     valid = valid && folkrnn.fieldKey.reportValidity();
     valid = valid && folkrnn.fieldMeter.reportValidity();
     valid = valid && folkrnn.fieldStartABC.reportValidity();
     if (valid) {
+        const parsedStartABC = folkrnn.parseABC(folkrnn.fieldStartABC.value)
         const formData = {};
         formData.model = folkrnn.fieldModel.value;
         formData.temp = folkrnn.fieldTemp.value;
         formData.seed = folkrnn.fieldSeed.value;
-        if (folkrnn.enable_l_parameter) formData.unitnotelength = folkrnn.fieldUnitNoteLength.value;
-        formData.key = folkrnn.fieldKey.value;
-        formData.meter = folkrnn.fieldMeter.value;
-        formData.start_abc = folkrnn.parseABC(folkrnn.fieldStartABC.value).tokens.join(' ');
+        formData.unitnotelength = parsedStartABC.header.l || ''
+        formData.meter = parsedStartABC.header.m || folkrnn.fieldMeter.value;
+        formData.key = parsedStartABC.header.k || folkrnn.fieldKey.value;
+        formData.start_abc = parsedStartABC.tokens.join(' ');
         
         folkrnn.websocketSend({
                     'command': 'compose',
@@ -337,11 +327,31 @@ folkrnn.validateStartABC = function() {
         folkrnn.fieldStartABC.setCustomValidity('Invalid: ' + markedUpABC);
     } 
 
+    const invalidHeaders = folkrnn.invalidHeaders(abcParsed.header.l, abcParsed.header.m, abcParsed.header.k, folkrnn.fieldModel.value);
+    if (invalidHeaders.length == 0) {
+        if (abcParsed.header.m) {
+            folkrnn.utilities.setSelectByValue(folkrnn.fieldMeter, abcParsed.header.m);
+            folkrnn.fieldMeter.setAttribute('disabled', '');
+        } else {
+            folkrnn.fieldMeter.removeAttribute('disabled');
+        }
+        if (abcParsed.header.k) {
+            folkrnn.utilities.setSelectByValue(folkrnn.fieldKey, abcParsed.header.k);
+            folkrnn.fieldKey.setAttribute('disabled', '');
+        } else {
+            folkrnn.fieldKey.removeAttribute('disabled');
+        }
+    } else {
+        folkrnn.fieldMeter.removeAttribute('disabled');
+        folkrnn.fieldKey.removeAttribute('disabled');
+    }
+    
     const invalidTokens = folkrnn.invalidTokens(abcParsed.tokens, folkrnn.fieldModel.value);
-    if (invalidTokens.length == 1 ) {
-        folkrnn.fieldStartABC.setCustomValidity('Invalid token: ' + invalidTokens[0]);
-    } else if (invalidTokens.length > 1 ) {
-        folkrnn.fieldStartABC.setCustomValidity('Invalid tokens: ' + invalidTokens.join(', '));
+    const allInvalidTokens = invalidHeaders.concat(invalidTokens)
+    if (allInvalidTokens.length == 1 ) {
+        folkrnn.fieldStartABC.setCustomValidity('Invalid token: ' + allInvalidTokens[0]);
+    } else if (allInvalidTokens.length > 1 ) {
+        folkrnn.fieldStartABC.setCustomValidity('Invalid tokens: ' + allInvalidTokens.join(', '));
     } 
 };
 
@@ -351,33 +361,11 @@ folkrnn.updateKeyMeter = function() {
     // If the meter, mode tokens in new model are the same as the old, don't do anything.
     // Else update key, meter options per new model's vocabset and defaults.
     
-    const l_values_old = Array.from(folkrnn.fieldUnitNoteLength.childNodes).map(x => x.value);
-    const l_values_new = folkrnn.models[folkrnn.fieldModel.value].header_l_tokens;
     const m_values_old = Array.from(folkrnn.fieldMeter.childNodes).map(x => x.value);
     const m_values_new = folkrnn.models[folkrnn.fieldModel.value].header_m_tokens;
     const k_values_old = Array.from(folkrnn.fieldKey.childNodes).map(x => x.value);
     const k_values_new = folkrnn.models[folkrnn.fieldModel.value].header_k_tokens;
-    
-    // Unit note length is now part of the generation process.
-    if (folkrnn.enable_l_parameter) {
-        if (l_values_new.length > 1) {
-               folkrnn.fieldUnitNoteLength.parentNode.removeAttribute('hidden');
-           } else {
-               folkrnn.fieldUnitNoteLength.parentNode.setAttribute('hidden', '');
-           }
-           if (!folkrnn.utilities.isEqual(l_values_old, l_values_new)) {
-               while (folkrnn.fieldUnitNoteLength.lastChild) {
-                   folkrnn.fieldUnitNoteLength.removeChild(folkrnn.fieldUnitNoteLength.lastChild);
-               }
-               for (const l of l_values_new) {
-                   const label = (l === '*') ? '?/?' : l.slice(2);
-                   folkrnn.fieldUnitNoteLength.appendChild(new Option(label, l));
-               }
-               const l_default = 'L:1/8';
-               folkrnn.utilities.setSelectByValue(folkrnn.fieldUnitNoteLength, l_default, '');
-           }   
-    }
-    
+        
     if (!folkrnn.utilities.isEqual(m_values_old, m_values_new)) {
         while (folkrnn.fieldMeter.lastChild) {
             folkrnn.fieldMeter.removeChild(folkrnn.fieldMeter.lastChild);

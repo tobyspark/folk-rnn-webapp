@@ -218,9 +218,10 @@ class ComposerConsumer(JsonWebsocketConsumer):
                 tune.meter = form.cleaned_data['meter']
                 tune.key = form.cleaned_data['key']
                 tune.unitnotelength = form.cleaned_data['unitnotelength']
-                if tune.unitnotelength == '':
-                    tune.unitnotelength = l_for_m_header(tune.meter, tune.rnn_model_name)
                 tune.start_abc = form.cleaned_data['start_abc']
+                # generate appropriate L header if none specfifed by compose UI
+                if tune.unitnotelength == '':
+                    tune.unitnotelength = l_for_m_header(tune.meter, tune.seed, tune.rnn_model_name)
                 tune.save()
                 
                 self.log_use(f"Compose command. Tune {tune.id} created.")
