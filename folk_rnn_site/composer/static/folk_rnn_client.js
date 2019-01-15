@@ -207,6 +207,8 @@ folkrnn.tuneManager = {
     },
     'enableABCJS': function (tune_id) {
         "use strict";
+        const el_tempo_input = document.getElementById('tempo_input-' + tune_id)
+        const tempo = parseInt(el_tempo_input.value)
         folkrnn.tuneManager.tunes[tune_id].abcjs = new ABCJS.Editor("abc-" + tune_id, { 
             canvas_id: "notation-" + tune_id,
             generate_midi: true,
@@ -224,6 +226,7 @@ folkrnn.tuneManager = {
                     listener: folkrnn.tuneManager._enableABCJS_animateCallback, 
                     target: "notation-" + tune_id, 
                 },
+                qpm: tempo,
             }
         });
         
