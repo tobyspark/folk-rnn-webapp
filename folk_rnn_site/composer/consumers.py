@@ -8,7 +8,7 @@ from channels.exceptions import StopConsumer
 from channels.generic.websocket import JsonWebsocketConsumer
 from asgiref.sync import async_to_sync
 
-from composer.rnn_models import folk_rnn_cached, l_for_m_header, extract_headers_from_start_abc
+from composer.rnn_models import folk_rnn_cached, l_for_m_header
 from composer import ABC2ABC_PATH, TUNE_PATH, FOLKRNN_TUNE_TITLE
 from composer.models import RNNTune, Session
 from composer.forms import ComposeForm
@@ -219,14 +219,6 @@ class ComposerConsumer(JsonWebsocketConsumer):
                 tune.key = form.cleaned_data['key']
                 tune.unitnotelength = form.cleaned_data['unitnotelength']
                 tune.start_abc = form.cleaned_data['start_abc']
-                # override drop-down values for headers found in start ABC
-                l, m, k, body = extract_headers_from_start_abc(tune.start_abc)
-                if l:
-                    tune.unitnotelength = l
-                if m:
-                    tune.meter = m
-                if k:
-                    tune.key = k
                 # generate appropriate L header if none specfifed by compose UI
                 if tune.unitnotelength == '':
                     tune.unitnotelength = l_for_m_header(tune.meter, tune.seed, tune.rnn_model_name)

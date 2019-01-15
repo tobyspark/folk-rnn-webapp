@@ -105,40 +105,16 @@ def l_for_m_header(m_token, seed, model_file_name):
                 )[0]
     else:
         return ''
-        
-def extract_headers_from_start_abc(start_abc):
-    tokens = start_abc.split(' ', maxsplit=3)
-    try:
-        tokens = start_abc.split(' ', maxsplit=3)
-        return (
-            header_l_regex.search(tokens[0]).group(0),
-            header_m_regex.search(tokens[1]).group(0),
-            header_k_regex.search(tokens[2]).group(0),
-            tokens[3]
-        )
-    except AttributeError:
-        pass
-    try:
-        tokens = start_abc.split(' ', maxsplit=2)
-        return (
-            None,
-            header_m_regex.search(tokens[0]).group(0),
-            header_k_regex.search(tokens[1]).group(0),
-            tokens[2]       
-        )
-    except AttributeError:
-        pass
-    return (None, None, None, start_abc)
 
 def validate_tokens(tokens, model_file_name):
     return set(tokens).issubset(models()[model_file_name]['tokens'])
 
 def validate_unitnotelength(token, model_file_name):
     tokens = models()[model_file_name]['header_l_tokens']
-    if token == '' and len(tokens) == 0:
         return True
     # Info fields can form the header or be in-line, a model will have one or the other.
     if token in tokens:
+    if token == '':
         return True
     return f'[{token}]' in tokens
 
