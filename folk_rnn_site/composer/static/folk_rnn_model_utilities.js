@@ -37,23 +37,32 @@ folkrnn.parseABC = function(abc) {
     
     let header = {};
     let body_start_index = 0;
-    
-    let header_regex = /\[?(L:\d+\/\d+)]?\n\[?(M:\d+\/\d+)\]?\n\[?(K:[A-G][b#]?[A-Za-z]{3})\]?\n?/g;
-    let match = header_regex.exec(abc);
-    if (match !== null) {
-        header.l = match[1];
-        header.m = match[2];
-        header.k = match[3];
-        body_start_index = header_regex.lastIndex
-    } else {
+    parse_header: {
+        let header_regex = /\[?(L:\d+\/\d+)]?\n\[?(M:\d+\/\d+)\]?\n\[?(K:[A-G][b#]?[A-Za-z]{3})\]?\n?/g;
+        let match = header_regex.exec(abc);
+        if (match !== null) {
+            header.l = match[1];
+            header.m = match[2];
+            header.k = match[3];
+            body_start_index = header_regex.lastIndex
+            break parse_header;
+        } 
         header_regex = /\[?(M:\d+\/\d+)\]?\n\[?(K:[A-G][b#]?[A-Za-z]{3})\]?\n?/g;
         match = header_regex.exec(abc);
         if (match !== null) {
            header.m = match[1];
            header.k = match[2];
            body_start_index = header_regex.lastIndex
-        }   
-    } 
+           break parse_header;
+        }
+        header_regex = /\[?(L:\d+\/\d+)]?\n?/g;
+        match = header_regex.exec(abc);
+        if (match !== null) {
+           header.l = match[1];
+           body_start_index = header_regex.lastIndex
+           break parse_header;
+        }
+    }
     
     // BODY
     
