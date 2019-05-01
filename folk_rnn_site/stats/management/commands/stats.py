@@ -446,28 +446,49 @@ def analyse_folkrnn_iterative_composition(sessions):
             return False
         return start_abc in previous_tune
     
-    iterative_candidate_tune_id_pairs = []
+    candidate_tune_id_sequences = []
     for session, info in sessions.items():
-        last_tune_id = None
+        candidate_tune_id_sequences.append([])
         for entry in info:
+            # new sequence within session
+            if entry == 'Generation parameters reset':
+                candidate_tune_id_sequences.append([])
+                continue
+            
+            # new sequence within session set from an archive tune
+            try:
+                if entry.startswith('Generation parameters set from archived tune '):
+                    last_tune_id = int(entry.replace('Generation parameters set from archived tune ', ''))
+                    candidate_tune_id_sequences[-1].append(last_tune_id)
+                    continue
+            except:
+                pass
+            
+            # compose entry within sequence
             try:
                 if entry['action'] == 'compose':
                     tune_id = entry['tune']
                     if last_tune_id:
-                        iterative_candidate_tune_id_pairs.append((last_tune_id, tune_id))
-                    last_tune_id = tune_id
+                        candidate_tune_id_sequences[-1].append(tune_id)
+                    continue
             except:
-                pass # entry can be a string, e.g. 'Generation parameters reset'. This was bad design.
+                pass
     
-    for pair in iterative_candidate_tune_id_pairs:
-        previous_tune = RNNTune.objects.get(id=pair[0]).abc
-        start_abc = RNNTune.objects.get(id=pair[1]).start_abc
-        
-        if iterative_composition_test(start_abc, previous_tune):
-            print(f'     tune: {pair[1]}')
-            print(f'start_abc: "{start_abc}"')
-            print(f'       in: {previous_tune}')
-            print()
+    candidate_tune_id_sequences = [x for x in candidate_tune_id_sequences if len(x) > 1]
+    
+    for seq in candidate_tune_id_sequences:
+        print(seq)
+    
+    for seq in candidate_tune_id_sequences:
+        for prev_tune_id, tune_id in zip(seq, seq[1:]):
+            previous_tune = RNNTune.objects.get(id=prev_tune_id).abc
+            start_abc = RNNTune.objects.get(id=tune_id).start_abc
+            
+            if iterative_composition_test(start_abc, previous_tune):
+                print(f'     tune: {tune_id}')
+                print(f'start_abc: "{start_abc}"')
+                print(f'       in: {previous_tune}')
+                print()
 
 if __name__ == '__main__':
     
