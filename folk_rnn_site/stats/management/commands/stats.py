@@ -426,6 +426,49 @@ def analyse_machinefolk(data):
     print(f"{tunebooks} Registered users have selected {tunebook_entries} tunes as being noteworthy enough to add to their tunebooks. {tunebook_entries_settings/tunebook_entries:.0%} of these are actually settings of the tune, rather than the original tune. Per the algorithm used by the home page of themachinefolksession.org to surface ‘interesting’ tunes, “{interesting_tune.title}” is the most, with {interesting_tune.setting__count} settings and {interesting_tune.recording__count} recordings.")
     print(f"Most content-affecting activity has been from the administrators, however. Sturm accounts for {actions_bob/actions_total:.0%} of such activity.")
 
+def analyse_folkrnn_iterative_composition(sessions):
+    '''
+    Is any start_abc an excerpt of the previous tune?
+    '''
+    from composer.models import RNNTune
+    
+    def iterative_composition_test(start_abc, tune_abc):
+        '''
+        Define what passes for an excerpt        
+        '''
+        minimum_excerpt_length = 5 # start_abc is a phrase, e.g. longer than ? notes
+        
+        remove_abc_formatting_table = str.maketrans('', '', ' \n\r')
+        start_abc = start_abc.translate(remove_abc_formatting_table)
+        tune_abc = tune_abc.translate(remove_abc_formatting_table)
+        
+        if len(start_abc) < minimum_excerpt_length:
+            return False
+        return start_abc in previous_tune
+    
+    iterative_candidate_tune_id_pairs = []
+    for session, info in sessions.items():
+        last_tune_id = None
+        for entry in info:
+            try:
+                if entry['action'] == 'compose':
+                    tune_id = entry['tune']
+                    if last_tune_id:
+                        iterative_candidate_tune_id_pairs.append((last_tune_id, tune_id))
+                    last_tune_id = tune_id
+            except:
+                pass # entry can be a string, e.g. 'Generation parameters reset'. This was bad design.
+    
+    for pair in iterative_candidate_tune_id_pairs:
+        previous_tune = RNNTune.objects.get(id=pair[0]).abc
+        start_abc = RNNTune.objects.get(id=pair[1]).start_abc
+        
+        if iterative_composition_test(start_abc, previous_tune):
+            print(f'     tune: {pair[1]}')
+            print(f'start_abc: "{start_abc}"')
+            print(f'       in: {previous_tune}')
+            print()
+
 if __name__ == '__main__':
     
     if sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor < 6):
