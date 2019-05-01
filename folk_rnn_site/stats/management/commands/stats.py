@@ -428,13 +428,14 @@ def analyse_machinefolk(data):
 
 def analyse_folkrnn_iterative_composition(sessions):
     '''
-    Is any start_abc an excerpt of the previous tune?
+    
     '''
     from composer.models import RNNTune
     
-    def iterative_composition_test(start_abc, tune_abc):
+    def start_abc_is_excerpt(start_abc, tune_abc):
         '''
-        Define what passes for an excerpt        
+        Is start_abc an excerpt of the previous tune?
+        This defines what passes for an excerpt, handling quirks like reformatting within the UI
         '''
         minimum_excerpt_length = 5 # start_abc is a phrase, e.g. longer than ? notes
         
@@ -444,22 +445,22 @@ def analyse_folkrnn_iterative_composition(sessions):
         
         if len(start_abc) < minimum_excerpt_length:
             return False
-        return start_abc in previous_tune
+        return start_abc in tune_abc
     
-    candidate_tune_id_sequences = []
+    tune_id_sequences = []
     for session, info in sessions.items():
-        candidate_tune_id_sequences.append([])
+        tune_id_sequences.append([])
         for entry in info:
             # new sequence within session
             if entry == 'Generation parameters reset':
-                candidate_tune_id_sequences.append([])
+                tune_id_sequences.append([])
                 continue
             
             # new sequence within session set from an archive tune
             try:
                 if entry.startswith('Generation parameters set from archived tune '):
                     last_tune_id = int(entry.replace('Generation parameters set from archived tune ', ''))
-                    candidate_tune_id_sequences[-1].append(last_tune_id)
+                    tune_id_sequences[-1].append(last_tune_id)
                     continue
             except:
                 pass
@@ -469,26 +470,44 @@ def analyse_folkrnn_iterative_composition(sessions):
                 if entry['action'] == 'compose':
                     tune_id = entry['tune']
                     if last_tune_id:
-                        candidate_tune_id_sequences[-1].append(tune_id)
+                        tune_id_sequences[-1].append(tune_id)
                     continue
             except:
                 pass
     
-    candidate_tune_id_sequences = [x for x in candidate_tune_id_sequences if len(x) > 1]
+    tune_id_sequences = [x for x in tune_id_sequences if len(x) > 1]
     
-    for seq in candidate_tune_id_sequences:
+    for seq in tune_id_sequences:
         print(seq)
     
-    for seq in candidate_tune_id_sequences:
+    iterative_tunes = {}   
+    for seq in tune_id_sequences:
         for prev_tune_id, tune_id in zip(seq, seq[1:]):
-            previous_tune = RNNTune.objects.get(id=prev_tune_id).abc
-            start_abc = RNNTune.objects.get(id=tune_id).start_abc
+            prev_tune = RNNTune.objects.get(id=prev_tune_id)
+            tune = RNNTune.objects.get(id=tune_id)
             
-            if iterative_composition_test(start_abc, previous_tune):
-                print(f'     tune: {tune_id}')
-                print(f'start_abc: "{start_abc}"')
-                print(f'       in: {previous_tune}')
-                print()
+            info = set()
+            if prev_tune.rnn_model_name != tune.rnn_model_name: info.add('rnn_model_name')
+            if prev_tune.seed == tune.seed: info.add('seed locked') # default is for this to auto-change     
+            if prev_tune.temp != tune.temp: info.add('temp')
+            if prev_tune.key != tune.key: info.add('key')
+            if prev_tune.meter != tune.meter: info.add('meter')
+            if prev_tune.start_abc != tune.start_abc: 
+                if start_abc_is_excerpt(tune.start_abc, prev_tune.abc): 
+                    info.add('start_abc is excerpt')
+                else:
+                    info.add('start_abc')
+            
+            if len(info):
+                iterative_tunes[tune_id] = info
+
+                # print(f'     tune: {tune_id}')
+                # print(f'start_abc: "{start_abc}"')
+                # print(f'       in: {previous_tune}')
+                # print()
+    
+    for tune_id, info in iterative_tunes.items():
+        print(tune_id, info)
 
 if __name__ == '__main__':
     
