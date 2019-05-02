@@ -529,14 +529,14 @@ def analyse_cocomposition(tunes, iterative_tunes, iterative_sequences):
     
     print("Co-composition analysis")
     print()
-    print("Refining the folkrnn.org session data above, we can analyze only those tunes which are in some way a tweak of the one that came before. This iterative process of human-directed tweaks of the machine-generated tunes, demonstrates co-composition using the folkrnn.org system. In numbers –")
-    print(f"Of the {len(tunes)} tunes generated on folkrnn.org, {len(iterative_tunes)} keep the generation parameters from the previous tune, while changing one or more ({len(iterative_tunes)/len(tunes):.0%}).")
-    print(f"This happened in {len(iterative_sequences)} 'iterative' sequences, each averaging {mean(sequence_counts):.0f} generated tunes (mean: {mean(sequence_counts):.2}, stddev: {pstdev(sequence_counts):.2})")
+    print("Refining the folkrnn.org session data above, we can analyze only those tunes which are in some way a tweak of the one that came before. This iterative process of human-directed tweaks of the machine-generated tunes demonstrates co-composition using the folkrnn.org system. In numbers –")
+    print(f"Of the {len(tunes)} tunes generated on folkrnn.org, {len(iterative_tunes)} keep the generation parameters from the previous tune while changing one or more ({len(iterative_tunes)/len(tunes):.0%}).")
+    print(f"This happened within {len(iterative_sequences)} 'iterative' sequences of, on average {mean(sequence_counts):.0f} tune generations (mean: {mean(sequence_counts):.2}, stddev: {pstdev(sequence_counts):.2}).")
     print(f"The frequency of the generate parameters used now becomes:")
     print(format_freq_dict(change_category_freqs))
     print()    
     
-    print(f"One feature now possible to expose is whether the user has identified a salient phrase in the prior tune, and has primed the generation of the new tune with this phrase. This is the strongest metric of co-composition available. This is reported above as 'start_abc is excerpt', tested for phrases comprising five characters or more (e.g. five notes, or fewer with phrasing), and as per other generation metrics reported here, not counting subsequent generations with that metric unchanged. This happened {change_category_counts['start_abc is excerpt']} times; {change_category_freqs['start_abc is excerpt']:.0%}")
+    print(f"One feature now possible to expose is whether the user has identified a salient phrase in the prior tune, and has primed the generation of the new tune with this phrase. This is the strongest metric of co-composition available on folkrnn.org. This is reported above as 'start_abc is excerpt', tested for phrases comprising five characters or more (e.g. five notes, or fewer with phrasing), and as per other generation metrics reported here, not counting subsequent generations with that metric unchanged. This happened {change_category_counts['start_abc is excerpt']} times ({change_category_freqs['start_abc is excerpt']:.0%})")
     print()
     
     tunes_archived = (Tune.objects
@@ -548,7 +548,8 @@ def analyse_cocomposition(tunes, iterative_tunes, iterative_sequences):
     
     salient_tune = tunes_archived.last()
     
-    print(f"Further evidence of human-machine co-composition can be seen on themachinefolksession.org, where {tunes_archived.count()} of the 'iterative' folkrnn.org tunes were archived. Using the tune saliency metric used by the machinefolksession.org homepage, the most noteworthy of these tunes is {salient_tune.title}. This was generated ({salient_tune.rnn_tune.url}) in the key C Dorian, and as archived (https://machinefolksession.org/{salient_tune.get_absolute_url()}) the user has manually added a variation set in the key E Dorian. This shows a limitation of folkrnn.org, that all tunes are generated in a variant of C (a consequence of an optimisation made while training the RNN on the corpus of existing tunes), and shows that the human editing features of themachinefolksession.org have been used by users to work around such a limitation. Also, while not co-composition per-se, that the machine generated tune has some value to the user is also shown by the act of them naming it.")
+    print(f"Further evidence of human-machine co-composition can be seen on themachinefolksession.org, where {tunes_archived.count()} of the 'iterative' folkrnn.org tunes were archived. Using the tune saliency metric used by the machinefolksession.org homepage, the most noteworthy of these tunes is '{salient_tune.title}'. This was generated in the key C Dorian ({salient_tune.rnn_tune.url}), and as archived (https://machinefolksession.org{salient_tune.get_absolute_url()}) the user has manually added a variation set in the key E Dorian. This shows a limitation of folkrnn.org, that all tunes are generated in a variant of C (a consequence of an optimisation made while training the RNN on the corpus of existing tunes), and shows that the human editing features of themachinefolksession.org have been used by users to work around such a limitation. Also, while not co-composition per-se, the act of the user naming the machine generated tune shows it has some value to them.")
+    print()
     
     # rnn_tune_ids_start_excerpt = {k for k, v in iterative_tunes.items() if 'start_abc is excerpt' in v}
     # tunes_start_excerpt_archived = Tune.objects.filter(rnn_tune__in=rnn_tune_ids_start_excerpt)
@@ -578,8 +579,9 @@ def analyse_cocomposition(tunes, iterative_tunes, iterative_sequences):
     # {'seed': '977142'}
     # {'tune': 24808, 'action': 'play'}
     
-    print(f"Direct evidence of the user's intent can be seen in {attribution_tune.title} (https://themachinefolksession.org{attribution_tune.get_absolute_url()}. The user generated tune FOLK RNN TUNE №24807 on a fresh load of folkrnn.org, i.e. default parameters, randomised seed. The user played this tune twice, and then selected the musical phrase 'C2EG ACEG|CGEG FDB,G,' and set this for the start_abc generation parameter. The user generated the next iteration, played it back, and this is what is seen archived on themachinefolksession.org. There, the user writes –")
-    print(attribution)
+    print(f"Direct evidence of the user's intent can be seen in '{attribution_tune.title}' (https://themachinefolksession.org{attribution_tune.get_absolute_url()}). The user generated tune 'FolkRNN Tune №24807' on a fresh load of folkrnn.org, i.e. default parameters, randomised seed. The user played this tune twice, and then selected the musical phrase 'C2EG ACEG|CGEG FDB,G,' and set this for the start_abc generation parameter. The user generated the next iteration, played it back, and archived on themachinefolksession.org with a title of their creation. There, the user writes –")
+    print(f"'{attribution}'")
+    print()
     
 if __name__ == '__main__':
     
