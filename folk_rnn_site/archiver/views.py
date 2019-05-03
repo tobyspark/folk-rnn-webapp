@@ -153,7 +153,7 @@ def tune_page(request, tune_id=None):
         tune_id_int = int(tune_id)
         tune = Tune.objects.get(id=tune_id_int)
     except (TypeError, Tune.DoesNotExist):
-        return redirect('/')
+        return redirect('/tunes')
     
     # Auto-assign logged-in user for just-submitted folk-rnn tune
     default_author = 1

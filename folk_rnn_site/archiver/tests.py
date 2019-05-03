@@ -10,6 +10,8 @@ from composer import FOLKRNN_TUNE_TITLE
 from archiver.models import User, Tune, Setting, TuneComment
 from archiver.dataset import setting_dataset, dataset_as_csv
 
+DISPLAY_ABC = 'M:4/4\nK:Cmaj\nA B C' # mint_abc() but as per abc_display.
+
 @override_settings(DEFAULT_HOST = 'archiver')
 class ArchiverTestCase(TestCase):
     def setUp(self):
@@ -44,16 +46,21 @@ class TunePageTest(ArchiverTestCase):
 
     def test_tune_path_with_no_id_fails_gracefully(self):
         response = self.client.get('/tune/')
-        self.assertEqual(response['location'], '/')
+        self.assertEqual(response['location'], '/tunes')
 
     def test_tune_path_with_invalid_id_fails_gracefully(self):
         response = self.client.get(f'/tune/{Tune.objects.last().id + 1}')
-        self.assertEqual(response['location'], '/')
+        self.assertEqual(response['location'], '/tunes')
 
     def test_tune_page_shows_tune(self):
-        response = self.client.get(f'/tune/{Tune.objects.last().id}')
+        tune_id = Tune.objects.last().id
+        response = self.client.get(f'/tune/{tune_id}')
         self.assertTemplateUsed(response, 'archiver/tune.html')
-        self.assertContains(response, mint_abc())
+        
+        title_html = f'<h1>{ABC_TITLE}</h1>'
+        abc_html = f'<textarea class="abc" id="abc-tune" spellcheck="false" readonly hidden>{ DISPLAY_ABC }\n</textarea>'
+        self.assertContains(response, title_html, html=True)
+        self.assertContains(response, abc_html, html=True)
 
     def test_tune_page_can_save_a_edit_POST_request(self):
         self.post_edit()

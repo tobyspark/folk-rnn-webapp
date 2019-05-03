@@ -53,7 +53,7 @@
     {% endif %}
     </div>
     <div class="section-body">
-        <div id="tune">
+        <div>
             <textarea class="abc" id="abc-tune" spellcheck="false" readonly hidden>{{ tune.abc_display }}</textarea>
             <div id="staff-tune"></div>
             <div id="midi-tune"></div>
@@ -123,7 +123,7 @@
 {% endif %}
     <div class="section">
         <div class="section-meta">
-            <h2>Add a setting</h4>
+            <h2>Add a setting</h2>
             {% if user.is_authenticated %}
             <p class="meta">Set a tempo and title, or edit the ABC directly. A machine generated tune may warrant a more memorable title and the ABC cleaned-up. Or co-create, using the tune as a base.</p>
             <p class="meta">To aid composition, the currently playing note is highlighted in the staff notation, and clicking on notes there will highlight the corresponding ABC (and vice-versa).</p>
