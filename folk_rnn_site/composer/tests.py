@@ -2,9 +2,11 @@ from django.test import TestCase
 from django.utils.timezone import now
 from datetime import timedelta
 from time import sleep
+from tempfile import SpooledTemporaryFile
 
 from folk_rnn_site.tests import ABC_TITLE, ABC_BODY, mint_abc
 from composer.models import RNNTune
+from composer.dataset import rnntune_dataset, dataset_as_csv
 from archiver.models import Tune, User
 
 def folk_rnn_create_tune(seed=123, temp=0.1, start_abc='a b c'):
@@ -66,6 +68,40 @@ class ViewsTest(TestCase):
         response = self.client.post(f'/tune/{RNNTune.objects.last().id}/archive', {'title':'A new title'})
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response['location'], archive_url) # Not a new tune
+
+class DatasetTest(TestCase):
+
+    def test_rnntune_dataset(self):
+        folk_rnn_create_tune()
+        folk_rnn_task_start_mock()
+        folk_rnn_task_end_mock()
+        
+        data = list(rnntune_dataset())
+        self.assertEqual(data[0].rnn_tune_id, RNNTune.objects.last().id)
+        self.assertEqual(data[0].abc, mint_abc())
+        self.assertEqual(data[0].meter, '4/4')
+        self.assertEqual(data[0].key, 'Cmaj')
+        self.assertEqual(data[0].rnn_model, 'thesession_with_repeats.pickle')
+        self.assertEqual(data[0].rnn_temperature, 0.1)
+        self.assertEqual(data[0].rnn_seed, 123)
+        self.assertEqual(data[0].rnn_prime_tokens, 'M:4/4 K:Cmaj a b c')
+
+    def test_dataset_as_csv(self):
+        folk_rnn_create_tune()
+        folk_rnn_task_start_mock()
+        folk_rnn_task_end_mock()
+        
+        csv = f'''rnn_tune_id,abc,meter,key,rnn_model,rnn_temperature,rnn_seed,rnn_prime_tokens\r
+{RNNTune.objects.last().id},"X:0
+T:Test Tune
+M:4/4
+K:Cmaj
+A B C",4/4,Cmaj,thesession_with_repeats.pickle,0.1,123,M:4/4 K:Cmaj a b c\r
+'''
+        with SpooledTemporaryFile(mode='w+') as f:
+            dataset_as_csv(f)
+            f.seek(0)
+            self.assertEqual(csv, f.read())
 
 class RNNTuneModelTest(TestCase):
     
