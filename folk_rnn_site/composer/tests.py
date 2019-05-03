@@ -5,10 +5,10 @@ from time import sleep
 
 from folk_rnn_site.tests import ABC_TITLE, ABC_BODY, mint_abc
 from composer.models import RNNTune
-from archiver.models import Tune
+from archiver.models import Tune, User
 
 def folk_rnn_create_tune(seed=123, temp=0.1, prime_tokens='a b c'):
-    return RNNTune.objects.create(rnn_model_name='with_repeats.pickle', seed=seed, temp=temp, meter='M:4/4', key='K:Cmaj', start_abc=prime_tokens)
+    return RNNTune.objects.create(rnn_model_name='thesession_with_repeats.pickle', seed=seed, temp=temp, meter='M:4/4', key='K:Cmaj', start_abc=prime_tokens)
 
 def folk_rnn_task_start_mock():
     tune = RNNTune.objects.first()
@@ -47,6 +47,10 @@ class ViewsTest(TestCase):
         # Tune div and contents are created dynamically, i.e. no further test here.
         
     def test_tune_page_can_save_a_POST_request(self):
+        # Ensure there is the default archiver user to receive this tune 
+        # (technical debt here, author should have been nullable rather than default to 1)
+        User.objects.create(email='test@test.xyz', first_name='test', last_name='testeroo')
+        
         folk_rnn_create_tune()
         folk_rnn_task_start_mock()
         folk_rnn_task_end_mock()
