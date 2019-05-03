@@ -43,7 +43,7 @@ class ViewsTest(TestCase):
         folk_rnn_task_end_mock()
         
         response = self.client.get(f'/tune/{RNNTune.objects.last().id}')
-        self.assertTemplateUsed(response, 'composer/tune.html')
+        self.assertTemplateUsed(response, 'composer/home.html')
         # Tune div and contents are created dynamically, i.e. no further test here.
         
     def test_tune_page_can_save_a_POST_request(self):
