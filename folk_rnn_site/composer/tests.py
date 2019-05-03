@@ -7,8 +7,8 @@ from folk_rnn_site.tests import ABC_TITLE, ABC_BODY, mint_abc
 from composer.models import RNNTune
 from archiver.models import Tune, User
 
-def folk_rnn_create_tune(seed=123, temp=0.1, prime_tokens='a b c'):
-    return RNNTune.objects.create(rnn_model_name='thesession_with_repeats.pickle', seed=seed, temp=temp, meter='M:4/4', key='K:Cmaj', start_abc=prime_tokens)
+def folk_rnn_create_tune(seed=123, temp=0.1, start_abc='a b c'):
+    return RNNTune.objects.create(rnn_model_name='thesession_with_repeats.pickle', seed=seed, temp=temp, meter='M:4/4', key='K:Cmaj', start_abc=start_abc)
 
 def folk_rnn_task_start_mock():
     tune = RNNTune.objects.first()
@@ -71,21 +71,17 @@ class RNNTuneModelTest(TestCase):
     
     def test_saving_and_retrieving_tunes(self):
         count = RNNTune.objects.count()
-        first_tune = RNNTune()
-        first_tune.start_abc = 'ABC'
-        first_tune.save()
+        first_tune = folk_rnn_create_tune(start_abc='ABC')
         
-        second_tune = RNNTune()
-        second_tune.start_abc = 'DEF'
-        second_tune.save()
+        second_tune = folk_rnn_create_tune(start_abc='DEF')
         
         saved_tunes = RNNTune.objects.all()
         self.assertEqual(saved_tunes.count(), count + 2)
         
         first_saved_tune = saved_tunes[count -1 +1]
         second_saved_tune = saved_tunes[count -1 +2]
-        self.assertEqual(first_saved_tune.prime_tokens, 'ABC')
-        self.assertEqual(second_saved_tune.prime_tokens, 'DEF')
+        self.assertEqual(first_saved_tune.start_abc, 'ABC')
+        self.assertEqual(second_saved_tune.start_abc, 'DEF')
     
     def test_tune_lifecycle(self):
         tune = RNNTune.objects.create()
