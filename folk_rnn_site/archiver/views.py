@@ -66,8 +66,10 @@ def home_page(request):
                                 [x.saliency for x in interesting_tunes], 
                                 k=MAX_RECENT_ITEMS
                                 )
-    else:
+    elif Tune.objects.count() > MAX_RECENT_ITEMS:
         tune_selection = Tune.objects.all()[-MAX_RECENT_ITEMS:]
+    else:
+        tune_selection = Tune.objects.all()
     
     recording = None
     for tune in tune_selection:
