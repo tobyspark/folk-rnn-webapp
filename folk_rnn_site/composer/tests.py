@@ -104,14 +104,8 @@ class RNNTuneModelTest(TestCase):
         self.assertEqual(tune.abc, mint_abc())
         
     def test_property_prime_tokens(self):
-        tune = RNNTune()
-        self.assertEqual(tune.prime_tokens, '')
+        tune = RNNTune(rnn_model_name='thesession_with_repeats.pickle', meter='M:4/4', key='K:Cmaj')
+        self.assertEqual(tune.prime_tokens, 'M:4/4 K:Cmaj')
         
-        tune = RNNTune(meter='', key='', start_abc='a b c')
-        self.assertEqual(tune.prime_tokens, 'a b c')
-
-        tune = RNNTune(meter='M:4/4', key='', start_abc='a b c')
-        self.assertEqual(tune.prime_tokens, 'M:4/4 a b c')
-        
-        tune = RNNTune(meter='M:4/4', key='K:Cmaj', start_abc='a b c')
+        tune = RNNTune(rnn_model_name='thesession_with_repeats.pickle', meter='M:4/4', key='K:Cmaj', start_abc='a b c')
         self.assertEqual(tune.prime_tokens, 'M:4/4 K:Cmaj a b c')     
