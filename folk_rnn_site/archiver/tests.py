@@ -9,7 +9,7 @@ from composer.tests import folk_rnn_create_tune, folk_rnn_task_start_mock, folk_
 from composer import FOLKRNN_TUNE_TITLE
 
 from archiver.models import User, Tune, Setting, TuneComment
-from archiver.dataset import setting_dataset, dataset_as_csv
+from archiver.dataset import tune_dataset, setting_dataset, dataset_as_csv
 
 USER1_NAME = 'Slarty Bartfast'
 USER1_EMAIL = 'slarty@bartfast.xyz'
@@ -146,24 +146,48 @@ class UserActionsTest(ArchiverTestCase):
 class DatasetTest(ArchiverTestCase):
 
     def test_tune_dataset(self):
-        self.post_setting()
-        data = list(setting_dataset())
-        self.assertEqual(data[0].id, Setting.objects.last().id)
-        self.assertEqual(data[0].name, 'Test Tune')
-        self.assertEqual(data[0].abc, mint_abc(body=ABC_BODY*3))
+        tune = Tune.objects.last()
+        data = list(tune_dataset())
+        self.assertEqual(data[0].tune_id, tune.id)
+        self.assertEqual(data[0].setting_id, '')
+        self.assertEqual(data[0].name, f'{ABC_TITLE}')
+        self.assertEqual(data[0].abc, mint_abc(x=tune.id, body=ABC_BODY))
         self.assertEqual(data[0].meter, '4/4')
         self.assertEqual(data[0].key, 'Cmaj')
-        self.assertEqual(data[0].tune_id, Tune.objects.last().id)
+        self.assertEqual(data[0].rnn_model, 'thesession_with_repeats.pickle')
+        self.assertEqual(data[0].rnn_temperature, 0.1)
         self.assertEqual(data[0].rnn_seed, 123)
+        self.assertEqual(data[0].rnn_prime_tokens, 'M:4/4 K:Cmaj a b c')
+    
+    def test_setting_dataset(self):
+        self.create_setting()
+        data = list(setting_dataset())
+        self.assertEqual(data[0].tune_id, Tune.objects.last().id)
+        self.assertEqual(data[0].setting_id, Setting.objects.last().id)
+        self.assertEqual(data[0].name, f'Setting of {ABC_TITLE}')
+        self.assertEqual(data[0].abc, mint_abc(x=1, title=f'Setting of {ABC_TITLE}', body=ABC_BODY*2))
+        self.assertEqual(data[0].meter, '4/4')
+        self.assertEqual(data[0].key, 'Cmaj')
+        self.assertEqual(data[0].rnn_model, 'thesession_with_repeats.pickle')
+        self.assertEqual(data[0].rnn_temperature, 0.1)
+        self.assertEqual(data[0].rnn_seed, 123)
+        self.assertEqual(data[0].rnn_prime_tokens, 'M:4/4 K:Cmaj a b c') 
 
     def test_dataset_as_csv(self):
-        self.post_setting()
-        csv = f'''id,name,abc,meter,key,tune_id,rnn_model,rnn_temperature,rnn_seed,rnn_prime_tokens\r
-{Setting.objects.last().id},Test Tune,"X:0
-T:Test Tune
+        self.create_setting()
+        tune = Tune.objects.last()
+        setting = Setting.objects.last()
+        csv = f'''tune_id,setting_id,name,abc,meter,key,rnn_model,rnn_temperature,rnn_seed,rnn_prime_tokens\r
+{tune.id},,{ABC_TITLE},"X:{tune.id}
+T:{ABC_TITLE}
 M:4/4
 K:Cmaj
-A B CA B CA B C",4/4,Cmaj,{Tune.objects.last().id},test_model.pickle,0.1,123,M:4/4 K:Cmaj a b c\r
+{ABC_BODY}",4/4,Cmaj,thesession_with_repeats.pickle,0.1,123,M:4/4 K:Cmaj a b c\r
+{tune.id},{setting.id},Setting of {ABC_TITLE},"X:1
+T:Setting of {ABC_TITLE}
+M:4/4
+K:Cmaj
+{ABC_BODY*2}",4/4,Cmaj,thesession_with_repeats.pickle,0.1,123,M:4/4 K:Cmaj a b c\r
 '''
         with SpooledTemporaryFile(mode='w+') as f:
             dataset_as_csv(f)
