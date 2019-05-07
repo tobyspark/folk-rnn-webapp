@@ -75,13 +75,28 @@ class TunePageTest(ArchiverTestCase):
                     )
         response = self.client.get(f'/tune/{tune.id}')
         title_html = f'<h2>{setting_title}</h2>'
-        abc_html = f'<textarea class="abc" id="abc-setting-1" hidden>M:4/4\nK:Cmaj\nA B CA B CA B C\n</textarea>'
+        abc_html = '''<textarea class="abc" id="abc-setting-1" hidden>M:4/4
+K:Cmaj
+A B CA B CA B C
+</textarea>'''
         self.assertContains(response, title_html, html=True)
         self.assertContains(response, abc_html, html=True)
 
-    def test_tune_can_save_a_setting_POST_request(self):
-        self.post_setting()
-        self.assertEqual(Setting.objects.count(), 1)
+    def test_tune_page_shows_comment(self):
+        tune = Tune.objects.last()
+        comment_text = 'Test comment'
+        TuneComment.objects.create(
+                                text=comment_text,
+                                author=User.objects.get(id=1),
+                                submitted=now(),
+                                tune=tune,
+                                )
+        response = self.client.get(f'/tune/{tune.id}')
+        comment_html = '''<li>
+<p>Test comment</p>
+<p class="meta"><a href="/member/1">test testeroo</a>, today</p>
+</li>'''
+        self.assertContains(response, comment_html, html=True)
 
     def test_tune_page_does_not_accept_setting_with_default_title(self):
         self.post_setting(tune=mint_abc(title=FOLKRNN_TUNE_TITLE))
