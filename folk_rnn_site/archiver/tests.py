@@ -16,9 +16,10 @@ USER1_EMAIL = 'slarty@bartfast.xyz'
 
 @override_settings(DEFAULT_HOST = 'archiver')
 class ArchiverTestCase(TestCase):
-    def setUp(self):
-        # Archive a tune from the composer app
+    def create_user(self):
         User.objects.create(id=1, email=USER1_NAME, first_name=USER1_NAME.split()[0], last_name=USER1_NAME.split()[1])
+    
+    def create_tune(self):
         folk_rnn_create_tune()
         folk_rnn_task_start_mock()
         Tune.objects.create(
@@ -28,6 +29,31 @@ class ArchiverTestCase(TestCase):
                         check_valid_abc=True,
                         submitted=now(),
                         )
+    
+    def create_setting(self, title=f'Setting of {ABC_TITLE}', body=ABC_BODY*2, tune=None):
+        if tune is None:
+            tune = Tune.objects.last()
+        Setting.objects.create(
+                    abc=mint_abc(title=title, body=body),
+                    tune=tune,
+                    author=User.objects.get(id=1),
+                    check_valid_abc = False,
+                    submitted=now(),
+                    )
+    
+    def create_comment(self, text=f'A comment about {ABC_TITLE}', tune=None):
+        if tune is None:
+            tune = Tune.objects.last()
+        TuneComment.objects.create(
+                                text=text,
+                                author=User.objects.get(id=1),
+                                submitted=now(),
+                                tune=tune,
+                                )
+                                
+    def setUp(self):
+        self.create_user()
+        self.create_tune()
 
 class HomePageTest(ArchiverTestCase):
 
@@ -68,13 +94,8 @@ class TunePageTest(ArchiverTestCase):
         tune = Tune.objects.last()
         setting_title = 'Test Setting'
         setting_body = ABC_BODY*3
-        Setting.objects.create(
-                    abc=mint_abc(title=setting_title, body=setting_body),
-                    tune=tune,
-                    author=User.objects.get(id=1),
-                    check_valid_abc = False,
-                    submitted=now(),
-                    )
+        self.create_setting(title=setting_title, body=setting_body, tune=tune)
+        
         response = self.client.get(f'/tune/{tune.id}')
         title_html = f'<h2>{setting_title}</h2>'
         abc_html = f'<textarea class="abc" id="abc-setting-1" hidden>{ mint_abc(title=setting_title, body=setting_body, variant="display") }\n</textarea>'
@@ -84,12 +105,8 @@ class TunePageTest(ArchiverTestCase):
     def test_tune_page_shows_comment(self):
         tune = Tune.objects.last()
         comment_text = 'Test comment'
-        TuneComment.objects.create(
-                                text=comment_text,
-                                author=User.objects.get(id=1),
-                                submitted=now(),
-                                tune=tune,
-                                )
+        self.create_comment(text=comment_text, tune=tune)
+        
         response = self.client.get(f'/tune/{tune.id}')
         comment_html = f'''<li>
 <p>{comment_text}</p>
