@@ -83,7 +83,7 @@ def home_page(request):
         except:
             recording = None
     
-    if request.user.is_authenticated():
+    if request.user.is_authenticated:
         # insufficient `with_user_activity = False`
         actor_is_user = Q(
             actor_content_type=ContentType.objects.get_for_model(request.user),
@@ -710,7 +710,7 @@ def help_page(request):
         contact_form = ContactForm(request.POST)
         if contact_form.is_valid():
             message = contact_form.cleaned_data['text']
-            if request.user.is_authenticated():
+            if request.user.is_authenticated:
                 from_email = request.user.email
                 from_user_url = request.user.get_absolute_url()
                 message += f"\n\n--\nAuthenticated user: { request.user.get_full_name() }\n{ from_email }\n{ request.META['HTTP_ORIGIN'] }{ from_user_url }"
