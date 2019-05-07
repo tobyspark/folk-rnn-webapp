@@ -2,6 +2,7 @@ from django.test import TestCase, override_settings
 from django.utils.timezone import now
 from datetime import timedelta
 from tempfile import SpooledTemporaryFile
+from unittest import skip
 
 from folk_rnn_site.tests import ABC_TITLE, ABC_BODY, mint_abc, FOLKRNN_OUT
 from composer.tests import folk_rnn_create_tune, folk_rnn_task_start_mock, folk_rnn_task_end_mock
@@ -96,30 +97,28 @@ class TunePageTest(ArchiverTestCase):
 </li>'''
         self.assertContains(response, comment_html, html=True)
 
+@skip('TODO. Existing tests are as per v1 functionality, many further tests still needed...')
+class UserActionsTest(ArchiverTestCase):
+    
+    def test_tune_page_can_save_a_setting_POST_request(self):
+        pass
+    
+    def test_tune_page_does_not_accept_setting_as_per_check_abc(self):
+        pass
+    
     def test_tune_page_does_not_accept_setting_with_default_title(self):
         self.post_setting(tune=mint_abc(title=FOLKRNN_TUNE_TITLE))
         self.assertEqual(Setting.objects.count(), 0)
-
+    
     def test_tune_page_does_not_accept_setting_with_rnn_abc_body(self):
         self.post_setting(tune=mint_abc(body=ABC_BODY))
         self.assertEqual(Setting.objects.count(), 0)
-
+    
     def test_tune_page_does_not_accept_setting_with_same_tune_body(self):
         self.post_setting()
         self.post_setting()
         self.assertEqual(Setting.objects.count(), 1)
-
-    def test_tune_page_shows_setting(self):
-        self.post_setting()
-        response = self.client.get(f'/tune/{Tune.objects.last().id}')
-        self.assertContains(response, mint_abc(body=ABC_BODY*3))
-
-    def test_tune_page_shows_comments(self):
-        self.post_comment()
-        response = self.post_comment()
-        self.assertContains(response, 'My first comment.')
-        self.assertContains(response, 'A. Person')
-
+        
     def test_tune_page_can_save_a_comment_POST_request(self):
         self.post_comment()
         comment = TuneComment.objects.first()
