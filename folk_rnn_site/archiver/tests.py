@@ -62,16 +62,22 @@ class TunePageTest(ArchiverTestCase):
         self.assertContains(response, title_html, html=True)
         self.assertContains(response, abc_html, html=True)
 
-    def test_tune_page_can_save_a_edit_POST_request(self):
-        self.post_edit()
-        tune = Tune.objects.first()
-        self.assertEqual(tune.abc, mint_abc(body=ABC_BODY*2))
-
-    # SKIP WHILE VALIDATION OF USER ABC DISABLED    
-    # def test_tune_page_does_not_save_an_invalid_edit_POST_request(self):
-    #     self.post_edit(tune='A B C')
-    #     tune = Tune.objects.first()
-    #     self.assertEqual(tune.abc, mint_abc())
+    def test_tune_page_shows_setting(self):
+        tune = Tune.objects.last()
+        setting_title = 'Test Setting'
+        setting_body = ABC_BODY*3
+        Setting.objects.create(
+                    abc=mint_abc(title=setting_title, body=setting_body),
+                    tune=tune,
+                    author=User.objects.get(id=1),
+                    check_valid_abc = False,
+                    submitted=now(),
+                    )
+        response = self.client.get(f'/tune/{tune.id}')
+        title_html = f'<h2>{setting_title}</h2>'
+        abc_html = f'<textarea class="abc" id="abc-setting-1" hidden>M:4/4\nK:Cmaj\nA B CA B CA B C\n</textarea>'
+        self.assertContains(response, title_html, html=True)
+        self.assertContains(response, abc_html, html=True)
 
     def test_tune_can_save_a_setting_POST_request(self):
         self.post_setting()
