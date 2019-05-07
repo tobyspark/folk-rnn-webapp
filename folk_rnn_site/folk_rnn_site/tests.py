@@ -23,7 +23,11 @@ ABC_TITLE = 'Test Tune'
 ABC_BODY = 'A B C'
 
 # Note whitespace is stripped in form clean, so this is .strip()'ed
-def mint_abc(x='0', title=ABC_TITLE, body=ABC_BODY):
+def mint_abc(x='0', title=ABC_TITLE, body=ABC_BODY, variant=None):
+    if variant == 'display':
+        return f'''M:4/4
+K:Cmaj
+{body}'''
     return f'''X:{x}
 T:{title}
 M:4/4

@@ -10,13 +10,14 @@ from composer import FOLKRNN_TUNE_TITLE
 from archiver.models import User, Tune, Setting, TuneComment
 from archiver.dataset import setting_dataset, dataset_as_csv
 
-DISPLAY_ABC = 'M:4/4\nK:Cmaj\nA B C' # mint_abc() but as per abc_display.
+USER1_NAME = 'Slarty Bartfast'
+USER1_EMAIL = 'slarty@bartfast.xyz'
 
 @override_settings(DEFAULT_HOST = 'archiver')
 class ArchiverTestCase(TestCase):
     def setUp(self):
         # Archive a tune from the composer app
-        User.objects.create(id=1, email='test@test.xyz', first_name='test', last_name='testeroo')
+        User.objects.create(id=1, email=USER1_NAME, first_name=USER1_NAME.split()[0], last_name=USER1_NAME.split()[1])
         folk_rnn_create_tune()
         folk_rnn_task_start_mock()
         Tune.objects.create(
@@ -58,7 +59,7 @@ class TunePageTest(ArchiverTestCase):
         self.assertTemplateUsed(response, 'archiver/tune.html')
         
         title_html = f'<h1>{ABC_TITLE}</h1>'
-        abc_html = f'<textarea class="abc" id="abc-tune" spellcheck="false" readonly hidden>{ DISPLAY_ABC }\n</textarea>'
+        abc_html = f'<textarea class="abc" id="abc-tune" spellcheck="false" readonly hidden>{ mint_abc(variant="display") }\n</textarea>'
         self.assertContains(response, title_html, html=True)
         self.assertContains(response, abc_html, html=True)
 
@@ -75,10 +76,7 @@ class TunePageTest(ArchiverTestCase):
                     )
         response = self.client.get(f'/tune/{tune.id}')
         title_html = f'<h2>{setting_title}</h2>'
-        abc_html = '''<textarea class="abc" id="abc-setting-1" hidden>M:4/4
-K:Cmaj
-A B CA B CA B C
-</textarea>'''
+        abc_html = f'<textarea class="abc" id="abc-setting-1" hidden>{ mint_abc(title=setting_title, body=setting_body, variant="display") }\n</textarea>'
         self.assertContains(response, title_html, html=True)
         self.assertContains(response, abc_html, html=True)
 
@@ -92,9 +90,9 @@ A B CA B CA B C
                                 tune=tune,
                                 )
         response = self.client.get(f'/tune/{tune.id}')
-        comment_html = '''<li>
-<p>Test comment</p>
-<p class="meta"><a href="/member/1">test testeroo</a>, today</p>
+        comment_html = f'''<li>
+<p>{comment_text}</p>
+<p class="meta"><a href="/member/1">{USER1_NAME}</a>, today</p>
 </li>'''
         self.assertContains(response, comment_html, html=True)
 
