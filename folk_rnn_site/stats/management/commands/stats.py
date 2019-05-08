@@ -6,6 +6,7 @@ import ast
 from datetime import datetime, date, timedelta
 from collections import namedtuple, Counter, defaultdict
 from statistics import mean, pstdev, median
+from itertools import chain
 
 from matplotlib import pyplot
 
@@ -50,9 +51,14 @@ class Command(BaseCommand):
                 print(entry)
             print()
         
+        iterative_tunes, iterative_sequences = iterative_composition_view(sessions)
+        
         analyse_folkrnn(data, tunes, sessions)
         analyse_machinefolk(data)
-        
+        analyse_cocomposition(tunes, iterative_tunes, iterative_sequences)
+
+def format_freq_dict(d):
+    return ', '.join(sorted(f'{k}: {v:.2}' for k, v in d.items()))
 
 def ingest_file(log_filepath, start_date=datetime(year=2018, month=5, day=19)):
     '''
@@ -318,6 +324,91 @@ def session_view(data):
             sessions[datum.session].append(datum.info)
     return sessions
 
+def iterative_composition_view(sessions):
+    '''
+    Produce an iterative composition view of the data
+    e.g. which tunes are a tweak (of the parameters) of the prior tune, and how?
+    Return info for each tune, e.g.
+        25203: {'key'}
+        25204: {'key', 'meter', 'rnn_model_name'}
+        25205: {'seed locked'}
+        25206: {'start_abc is excerpt'}
+        25207: {'meter'}
+        25208: {'key', 'rnn_model_name', 'start_abc is excerpt'}
+    '''
+    from composer.models import RNNTune
+
+    def start_abc_is_excerpt(start_abc, tune_abc):
+        '''
+        Is start_abc an excerpt of the previous tune?
+        This defines what passes for an excerpt, handling quirks like ABC reformatting within the UI
+        '''
+        minimum_excerpt_length = 5 # start_abc is a phrase, e.g. longer than ? notes
+
+        remove_abc_formatting_table = str.maketrans('', '', ' \n\r')
+        start_abc = start_abc.translate(remove_abc_formatting_table)
+        tune_abc = tune_abc.translate(remove_abc_formatting_table)
+
+        if len(start_abc) < minimum_excerpt_length:
+            return False
+        return start_abc in tune_abc
+
+    # Comparison of parameters is going to be pair-wise, through sequential tunes within each session
+    # So first assemble a list of each tune sequence
+    tune_id_sequences = []
+    for session, info in sessions.items():
+        tune_id_sequences.append([])
+        for entry in info:
+            # new sequence within session
+            if entry == 'Generation parameters reset':
+                tune_id_sequences.append([])
+                continue
+
+            # new sequence within session set from an archive tune
+            try:
+                if entry.startswith('Generation parameters set from archived tune '):
+                    last_tune_id = int(entry.replace('Generation parameters set from archived tune ', ''))
+                    tune_id_sequences[-1].append(last_tune_id)
+                    continue
+            except:
+                pass
+
+            # compose entry within sequence
+            try:
+                if entry['action'] == 'compose':
+                    tune_id = entry['tune']
+                    if last_tune_id:
+                        tune_id_sequences[-1].append(tune_id)
+                    continue
+            except:
+                pass
+
+    tune_id_sequences = [x for x in tune_id_sequences if len(x) > 1]
+
+    # Next, do the pair-wise comparison, building a set of changed parameters for each tune
+    iterative_tunes = {}   
+    for seq in tune_id_sequences:
+        for prev_tune_id, tune_id in zip(seq, seq[1:]):
+            prev_tune = RNNTune.objects.get(id=prev_tune_id)
+            tune = RNNTune.objects.get(id=tune_id)
+
+            info = set()
+            if prev_tune.rnn_model_name != tune.rnn_model_name: info.add('model')
+            if prev_tune.seed == tune.seed: info.add('seed locked') # default is for this to auto-change     
+            if prev_tune.temp != tune.temp: info.add('temp')
+            if prev_tune.key != tune.key: info.add('key')
+            if prev_tune.meter != tune.meter: info.add('meter')
+            if prev_tune.start_abc != tune.start_abc: 
+                if start_abc_is_excerpt(tune.start_abc, prev_tune.abc): 
+                    info.add('start_abc is excerpt')
+                else:
+                    info.add('start_abc')
+
+            if info:
+                iterative_tunes[tune_id] = info
+
+    return iterative_tunes, tune_id_sequences
+
 def analyse_folkrnn(data, tunes, sessions):
     '''
     We are interested in seeing:
@@ -327,9 +418,6 @@ def analyse_folkrnn(data, tunes, sessions):
     - Is there a correlation between download and tweaking parameters, as in, Is the probability of download greater if the user tweaked the parameters. (Some users appear to have downloaded two or more times without generating anything new.)
     - Of the tunes downloaded, are there any common characteristics, like most of the tunes are in 6/8, Cmaj? 
     '''
-    
-    def format_dict(d):
-        return ', '.join([f'{k}: {v:.2}' for k, v in d.items()])
     
     duration = data[-1].date - data[0].date
     session_tunes = {k: [info['tune'] for info in v if isinstance(info, dict) and info.get('action') == 'compose'] for k, v in sessions.items()}
@@ -344,19 +432,19 @@ def analyse_folkrnn(data, tunes, sessions):
     print("A session is more-or-less the use of a unique browser, tracked over time. However the number of sessions with no tunes generated may have little value, as some sessions reported as distinct were identifiably not, and not all visits to the site may have been made in good faith (e.g. bots). Our best approximation of good-faith users are then joining sessions that are identifiably continuations of previous ones, and then discounting any that did not generate a tune.")
     print(f"Our best approximation of good-faith users generated on average mean: {mean(generating_session_tune_counts.values()):.2} standard deviation: {pstdev(generating_session_tune_counts.values()):.2}.")
     print("For each tune generated, the frequency of the following generate parameters being used was:")
-    print(format_dict({k: mean([k in tune for tune in tunes.values()]) for k in generate_keys}))
+    print(format_freq_dict({k: mean([k in tune for tune in tunes.values()]) for k in generate_keys}))
     print("For each tune generated, the frequency of it being played, downloaded or archived was:")
-    print(format_dict({k: mean([k in tune for tune in tunes.values()]) for k in export_keys}))
+    print(format_freq_dict({k: mean([k in tune for tune in tunes.values()]) for k in export_keys}))
     print("If the tune had no changes to the generate parameters, the frequency of it being played, downloaded or archived was:")
     no_changes = {k: mean([k in tune for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) == set()]) for k in export_keys}
     no_changes.update({'all': mean([set(export_keys).intersection(tune.keys()) != set() for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) == set()])})
-    print(format_dict(no_changes))
+    print(format_freq_dict(no_changes))
     print("Whereas if the tune did have changes to the generate parameters, the frequency of it being played, downloaded or archived was:")
     changes = {k: mean([k in tune for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) != set()]) for k in export_keys}
     changes.update({'all': mean([set(export_keys).intersection(tune.keys()) != set() for tune in tunes.values() if set(tune.keys()).intersection(generate_keys) != set()])})
-    print(format_dict(changes))
+    print(format_freq_dict(changes))
     print()
-    
+        
     print("Usage over time –")
     start_date = data[0].date
     bin_period = timedelta(days=1)
@@ -397,6 +485,7 @@ def analyse_folkrnn(data, tunes, sessions):
     n = n[2] # analyse tunes generated
     noted_week_proportion = (n[swedish_week] + n[german_week]) / sum(n) # 55% in early Jan 2019 !
     print(f"Usage data over time shows three features. Overall use for the first {split_week} weeks was similar, with a median of {median(n[:split_week])} tunes generated each week. In the subsequent {len(n) - split_week} weeks to the time of writing, overall use increased, with a median of {median(n[split_week:])} tunes generated each week. This period also features usage spikes. One week, correlating to an interview in Swedish media, shows {n[swedish_week] / median(n[split_week:]):.1f}x the median tunes generated. The largest, correlating to a mention in German media, shows an {n[german_week] / median(n[split_week:]):.1f}x increase.")
+    print()
 
 def analyse_machinefolk(data):
     from archiver.models import Tune, Setting, Recording, Event, User, Collection, CollectionEntry
@@ -425,7 +514,75 @@ def analyse_machinefolk(data):
     print(f"Of the {tunes_total} contributed tunes, {tunes_folkrnn} were generated on, and archived from, folkrnn.org. Of these entirely machine-generated tunes, {tunes_folkrnn_settings} have had human edits contributed; themachinefolksession.org currently hosts {settings_folkrnn} settings of folkrnn generated tunes in total.")
     print(f"{tunebooks} Registered users have selected {tunebook_entries} tunes as being noteworthy enough to add to their tunebooks. {tunebook_entries_settings/tunebook_entries:.0%} of these are actually settings of the tune, rather than the original tune. Per the algorithm used by the home page of themachinefolksession.org to surface ‘interesting’ tunes, “{interesting_tune.title}” is the most, with {interesting_tune.setting__count} settings and {interesting_tune.recording__count} recordings.")
     print(f"Most content-affecting activity has been from the administrators, however. Sturm accounts for {actions_bob/actions_total:.0%} of such activity.")
+    print()
 
+def analyse_cocomposition(tunes, iterative_tunes, iterative_sequences):
+    from archiver.models import Tune, Setting
+    from django.db.models import Count
+    
+    sequence_counts = [len(x) for x in iterative_sequences]
+    sequence_count_distribution = sorted(Counter(sequence_counts))
+    
+    change_tunes_count = len(iterative_tunes)
+    change_category_counts = Counter(chain(*iterative_tunes.values()))
+    change_category_freqs = {k: v/change_tunes_count for k, v in change_category_counts.items()}
+    
+    print("Co-composition analysis")
+    print()
+    print("Refining the folkrnn.org session data above, we can analyze only those tunes which are in some way a tweak of the one that came before. This iterative process of human-directed tweaks of the machine-generated tunes demonstrates co-composition using the folkrnn.org system. In numbers –")
+    print(f"Of the {len(tunes)} tunes generated on folkrnn.org, {len(iterative_tunes)} keep the generation parameters from the previous tune while changing one or more ({len(iterative_tunes)/len(tunes):.0%}).")
+    print(f"This happened within {len(iterative_sequences)} 'iterative' sequences of, on average {mean(sequence_counts):.0f} tune generations (mean: {mean(sequence_counts):.2}, stddev: {pstdev(sequence_counts):.2}).")
+    print(f"The frequency of the generate parameters used now becomes:")
+    print(format_freq_dict(change_category_freqs))
+    print()    
+    
+    print(f"One feature now possible to expose is whether the user has identified a salient phrase in the prior tune, and has primed the generation of the new tune with this phrase. This is the strongest metric of co-composition available on folkrnn.org. This is reported above as 'start_abc is excerpt', tested for phrases comprising five characters or more (e.g. five notes, or fewer with phrasing), and as per other generation metrics reported here, not counting subsequent generations with that metric unchanged. This happened {change_category_counts['start_abc is excerpt']} times ({change_category_freqs['start_abc is excerpt']:.0%})")
+    print()
+    
+    tunes_archived = (Tune.objects
+                            .filter(rnn_tune__in=iterative_tunes.keys())
+                            .annotate_counts()
+                            .annotate_saliency()
+                            .order_by('saliency')
+                            )
+    
+    salient_tune = tunes_archived.last()
+    
+    print(f"Further evidence of human-machine co-composition can be seen on themachinefolksession.org, where {tunes_archived.count()} of the 'iterative' folkrnn.org tunes were archived. Using the tune saliency metric used by the machinefolksession.org homepage, the most noteworthy of these tunes is '{salient_tune.title}'. This was generated in the key C Dorian ({salient_tune.rnn_tune.url}), and as archived (https://machinefolksession.org{salient_tune.get_absolute_url()}) the user has manually added a variation set in the key E Dorian. This shows a limitation of folkrnn.org, that all tunes are generated in a variant of C (a consequence of an optimisation made while training the RNN on the corpus of existing tunes), and shows that the human editing features of themachinefolksession.org have been used by users to work around such a limitation. Also, while not co-composition per-se, the act of the user naming the machine generated tune shows it has some value to them.")
+    print()
+    
+    # rnn_tune_ids_start_excerpt = {k for k, v in iterative_tunes.items() if 'start_abc is excerpt' in v}
+    # tunes_start_excerpt_archived = Tune.objects.filter(rnn_tune__in=rnn_tune_ids_start_excerpt)
+    # 
+    # print(f"Candidate tunes with start_abc excerpt")
+    # for tune in tunes_start_excerpt_archived:
+    #     print(tune.get_absolute_url())
+    #     print(f"Settings:     {tune.setting_set.count()}")
+    #     print(f"Author:       {tune.author}")
+    #     print(f"Attributions: {tune.tuneattribution_set.count()}")
+    
+    # /tune/587
+    # Settings:     1
+    # Author:       Mike Ray (id:443)
+    # Attributions: 1
+    
+    attribution_tune = Tune.objects.get(id=587)
+    attribution = attribution_tune.tuneattribution_set.first().text
+    # 'Generated from a pleasant 2 measure section of a random sequence, I liked this particularly because of the first 4 bars and then the jump to the 10th interval key center(?) in the second section. Also my first contribution!'    
+    
+    # Session 19701 ----------
+    # {'tune': 24807, 'action': 'compose'}
+    # {'tune': 24807, 'action': 'play'}
+    # {'tune': 24807, 'action': 'play'}
+    # {'start_abc': 'C2EG ACEG|CGEG FDB,G,'}
+    # {'tune': 24808, 'action': 'compose'}
+    # {'seed': '977142'}
+    # {'tune': 24808, 'action': 'play'}
+    
+    print(f"Direct evidence of the user's intent can be seen in '{attribution_tune.title}' (https://themachinefolksession.org{attribution_tune.get_absolute_url()}). The user generated tune 'FolkRNN Tune №24807' on a fresh load of folkrnn.org, i.e. default parameters, randomised seed. The user played this tune twice, and then selected the musical phrase 'C2EG ACEG|CGEG FDB,G,' and set this for the start_abc generation parameter. The user generated the next iteration, played it back, and archived on themachinefolksession.org with a title of their creation. There, the user writes –")
+    print(f"'{attribution}'")
+    print()
+    
 if __name__ == '__main__':
     
     if sys.version_info.major < 3 or (sys.version_info.major == 3 and sys.version_info.minor < 6):
