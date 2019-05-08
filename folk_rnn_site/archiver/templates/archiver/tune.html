@@ -53,7 +53,7 @@
     {% endif %}
     </div>
     <div class="section-body">
-        <div id="tune">
+        <div>
             <textarea class="abc" id="abc-tune" spellcheck="false" readonly hidden>{{ tune.abc_display }}</textarea>
             <div id="staff-tune"></div>
             <div id="midi-tune"></div>
@@ -98,7 +98,7 @@
     <div id="setting-{{ forloop.counter }}" class="section">
         <div class="section-meta">
             <h2>{{ setting.title }}</h2>
-            <p class="meta"><a href="{{ setting.get_absolute_url }}">Setting {{ setting.header_x|apnumber }}</a></br>
+            <p class="meta"><a href="{{ setting.get_absolute_url }}">Setting {{ setting.header_x|apnumber }}</a><br>
             Added by <a href="{{ setting.author.get_absolute_url }}">{{ setting.author.get_full_name }},</a><br>
             {{ setting.submitted | naturalday | capfirst }}</p>
             <p class="meta">View: <input id="abc-setting-{{ forloop.counter }}-checkbox" type="checkbox"><label for="abc-setting-{{ forloop.counter }}-checkbox">ABC</label> | <input id="staff-setting-{{ forloop.counter }}-checkbox" type="checkbox" checked><label for="staff-setting-{{ forloop.counter }}-checkbox">Staff</label></p>
@@ -123,7 +123,7 @@
 {% endif %}
     <div class="section">
         <div class="section-meta">
-            <h2>Add a setting</h4>
+            <h2>Add a setting</h2>
             {% if user.is_authenticated %}
             <p class="meta">Set a tempo and title, or edit the ABC directly. A machine generated tune may warrant a more memorable title and the ABC cleaned-up. Or co-create, using the tune as a base.</p>
             <p class="meta">To aid composition, the currently playing note is highlighted in the staff notation, and clicking on notes there will highlight the corresponding ABC (and vice-versa).</p>

@@ -49,7 +49,7 @@ apt-get install --yes nginx
 pip3.6 install "django<1.12"
 pip3.6 install "django-hosts"
 pip3.6 install "django-widget-tweaks"
-pip3.6 install "channels==2.1.3" # 2.1.4 removes the javascript bridge (so much for semantic versioning...)
+pip3.6 install "channels" # >= 2.1.4 requires websocketbridge.js from 2.1.3 and earlier in composer/static
 pip3.6 install "channels_redis"
 pip3.6 install "pytest-django" "pytest-asyncio"
 pip3.6 install psycopg2-binary

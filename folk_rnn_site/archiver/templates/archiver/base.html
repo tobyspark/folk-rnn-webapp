@@ -1,4 +1,5 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,7 +30,7 @@
                 </div>
                 {{ context }}
                 <div class="sub-menu">
-                       {% if user.is_authenticated %}<a href="{{ user.get_absolute_url }}">{{ user.get_short_name }}</a>{% else %}community{% endif %}: {% if user.is_authenticated %}<a href="{% url 'logout' %}">log out</a>{% else %}<a href="{% url 'login' %}?next={{ request.path }}">log in</a> or <a href="{% url 'django_registration_register' %}">sign up</a>{% endif %}</a>; <a href="/submit">submit a tune</a>; <a href="/tune-of-the-month">tune of the month</a>. <a href="{% url 'help' %}">Help</a>
+                       {% if user.is_authenticated %}<a href="{{ user.get_absolute_url }}">{{ user.get_short_name }}</a>{% else %}community{% endif %}: {% if user.is_authenticated %}<a href="{% url 'logout' %}">log out</a>{% else %}<a href="{% url 'login' %}?next={{ request.path }}">log in</a> or <a href="{% url 'django_registration_register' %}">sign up</a>{% endif %}; <a href="/submit">submit a tune</a>; <a href="/tune-of-the-month">tune of the month</a>. <a href="{% url 'help' %}">Help</a>
                 </div>
                 <p class="beta">In beta! Launching soon!</p>
             </div>
@@ -42,7 +43,7 @@
                         <h2>About</h2>
                     </div>
                     <div class="section-body">
-                        <p> The Machine Folk Session is a project funded by the <a href="http://www.ahrc.ac.uk/" target="_blank">UK Arts and Humanities Research Council</a>, grant no. <a href="http://gtr.rcuk.ac.uk/projects?ref=AH%2FR004706%2F1" target="_blank">AH/R004706/1: "Engaging three user communities with applications and outcomes of computational music creativity"<a/>. See also: <a href="http://folkrnn.org">folk-rnn</a>, where you can generate folk tunes with a recurrent neural network.</p>
+                        <p> The Machine Folk Session is a project funded by the <a href="http://www.ahrc.ac.uk/" target="_blank">UK Arts and Humanities Research Council</a>, grant no. <a href="http://gtr.rcuk.ac.uk/projects?ref=AH%2FR004706%2F1" target="_blank">AH/R004706/1: "Engaging three user communities with applications and outcomes of computational music creativity"</a>. See also: <a href="http://folkrnn.org">folk-rnn</a>, where you can generate folk tunes with a recurrent neural network.</p>
                         <p>Web applications by <a href="http://tobyz.net">Toby Harris</a>. Please report any issues <a href="https://github.com/tobyspark/folk-rnn-webapp/issues">here</a>.</p>
                     </div>
                 </div>
