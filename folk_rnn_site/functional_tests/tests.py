@@ -48,7 +48,7 @@ class FolkRNNLiveServerTestCase(ChannelsLiveServerTestCase):
             options = webdriver.ChromeOptions();
             options.add_argument("headless");
             options.add_argument('window-size=1024x768')
-            cls.browser = webdriver.Chrome(chrome_options=options)
+            cls.browser = webdriver.Chrome(options=options)
             cls.browser_wait = webdriver.support.wait.WebDriverWait(cls.browser, 5)
         except:
             super().tearDownClass()
