@@ -177,27 +177,36 @@ div .abcjs-inline-midi {
     background-color: unset;
 }
 
-.midi-box-container {
-    display:flex;
+.input-container {
+    display: flex;
+    flex-wrap: wrap;
 }
 
-.midi-box-player {
-    flex-grow: 1;
+.input-contained-fill {
+    flex: 1 0 auto;
 }
 
-.midi-box-tempo {
+.input-contained-fixed-tempo {
     flex: 0 0 4em;
 }
 
-.midi-box-tempo input[type=number] {
+.input-contained-single-button {
+    flex: 0 0 100%;
+}
+
+.input-contained-one-button-of-two {
+    flex: 0 0 50%;
+}
+
+.input-contained-one-button-of-two:last-of-type {
+    padding-left: 0.3em;
+}
+
+.input-contained-fixed-tempo input[type=number] {
     color: white;
     background-color: #424242;
     box-shadow: none;
     border: none;
-}
-
-.midi-box-download {
-    flex: 0 0 9em;    
 }
 
 .bpm-valign {
@@ -205,7 +214,7 @@ div .abcjs-inline-midi {
 }
 
 .bpm-valign-tempo {
-    margin-top: -0.5em;
+    margin-top: -0.45em;
 }
 
 .splash-overlay img {
@@ -264,8 +273,22 @@ div .abcjs-inline-midi {
         border-bottom: none;
     }
     
+    .input-contained-single-button {
+        flex: 0 0 9em;
+        padding: 0 0 0 0.3em;
+    }
+
+    .input-contained-one-button-of-two {
+        flex: 0 0 9em;
+        padding: 0 0 0 0.3em;   
+    }
+    
+    .bpm-valign-tempo {
+        margin-top: -0.5em;
+    }
+    
     .splash-overlay img {
-        position: fixed;
+        bottom: unset;
         top: 10px;
     }
     
