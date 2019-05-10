@@ -198,7 +198,7 @@ window.addEventListener("load", function() {
         {% endif %}
         <p class="meta">{% if recording.votes == 0 %}No votes.{% else %}{{ recording.votes|apnumber|capfirst }} vote{{ recording.votes|pluralize }}.{% endif %}</p>
     </div>
-    <div class="section-body">
+    <div class="section-body video-responsive">
         {% video recording.video is_secure=True as my_video %}
           {% video my_video%}
         {% endvideo %}
@@ -219,7 +219,7 @@ window.addEventListener("load", function() {
         {% endif %}
         {% endfor %}
     </div>
-    <div class="section-body">
+    <div class="section-body video-responsive">
         {% video recording_won.video is_secure=True as my_video %}
           {% video my_video%}
         {% endvideo %}
@@ -239,9 +239,11 @@ window.addEventListener("load", function() {
     <div class="section-body">
     {% for recording in recordings %}
     {% if not recording == recording_won %}
+        <div class="video-responsive">
         {% video competition.recording_won.video is_secure=True as my_video %}
           {% video my_video%}
         {% endvideo %}
+        </div>
     {% endif %}
     {% endfor %}
     </div>

@@ -28,6 +28,7 @@ textarea.abc {
     width: 100%;
     text-align: center;
     border-width: 0 0 0 0;
+    padding-bottom: 1em;
 }
 
 .logo {
@@ -88,6 +89,7 @@ textarea.abc {
     text-transform: uppercase;
     letter-spacing: 0.2em;
     width: 33%;
+    overflow: hidden;
 }
 
 .main-menu a {
@@ -330,4 +332,75 @@ h1, h2, h3 {
     z-index: 1;
     width:150px;
     transform: rotate(15deg);
+}
+
+.video-responsive {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+
+.video-responsive::before {
+  display: block;
+  content: "";
+  padding-top: 56.25%; /* aspect-ratio of video, e.g. 16:9 -> 9/16=56% */
+}
+
+.video-responsive iframe {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+@media (max-width: 44em) {
+    .header {
+        padding-bottom: 0;
+    }
+    
+    .logo .thesession {
+        display: block;
+    }
+    
+    .main-menu {
+        padding: 0;
+    }
+    
+    .main-menu:before {
+        left: 0;
+        width: 100%;
+    }
+    
+    .main .section {
+        padding-top: 1em;
+        display: block;
+    }
+    
+    .main .section {
+        border-top: dotted 1px;
+    }
+    
+    .main .section-meta {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .main .section-body {
+        display: block;
+        position: relative;
+        width: 100%;
+        min-height: 2em;
+        border-left: none;
+        padding-left: 2%;
+        margin-bottom: 1em;
+    }
+    
+    .splash-overlay img {
+        top: unset;
+        bottom: 10px;
+    }
 }
