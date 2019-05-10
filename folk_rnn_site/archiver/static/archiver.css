@@ -347,7 +347,7 @@ h1, h2, h3 {
     position:absolute;
 }
 
-@media (max-width: 48em) {
+@media (max-width: 44em) {
     .logo .thesession {
         display: block;
     }
