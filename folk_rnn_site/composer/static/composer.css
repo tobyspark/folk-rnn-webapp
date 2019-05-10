@@ -222,6 +222,20 @@ div .abcjs-inline-midi {
     margin-left:25%;
 }
 
+.video-responsive {
+    overflow:hidden;
+    padding-bottom:97.46%; /* aspect-ratio of video, e.g. 16:9 -> 9/16=56% */
+    position:relative;
+    height:0;
+}
+.video-responsive iframe {
+    left:0;
+    top:0;
+    height:100%;
+    width:100%;
+    position:absolute;
+}
+
 @media (min-width: 48em) {
     .content {
         padding: 2em 3em 0;
