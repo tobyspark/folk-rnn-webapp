@@ -331,3 +331,10 @@ h1, h2, h3 {
     width:150px;
     transform: rotate(15deg);
 }
+
+@media (max-width: 48em) {
+    .splash-overlay img {
+        top: unset;
+        bottom: 10px;
+    }
+}
