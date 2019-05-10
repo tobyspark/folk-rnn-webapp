@@ -69,9 +69,12 @@ select {
 }
 
 .header {
-    text-align: center;
+    text-align: left;
     top: auto;
-    margin: 3em auto;
+}
+
+.header h1, .header p {
+    text-align: center;
 }
 
 .header a {
@@ -94,7 +97,9 @@ select {
 }
 
 .sidebar {
-    border-right: 1px black dotted;
+    margin: auto 1em;
+    border-right: none;
+    border-bottom: 1px black dotted;
 }
 
 #generate fieldset {
@@ -205,15 +210,11 @@ div .abcjs-inline-midi {
 
 .splash-overlay img {
     position: fixed;
-    top: 10px;
+    bottom: 10px;
     right: 10px;
     z-index: 1;
     width:150px;
     transform: rotate(15deg);
-}
-
-.drop-header-for-splash {
-    margin-top: 80px;
 }
 
 .splash-title {
@@ -235,10 +236,26 @@ div .abcjs-inline-midi {
         margin: 80% 2em 0;
         text-align: right;
     }
+    
+    .header h1, .header p {
+        text-align: right;
+    }
 
     .sidebar {
         position: fixed;
         top: 0;
         bottom: 0;
+        margin: 0;
+        border-right: 1px black dotted;
+        border-bottom: none;
+    }
+    
+    .splash-overlay img {
+        position: fixed;
+        top: 10px;
+    }
+    
+    .drop-header-for-splash {
+        margin-top: 80px;
     }
 }
