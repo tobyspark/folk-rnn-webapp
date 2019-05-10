@@ -10,7 +10,7 @@
         <p><a href="{{ action.action_object.get_absolute_url }}">{{ action.action_object.text }}</a></p>
     {% elif action.action_object_content_type.name == 'recording' %}
         {% if content_preview %}
-        <p>{% video action.action_object.video is_secure=True as my_video %}
+        <p class="video-responsive">{% video action.action_object.video is_secure=True as my_video %}
           {% video my_video%}
         {% endvideo %}</p>
         {% else %}

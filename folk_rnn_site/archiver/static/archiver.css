@@ -333,6 +333,20 @@ h1, h2, h3 {
     transform: rotate(15deg);
 }
 
+.video-responsive {
+    overflow:hidden;
+    padding-bottom:56.25%; /* aspect-ratio of video, e.g. 16:9 -> 9/16=56% */
+    position:relative;
+    height:0;
+}
+.video-responsive iframe {
+    left:0;
+    top:0;
+    height:100%;
+    width:100%;
+    position:absolute;
+}
+
 @media (max-width: 48em) {
     .logo .thesession {
         display: block;

@@ -21,7 +21,7 @@
         </ul>    
         <p class="meta">Added by <a href="{{ recording.author.get_absolute_url }}">{{ recording.author.get_full_name }}</a></p> 
     </div>
-    <div class="section-body">
+    <div class="section-body video-responsive">
         {% video recording.video is_secure=True as my_video %}
           {% video my_video%}
           <p class="meta"><a href="{{ recording.video }}">View on {{ my_video.backend | cut:"Backend" }}</a></p>
