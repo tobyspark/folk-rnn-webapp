@@ -342,6 +342,36 @@ h1, h2, h3 {
         padding: 0;
     }
     
+    .main-menu:before {
+        left: 0;
+        width: 100%;
+    }
+    
+    .main .section {
+        padding-top: 1em;
+        display: block;
+    }
+    
+    .main .section {
+        border-top: dotted 1px;
+    }
+    
+    .main .section-meta {
+        display: block;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .main .section-body {
+        display: block;
+        position: relative;
+        width: 100%;
+        min-height: 2em;
+        border-left: none;
+        padding-left: 2%;
+        margin-bottom: 1em;
+    }
+    
     .splash-overlay img {
         top: unset;
         bottom: 10px;
