@@ -28,6 +28,7 @@ textarea.abc {
     width: 100%;
     text-align: center;
     border-width: 0 0 0 0;
+    padding-bottom: 1em;
 }
 
 .logo {
@@ -356,6 +357,10 @@ h1, h2, h3 {
 }
 
 @media (max-width: 44em) {
+    .header {
+        padding-bottom: 0;
+    }
+    
     .logo .thesession {
         display: block;
     }
