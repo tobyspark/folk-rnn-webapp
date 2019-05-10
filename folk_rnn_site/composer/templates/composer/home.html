@@ -7,6 +7,7 @@
         <title>Folk RNN – {% block title %}Generate folk tunes with a recurrent neural network{% endblock %}</title>
         
         <link rel="stylesheet" href="/static/pure/pure-min.css">
+        <link rel="stylesheet" href="/static/pure/grids-responsive-min.css">
         <link rel="stylesheet" href="/static/composer.css">
         {% include "_abcjs-headend.html" %}
         {% block headend %}{% endblock %}
@@ -16,8 +17,10 @@
             <a href="{% url 'competition' %}"><img src="/static/folk_rnn_competition.svg" alt="folk-rnn composition competition"></a>
         </div>
         <div id="layout" class="pure-g">
-            {% include "composer/_compose.html" %}
-            <div class="content pure-u-3-4">
+            <div class="sidebar pure-u-1 pure-u-md-1-4">
+                {% include "composer/_compose.html" %}
+            </div>
+            <div class="content pure-u-1 pure-u-md-3-4">
                 {% include "composer/_header.html" %}
                 {% include "composer/_tune.html" %}
                 {% include "composer/_footer.html" %}
