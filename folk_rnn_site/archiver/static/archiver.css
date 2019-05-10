@@ -88,6 +88,7 @@ textarea.abc {
     text-transform: uppercase;
     letter-spacing: 0.2em;
     width: 33%;
+    overflow: hidden;
 }
 
 .main-menu a {
@@ -333,6 +334,14 @@ h1, h2, h3 {
 }
 
 @media (max-width: 48em) {
+    .logo .thesession {
+        display: block;
+    }
+    
+    .main-menu {
+        padding: 0;
+    }
+    
     .splash-overlay img {
         top: unset;
         bottom: 10px;
