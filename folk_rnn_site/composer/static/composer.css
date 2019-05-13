@@ -233,7 +233,7 @@ div .abcjs-inline-midi {
 
 .video-responsive {
     overflow:hidden;
-    padding-bottom:97.46%; /* aspect-ratio of video, e.g. 16:9 -> 9/16=56% */
+    padding-bottom:84.68%; /* aspect-ratio of video, e.g. 16:9 -> 9/16=56% */
     position:relative;
     height:0;
 }
