@@ -13,6 +13,15 @@ metadata_paths = [
         ('/folk_rnn/metadata/config5-worepeats-20160311-134539.pkl', 'thesession_without_repeats', 'thesession.org (w/o :| |:)', '4/4', 'Cmaj', 120),
         ('/folk_rnn/metadata/lstm_dropout-9_nov_folkwiki-20181112-195023_epoch89.pkl', 'swedish', 'folkwiki.se', '3/4', 'DMin', 105),
         # ('/folk_rnn/metadata/config5_resume-allabcworepeats_parsed_Tallis_trimmed1000-20171228-191847_epoch39.pkl', 'without_repeats_tallis'),
+        ('/folk_rnn/metadata/config5_dodec-allabcwrepeats_parsed_wot-20161223-162339_epoch101.pkl', 'thesession_with_repeats_101', 'thesession.org (12tone–101)', '4/4', 'Cmaj', 120),
+        ('/folk_rnn/metadata/config5_dodec-allabcwrepeats_parsed_wot-20161223-162339_epoch105.pkl', 'thesession_with_repeats_105', 'thesession.org (12tone–105)', '4/4', 'Cmaj', 120),
+        ('/folk_rnn/metadata/config5_dodec-allabcwrepeats_parsed_wot-20161223-162339_epoch110.pkl', 'thesession_with_repeats_110', 'thesession.org (12tone–110)', '4/4', 'Cmaj', 120),
+        ('/folk_rnn/metadata/config5_dodec-allabcwrepeats_parsed_wot-20161223-162339_epoch115.pkl', 'thesession_with_repeats_115', 'thesession.org (12tone–115)', '4/4', 'Cmaj', 120),
+        ('/folk_rnn/metadata/config5_dodec-allabcwrepeats_parsed_wot-20161223-162339_epoch120.pkl', 'thesession_with_repeats_120', 'thesession.org (12tone–120)', '4/4', 'Cmaj', 120),
+        ('/folk_rnn/metadata/config5_dodec-allabcwrepeats_parsed_wot-20161223-162339_epoch125.pkl', 'thesession_with_repeats_125', 'thesession.org (12tone–125)', '4/4', 'Cmaj', 120),
+        ('/folk_rnn/metadata/config5_dodec-allabcwrepeats_parsed_wot-20161223-162339_epoch130.pkl', 'thesession_with_repeats_130', 'thesession.org (12tone–130)', '4/4', 'Cmaj', 120),
+        ('/folk_rnn/metadata/config5_dodec-allabcwrepeats_parsed_wot-20161223-162339_epoch135.pkl', 'thesession_with_repeats_135', 'thesession.org (12tone–135)', '4/4', 'Cmaj', 120),
+        ('/folk_rnn/metadata/config5_dodec-allabcwrepeats_parsed_wot-20161223-162339_epoch140.pkl', 'thesession_with_repeats_140', 'thesession.org (12tone–140)', '4/4', 'Cmaj', 120),
         ]
 
 # The swedish corpus has unit note length (L:) headers as the first token, before meter. 
