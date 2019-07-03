@@ -7,6 +7,7 @@ from django.utils.timezone import now
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.core.exceptions import ValidationError
 from django.urls import reverse
+from django_hosts import reverse_host
 from embed_video.fields import EmbedVideoField
 from random import shuffle
 from datetime import timedelta
@@ -114,7 +115,7 @@ class Tune(ABCModel):
         """"
         Return abc with attribution information fields
         """
-        url = self.get_absolute_url()
+        url = f"https://{ reverse_host('archiver') }{ self.get_absolute_url() }"
         abc_model = ABCModel(abc=self.abc)
         abc_model.headers_n = ['{} {}'.format(x.text if x.text else '', x.url if x.url else '') for x in self.tuneattribution_set.all()]
         if self.rnn_tune:
@@ -257,7 +258,7 @@ class Setting(ABCModel):
         """
         Return abc with attribution information fields
         """
-        url = self.get_absolute_url()
+        url = f"https://{ reverse_host('archiver') }{ self.get_absolute_url() }"
         abc_model = ABCModel(abc=self.abc)
         if self.tune.rnn_tune:
             model = self.tune.rnn_tune.rnn_model_name.replace('.pickle', '')
