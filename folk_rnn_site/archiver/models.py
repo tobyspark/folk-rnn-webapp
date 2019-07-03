@@ -120,7 +120,7 @@ class Tune(ABCModel):
         abc_model.headers_n = ['{} {}'.format(x.text if x.text else '', x.url if x.url else '') for x in self.tuneattribution_set.all()]
         if self.rnn_tune:
             model = self.rnn_tune.rnn_model_name.replace('.pickle', '')
-            abc_model.headers_n += [ f'Generated at https://folkrnn.org using the { model } model with RNN seed = { self.rnn_tune.seed }; temperature = { self.rnn_tune.temp }; prime tokens = { self.rnn_tune.prime_tokens }' ]
+            abc_model.headers_n += [ f"Generated at https://{ reverse_host('composer') } using the { model } model with RNN seed = { self.rnn_tune.seed }; temperature = { self.rnn_tune.temp }; prime tokens = { self.rnn_tune.prime_tokens }" ]
         abc_model.header_f = url
         abc_model.header_s = f'Tune #{self.id} archived at The Machine Folk Session'
         return abc_model.abc
