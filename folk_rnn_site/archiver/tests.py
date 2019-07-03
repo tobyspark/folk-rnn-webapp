@@ -115,7 +115,7 @@ class TunePageTest(ArchiverTestCase):
         self.assertContains(response, comment_html, html=True)
 
 @skip('TODO. Existing tests are as per v1 functionality, many further tests still needed...')
-class UserActionsTest(ArchiverTestCase):
+class UserActionsTest___v1(ArchiverTestCase):
     
     def test_tune_page_can_save_a_setting_POST_request(self):
         pass
@@ -142,6 +142,21 @@ class UserActionsTest(ArchiverTestCase):
         self.assertEqual(comment.text, 'My first comment.')
         self.assertEqual(comment.author, 'A. Person')
         self.assertAlmostEqual(comment.submitted, now(), delta=timedelta(seconds=0.1))
+
+class UserActionsTest(ArchiverTestCase):        
+
+    def test_tune_download(self):
+        tune_id = Tune.objects.last().id
+        expected = f"""X:{tune_id}
+T:Test Tune
+S:Tune #{tune_id} archived at The Machine Folk Session
+F:https://themachinefolksession.org/tune/{tune_id}
+N:Generated at https://folkrnn.org using the thesession_with_repeats model with RNN seed = 123; temperature = 0.1; prime tokens = M:4/4 K:Cmaj a b c
+M:4/4
+K:Cmaj
+A B C"""
+        response = self.client.get(f'/tune/{tune_id}/download')
+        self.assertEqual(response.content, expected.encode())
 
 class DatasetTest(ArchiverTestCase):
 
