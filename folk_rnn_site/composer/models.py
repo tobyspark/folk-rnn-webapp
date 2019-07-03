@@ -1,6 +1,6 @@
 from django.db import models
 from folk_rnn_site.models import ABCModel
-from django_hosts.resolvers import reverse
+from django.urls import reverse
 
 from composer.rnn_models import token_for_info_field
 
@@ -20,11 +20,11 @@ class RNNTune(ABCModel):
     
     @property
     def url(self):
-        return reverse('tune', host='composer', kwargs={'tune_id': self.id})
+        return reverse('tune', kwargs={'tune_id': self.id})
 
     @property
     def archive_url(self):
-        return reverse('archive_tune', host='composer', kwargs={'tune_id': self.id})
+        return reverse('archive_tune', kwargs={'tune_id': self.id})
     
     def plain_dict(self):
         return {
